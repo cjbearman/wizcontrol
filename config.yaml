@@ -21,6 +21,7 @@ lights:
   patio_ceiling_1: 192.168.20.165
   patio_ceiling_2: 192.168.20.111
   patio_wall: 192.168.20.168
+  patio_string: 192.168.20.239
   office_stand_light_upper: 192.168.20.13
   office_stand_light_lower: 192.168.20.244
   office_minecraft_lamp: 192.168.20.163
@@ -66,13 +67,13 @@ colors:
   
 # Group lights, N.B. group all is automatically provided
 light_groups:
-  all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
-  outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall]
+  all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
+  outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
   flood_left: [front_flood_ll, front_flood_lr]
   flood_center: [front_flood_cl, front_flood_cr]
   flood_right: [front_flood_rl, front_flood_rr]
   porch: [porch_l, porch_c, porch_r]
-  patio: [patio_ceiling_1, patio_ceiling_2, patio_wall]
+  patio: [patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
   porch_carriage_lights: [ porch_l, porch_r ]
   office_lights: [ office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
   office_ceiling: [ office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
@@ -85,8 +86,6 @@ scenes:
       color: warm_white
     - targets: [ porch_carriage_lights ]
       color: warm_white_50
-    - targets: [ office_lights ]
-      color: green
   overnight:
     - targets:
       - porch_c
@@ -172,7 +171,7 @@ default_scene: default
 calendar:
   - name: halloween
     from: halloween - 10
-    to: halloween + 3
+    to: halloween
     scene: halloween
   - name: easter
     from: good_friday - 5
