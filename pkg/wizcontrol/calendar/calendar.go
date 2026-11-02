@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
 var CalendarDebug = false

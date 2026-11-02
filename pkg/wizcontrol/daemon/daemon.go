@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/cjbearman/framework/pkg/logger"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/operations"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 )
 
 type DaemonMode string

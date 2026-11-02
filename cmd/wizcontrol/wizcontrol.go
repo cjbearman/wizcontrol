@@ -7,16 +7,17 @@ import (
 	"os/signal"
 	"slices"
 	"syscall"
+	"time"
 
 	"github.com/cjbearman/framework/pkg/logger"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/operations"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/server"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
 )
 
 func main() {
@@ -57,6 +58,7 @@ func main() {
 		common.Logger.Errorf("Failed to load config: %v", err)
 		os.Exit(1)
 	}
+	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
 
 	common.Logger.Infof("Operating in location: %v", common.Location)
 

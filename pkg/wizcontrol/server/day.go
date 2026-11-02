@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
 type DayRequest struct {

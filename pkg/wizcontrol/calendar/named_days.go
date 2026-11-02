@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/rickar/cal/v2"
 	"github.com/rickar/cal/v2/aa"
 	"github.com/rickar/cal/v2/us"

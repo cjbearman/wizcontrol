@@ -3,7 +3,7 @@ package calendar
 import (
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 // Because our calendar may includes dates of Feb 9, we calculate day numbers using a leap year to ensure correct day-of-year values.

@@ -1,4 +1,4 @@
-module github.com/cjbearman/wizcontrol2
+module github.com/cjbearman/wizcontrol
 
 go 1.26.0
 

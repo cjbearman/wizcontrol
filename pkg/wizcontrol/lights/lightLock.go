@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 var KickFunc func() // Set by daemon to prevent import loop

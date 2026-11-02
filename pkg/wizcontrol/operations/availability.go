@@ -2,8 +2,8 @@ package operations
 
 import (
 	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 func UpdateAvailability(withStatusUpdatesWhereNeeded bool) {
@@ -19,7 +19,7 @@ func UpdateAvailability(withStatusUpdatesWhereNeeded bool) {
 				if !withStatusUpdatesWhereNeeded {
 					logger.Infof("Device became reachable, no status update requested")
 				} else {
-					logger.Warnf("Device became unreachable")
+					logger.Infof("Device became reachable, updating status")
 					updateStatusOps = append(updateStatusOps, result.Device.GetPilotAsync())
 				}
 				light.SetAvailable(true)

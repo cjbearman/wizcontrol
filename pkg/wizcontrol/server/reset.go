@@ -3,9 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 func (s *ServerInstance) resetHandler(w http.ResponseWriter, r *http.Request) {

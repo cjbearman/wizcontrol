@@ -3,8 +3,8 @@ package scenes
 import (
 	"fmt"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 // CnfScene describes a named lighting scene.

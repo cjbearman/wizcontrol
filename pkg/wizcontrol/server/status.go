@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 type StatusResponse struct {

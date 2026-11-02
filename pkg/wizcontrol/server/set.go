@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 type LightSetRequest struct {

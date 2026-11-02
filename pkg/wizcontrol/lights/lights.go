@@ -7,7 +7,7 @@ import (
 
 	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 type Light struct {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 var ServerPort int
