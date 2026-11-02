@@ -8,6 +8,7 @@ import (
 	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/config"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/operations"
 )
 
 func main() {
@@ -29,5 +30,8 @@ func main() {
 	}
 
 	common.Logger.Infof("Operating in location: %v", common.Location)
+
+	// TEMPO
+	operations.ApplyScenes([]string{"default", "halloween", "pastel"}, true)
 
 }

@@ -4,16 +4,25 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 )
 
-var Lights = make(map[string]*wiz.Device)
-var LightGroups = make(map[string][]*wiz.Device)
+type Light struct {
+	Light     *wiz.Device
+	Logger    logger.Logger
+	Available bool
+	LastColor string
+	On        bool
+}
+
+var Lights = make(map[string]*Light)
+var LightGroups = make(map[string][]*Light)
 
 func AddLight(name, ip string) error {
-	for existingName, existingDevice := range Lights {
-		if existingDevice.IP() == ip {
+	for existingName, existingLight := range Lights {
+		if existingLight.Light.IP() == ip {
 			return fmt.Errorf("light with IP %q already exists as %q", ip, existingName)
 		}
 		if existingName == name {
@@ -28,7 +37,14 @@ func AddLight(name, ip string) error {
 
 	device.SetName(name).WithLogger(common.Logger.GetLogger(fmt.Sprintf("device-%s", name)))
 
-	Lights[name] = device.SetName(name).WithLogger(common.Logger.GetLogger(fmt.Sprintf("device-%s", name)))
+	log := common.Logger.GetLogger(fmt.Sprintf("device-%s", name))
+
+	Lights[name] = &Light{
+		Light:     device.SetName(name).WithLogger(log),
+		LastColor: "",
+		Available: false,
+		Logger:    log,
+	}
 	return nil
 }
 
@@ -42,7 +58,7 @@ func AddLightGroup(name string, members []string) error {
 		return fmt.Errorf("light group %q already exists as a light, all lights and light groups must have distinct names", name)
 	}
 
-	devices := make([]*wiz.Device, 0, len(members))
+	devices := make([]*Light, 0, len(members))
 	for _, member := range members {
 		device, exists := Lights[member]
 		if !exists {
@@ -59,4 +75,14 @@ func IsValidLightOrGroup(name string) bool {
 	_, isLight := Lights[name]
 	_, isGroup := LightGroups[name]
 	return isLight || isGroup
+}
+
+func GetLightOrGroup(name string) ([]*Light, error) {
+	if light, isLight := Lights[name]; isLight {
+		return []*Light{light}, nil
+	}
+	if group, isGroup := LightGroups[name]; isGroup {
+		return group, nil
+	}
+	return nil, fmt.Errorf("no light or group found with name %q", name)
 }
