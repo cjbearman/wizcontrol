@@ -11,7 +11,7 @@ import (
 )
 
 type Light struct {
-	Light                   *wiz.Device
+	Device                  *wiz.Device
 	Locker                  *LightLock
 	Logger                  logger.Logger
 	available               bool
@@ -75,7 +75,7 @@ func (l *Light) SetOn(on bool) {
 
 func AddLight(name, ip string) error {
 	for existingName, existingLight := range Lights {
-		if existingLight.Light.IP() == ip {
+		if existingLight.Device.IP() == ip {
 			return fmt.Errorf("light with IP %q already exists as %q", ip, existingName)
 		}
 		if existingName == name {
@@ -93,7 +93,7 @@ func AddLight(name, ip string) error {
 	log := common.Logger.GetLogger(fmt.Sprintf("device-%s", name))
 
 	Lights[name] = &Light{
-		Light:     device.SetName(name).WithLogger(log),
+		Device:    device.SetName(name).WithLogger(log),
 		lastColor: "",
 		available: false,
 		Logger:    log,

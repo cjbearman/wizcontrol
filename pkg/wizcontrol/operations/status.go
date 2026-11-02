@@ -14,7 +14,7 @@ func UpdateStatusForAllAvailableLights(force bool) {
 	} else {
 		for _, light := range lights.Lights {
 			if light.Available() {
-				targetLights.AddDevice(light.Light)
+				targetLights.AddDevice(light.Device)
 			}
 		}
 	}

@@ -41,7 +41,7 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 				}
 				for _, light := range lights {
 					operationsToDo[light] = tc.ColorName
-					logger.WithField("device", light.Light.Name()).Debugf("Targetted color asserted")
+					logger.WithField("device", light.Device.Name()).Debugf("Targetted color asserted")
 				}
 			}
 		}
@@ -53,12 +53,16 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 
 	for light, colorName := range operationsToDo {
 		color := colors.Colors[colorName] // Already validated as present
-		logger := logger.WithField("device", light.Light.Name())
+		logger := logger.WithField("device", light.Device.Name())
 
 		light.SetLastProgrammedColor(colorName, color)
 
 		if !unconditional {
-			// We are not in unconditional mode, so we skip lights that are unavailable or appear to be correctly set
+			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
+			if light.Locker.IsLocked() {
+				logger.Debugf("Skipping locked light")
+				continue
+			}
 			if !light.Available() {
 				logger.Debugf("Skipping unavailable light")
 				continue
@@ -78,7 +82,7 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 		}
 		settings.On()
 
-		asyncs = append(asyncs, light.Light.SetPilotAsync(settings))
+		asyncs = append(asyncs, light.Device.SetPilotAsync(settings))
 	}
 
 	results := asyncs.AwaitAll()

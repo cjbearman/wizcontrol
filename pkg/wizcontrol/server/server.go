@@ -20,6 +20,7 @@ const (
 	FieldLights       = "lights"
 	FieldDuration     = "duration"
 	FieldColor        = "color"
+	FieldColorName    = "color-name"
 	FieldBrightness   = "brightness"
 )
 
@@ -47,9 +48,9 @@ func NewServer() *ServerInstance {
 
 	mux.HandleFunc("GET /", srv.statusHandler)
 	mux.HandleFunc("POST /day", srv.dayHandler)
-	// mux.HandleFunc("POST /set/{light}", srv.setHandler)
-	// mux.HandleFunc("POST /unlock/{light}", srv.unlockHandler)
-	// mux.HandleFunc("POST /reset", srv.resetHandler)
+	mux.HandleFunc("POST /set/{light}", srv.setHandler)
+	mux.HandleFunc("POST /unlock/{light}", srv.unlockHandler)
+	mux.HandleFunc("POST /reset", srv.resetHandler)
 
 	return srv
 
@@ -59,6 +60,7 @@ func (s *ServerInstance) run() {
 	s.server.ListenAndServe()
 	close(s.Closed)
 }
+
 func (s *ServerInstance) Stop() {
 	logger := common.Logger.GetLogger("server")
 	logger.Info("Stopping server")

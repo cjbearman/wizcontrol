@@ -21,15 +21,15 @@ type LightStatus struct {
 }
 
 func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
-	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "status")
 	nocache(w)
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "status")
 	status := &StatusResponse{Lights: make(map[string]LightStatus)}
 	status.Mode = string(daemon.Daemon.GetMode())
 	status.SceneName = daemon.Daemon.GetActiveSceneNames()
 
 	for _, light := range lights.Lights {
 		programmedColorName, _ := light.GetLastProgrammedColor()
-		status.Lights[light.Light.Name()] = LightStatus{
+		status.Lights[light.Device.Name()] = LightStatus{
 			Color:     programmedColorName,
 			Available: light.Available(),
 		}

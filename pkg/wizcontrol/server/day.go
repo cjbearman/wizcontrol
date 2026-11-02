@@ -17,8 +17,8 @@ type DayRequest struct {
 }
 
 func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
+	nocache(w)
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "set-day-scenes")
-
 	req := &DayRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
@@ -43,9 +43,8 @@ func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
 
 	today := time.Now().In(common.Location)
 	endOfDay := time.Date(today.Year(), today.Month(), today.Day(), 23, 59, 59, 0, common.Location)
-
-	logger.Infof("Setting day scenes to: %s", strings.Join(req.Scenes, ", "))
 	daemon.Daemon.SetAdditionalScenes(req.Scenes, endOfDay)
 	daemon.Daemon.Kick()
+	logger.WithField(FieldScene, strings.Join(req.Scenes, ", ")).Infof("Day scenes set by web request")
 	w.WriteHeader(http.StatusOK)
 }

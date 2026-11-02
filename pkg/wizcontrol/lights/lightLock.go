@@ -31,14 +31,14 @@ func (l *LightLock) LockFor(d time.Duration) {
 	logger.Debugf("Light locked for duration: %v, until %v", d, l.lockedUntil)
 }
 
-func (l *LightLock) UnlockNow() {
+func (l *LightLock) UnlockNow(noKick bool) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.cancelTimer()
 	l.lockedUntil = time.Time{}
 	logger.Debug("Light lock manually unlocked, kicking daemon")
-	if KickFunc != nil {
+	if !noKick && KickFunc != nil {
 		KickFunc()
 	}
 
