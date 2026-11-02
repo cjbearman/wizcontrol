@@ -3,6 +3,7 @@ package lights
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wiz/pkg/wiz"
@@ -12,13 +13,50 @@ import (
 type Light struct {
 	Light     *wiz.Device
 	Logger    logger.Logger
-	Available bool
-	LastColor string
-	On        bool
+	available bool
+	lastColor string
+	on        bool
+	lock      sync.RWMutex
 }
 
 var Lights = make(map[string]*Light)
 var LightGroups = make(map[string][]*Light)
+var AllDevicesGroup *wiz.DeviceGroup = wiz.NewDeviceGroup()
+
+func (l *Light) Available() bool {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.available
+}
+
+func (l *Light) SetAvailable(available bool) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.available = available
+}
+func (l *Light) LastColor() string {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.lastColor
+}
+
+func (l *Light) SetLastColor(color string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.lastColor = color
+}
+
+func (l *Light) On() bool {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.on
+}
+
+func (l *Light) SetOn(on bool) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.on = on
+}
 
 func AddLight(name, ip string) error {
 	for existingName, existingLight := range Lights {
@@ -41,10 +79,11 @@ func AddLight(name, ip string) error {
 
 	Lights[name] = &Light{
 		Light:     device.SetName(name).WithLogger(log),
-		LastColor: "",
-		Available: false,
+		lastColor: "",
+		available: false,
 		Logger:    log,
 	}
+	AllDevicesGroup.AddDevice(device)
 	return nil
 }
 

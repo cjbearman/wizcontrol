@@ -7,8 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
 )
+
+var CalendarDebug = false
 
 type CalendarTime struct {
 	Hour   int
@@ -182,5 +185,55 @@ func dayValid(day int, month time.Month) bool {
 		return day <= 29
 	default:
 		return false
+	}
+}
+
+func GetCalendarScenes() []string {
+	result := []string{}
+
+	// The default scene is always returned as the first element of the active scenes
+	// because it must always be active at lowest priority
+	result = append(result, "default")
+
+	dayNo, now := GetTodayNumber()
+	extCalendarDebugLog("Searching for active calendar scenes for day number %d", dayNo)
+	for calendarName, entry := range CalendarEntries {
+		if dayNo >= entry.FromDay && dayNo <= entry.ToDay {
+			extCalendarDebugLog("Calendar entry %q matches current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
+			// Scene matches the current day, but how about any time period
+
+			nowHour := now.In(common.Location).Hour()
+			nowMinute := now.In(common.Location).Minute()
+
+			compareWith := time.Date(1, 1, 1, nowHour, nowMinute, now.Second(), now.Nanosecond(), common.Location)
+
+			if entry.BeforeTime != nil {
+				compareTo := time.Date(1, 1, 1, entry.BeforeTime.Hour, entry.BeforeTime.Minute, 0, 0, common.Location)
+				if compareWith.After(compareTo) {
+					extCalendarDebugLog("Current time is after the before time for calendar entry %q", calendarName)
+					continue
+				}
+			}
+			if entry.AfterTime != nil {
+				compareTo := time.Date(1, 1, 1, entry.AfterTime.Hour, entry.AfterTime.Minute, 0, 0, common.Location)
+				if compareWith.Before(compareTo) {
+					extCalendarDebugLog("Current time is before the after time for calendar entry %q", calendarName)
+					continue
+				}
+			}
+			extCalendarDebugLog("Calendar entry %q is active for the current time, scene %q will be used", calendarName, entry.SceneName)
+			result = append(result, entry.SceneName)
+		} else {
+			extCalendarDebugLog("Calendar entry %q does not match current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
+		}
+	}
+
+	return result
+
+}
+
+func extCalendarDebugLog(format string, v ...any) {
+	if CalendarDebug {
+		common.Logger.GetLogger("calendar").Debugf(format, v...)
 	}
 }

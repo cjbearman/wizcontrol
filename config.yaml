@@ -2,10 +2,10 @@
 timezone: America/Chicago
 
 # Specify the period for evaluation of the calendar entries
-evaluation_period: 30s
+evaluation_period: 10s
 
 # Specify the period for rechecking currently set light colors
-recheck_period: 5m
+recheck_period: 30s
 
 # Specify the lights and their IP addresses
 lights:
@@ -66,6 +66,7 @@ colors:
   
 # Group lights, N.B. group all is automatically provided
 light_groups:
+  all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
   outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall]
   flood_left: [front_flood_ll, front_flood_lr]
   flood_center: [front_flood_cl, front_flood_cr]
@@ -85,7 +86,7 @@ scenes:
     - targets: [ porch_carriage_lights ]
       color: warm_white_50
     - targets: [ office_lights ]
-      color: daylight
+      color: green
   overnight:
     - targets:
       - porch_c

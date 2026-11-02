@@ -55,13 +55,15 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 		logger := logger.WithField("device", light.Light.Name())
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are unavailable or appear to be correctly set
-			if !light.Available {
+			if !light.Available() {
 				logger.Debugf("Skipping unavailable light")
 				continue
 			}
-			if light.LastColor == color && light.On {
-				logger.Debugf("Skipping light with correct color and state")
+			if light.LastColor() == color && light.On() {
+				logger.Debugf("Light has correct color of %q and is turned on, skipping", color)
 				continue
+			} else {
+				logger.Debugf("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastColor(), color, light.On())
 			}
 		}
 
@@ -82,6 +84,27 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 			logger.Warnf("Set pilot failed")
 		} else {
 			logger.Debugf("Set pilot succeeded")
+
+			// Find the light
+			light, found := lights.Lights[result.Device.Name()]
+			if !found {
+				logger.Errorf("Light not found")
+				continue
+			}
+
+			// Light is definitively on now
+			light.SetOn(true)
+
+			// Retrieve the intended color for this light from the operationsToDo map
+			color, found := operationsToDo[light]
+			if !found {
+				logger.Errorf("Color for light not found")
+				continue
+			}
+
+			// Update light now that we definitively know it's setting
+			light.SetLastColor(color)
+			logger.Debugf("Successful application of color %q", color)
 		}
 	}
 }

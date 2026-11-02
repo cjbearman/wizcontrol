@@ -9,6 +9,8 @@ import (
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
+
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
 	"gopkg.in/yaml.v3"
@@ -69,10 +71,14 @@ func (c *Config) Parse() error {
 
 	// Settings
 	if c.EvaluationPeriod == 0 {
-		c.EvaluationPeriod = DefaultEvaluationPeriod
+		daemon.EvaluationPeriod = DefaultEvaluationPeriod
+	} else {
+		daemon.EvaluationPeriod = c.EvaluationPeriod
 	}
 	if c.RecheckPeriod == 0 {
-		c.RecheckPeriod = DefaultRecheckPeriod
+		daemon.RecheckPeriod = DefaultRecheckPeriod
+	} else {
+		daemon.RecheckPeriod = c.RecheckPeriod
 	}
 	if c.Timezone != "" {
 		loc, err := time.LoadLocation(c.Timezone)
