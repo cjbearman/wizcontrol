@@ -102,6 +102,8 @@ scenes:
       color: purple
     - targets: [ porch_c, patio_wall ]
       color: orange
+    - targets: [ patio_string ]
+      color: Halloween
   paddy:
     - targets: [ outside_lights ]
       color: green
@@ -176,7 +178,7 @@ default_scene: default
 calendar:
   - name: halloween
     from: halloween - 10
-    to: halloween
+    to: halloween + 3
     scene: halloween
   - name: easter
     from: good_friday - 5
