@@ -138,6 +138,9 @@ scenes:
   office_warm:
     - targets: [ office_lights ]
       color: warmish_white
+      from: jan 1
+      to: dec 31
+      after: 7:00 pm
   office_bright:
     - targets: [ office_lights ]
       color: cool_white
