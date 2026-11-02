@@ -14,6 +14,7 @@ import (
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/server"
 )
 
 func main() {
@@ -67,20 +68,28 @@ func runAsDaemon() {
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM)
 
-	// Start the main daemon
+	// Start the main daemon and web server
+	daemon.Daemon = daemon.NewDaemon()
 	daemon.Daemon.Start()
-
+	server.Server = server.NewServer()
+	server.Server.Start()
 	select {
 
 	case <-daemon.Daemon.Stopped():
-		logger.Warn("Daemon has stopped")
+		logger.Warn("Daemon has stopped, stopping server")
+		server.Server.Stop()
 
-	case sig := <-sigch:
-		logger.Warnf("Caught signal %v, stopping daemon", sig)
+	case <-server.Server.Stopped():
+		logger.Warn("Web server has stopped, stopping daemon")
 		daemon.Daemon.Stop()
+	case sig := <-sigch:
+		logger.Warnf("Caught signal %v, stopping daemon and server", sig)
+		daemon.Daemon.Stop()
+		server.Server.Stop()
 	}
 
 	<-daemon.Daemon.Stopped()
+	<-server.Server.Stopped()
 	logger.Info("Runner terminated")
 	os.Exit(0)
 }

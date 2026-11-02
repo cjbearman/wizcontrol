@@ -11,17 +11,31 @@ import (
 )
 
 type Light struct {
-	Light     *wiz.Device
-	Logger    logger.Logger
-	available bool
-	lastColor string
-	on        bool
-	lock      sync.RWMutex
+	Light                   *wiz.Device
+	Logger                  logger.Logger
+	available               bool
+	lastColor               string
+	on                      bool
+	lock                    sync.RWMutex
+	LastProgrammedColorName string
+	LastProgrammedColor     string
 }
 
 var Lights = make(map[string]*Light)
 var LightGroups = make(map[string][]*Light)
 var AllDevicesGroup *wiz.DeviceGroup = wiz.NewDeviceGroup()
+
+func (l *Light) SetLastProgrammedColor(name, color string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.LastProgrammedColorName = name
+	l.LastProgrammedColor = color
+}
+func (l *Light) GetLastProgrammedColor() (string, string) {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.LastProgrammedColorName, l.LastProgrammedColor
+}
 
 func (l *Light) Available() bool {
 	l.lock.RLock()

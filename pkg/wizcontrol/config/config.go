@@ -10,6 +10,7 @@ import (
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/server"
 
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
@@ -22,6 +23,7 @@ type Color = string
 const (
 	DefaultEvaluationPeriod = 30 * time.Second
 	DefaultRecheckPeriod    = 5 * time.Minute
+	DefaultServerPort       = 12120
 )
 
 // Config describes the structure in config.yaml.
@@ -29,6 +31,7 @@ type Config struct {
 	Timezone         string                       `yaml:"timezone"`
 	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
 	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
+	ServerPort       int                          `yaml:"server_port"`
 	Colors           map[string]Color             `yaml:"colors"`
 	Lights           map[string]Light             `yaml:"lights"`
 	LightGroups      map[string][]Light           `yaml:"light_groups"`
@@ -87,6 +90,14 @@ func (c *Config) Parse() error {
 		}
 		common.Location = loc
 	}
+
+	if c.ServerPort == 0 {
+		c.ServerPort = DefaultServerPort
+	}
+	if c.ServerPort < 1 || c.ServerPort > 65535 {
+		return fmt.Errorf("server port %d is out of valid range (1-65535)", c.ServerPort)
+	}
+	server.ServerPort = c.ServerPort
 
 	// Colors
 	for name, color := range c.Colors {

@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	Daemon           = newDaemon()
+	Daemon           *DaemonInstance
 	EvaluationPeriod time.Duration
 	RecheckPeriod    time.Duration
 )
@@ -31,13 +31,14 @@ type DaemonInstance struct {
 	kicker           chan struct{}
 	lastRecheck      time.Time
 	mode             DaemonMode
+	activeSceneNames string
 	lock             sync.Mutex
 	additionalScenes []string
 	additionalUntil  time.Time
 }
 
 // NewDaemon returns a new daemon, not running
-func newDaemon() *DaemonInstance {
+func NewDaemon() *DaemonInstance {
 	d := &DaemonInstance{
 		Runner:          common.NewRunner(),
 		kicker:          make(chan struct{}, 1),
@@ -47,6 +48,12 @@ func newDaemon() *DaemonInstance {
 	}
 	d.Runner.Exec = d.run
 	return d
+}
+
+func (d *DaemonInstance) GetActiveSceneNames() string {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.activeSceneNames
 }
 
 // Kick will send a kick on the kick channel, unless there is already one pending, in which case there's not much point
@@ -136,7 +143,7 @@ func (d *DaemonInstance) run() {
 			d.runIteration(logger)
 		case <-d.Runner.StopSignalled:
 			// Triggered when the runner wants us to stop
-			logger.Info("stopping")
+			logger.Info("Stopped")
 			return
 		}
 	}
@@ -158,7 +165,11 @@ func (d *DaemonInstance) runIteration(logger logger.Logger) {
 	}
 
 	activeScenes := calendar.GetCalendarScenes()
-	logger = logger.WithField("base-scenes", strings.Join(activeScenes, ","))
+	activeSceneNames := strings.Join(activeScenes, ",")
+	d.lock.Lock()
+	d.activeSceneNames = activeSceneNames
+	d.lock.Unlock()
+	logger = logger.WithField("base-scenes", activeSceneNames)
 
 	additionalScenes, _ := d.getAdditionalScenes()
 

@@ -40,7 +40,7 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 					continue
 				}
 				for _, light := range lights {
-					operationsToDo[light] = color
+					operationsToDo[light] = tc.ColorName
 					logger.WithField("device", light.Light.Name()).Debugf("Targetted color asserted")
 				}
 			}
@@ -51,8 +51,12 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
-	for light, color := range operationsToDo {
+	for light, colorName := range operationsToDo {
+		color := colors.Colors[colorName] // Already validated as present
 		logger := logger.WithField("device", light.Light.Name())
+
+		light.SetLastProgrammedColor(colorName, color)
+
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are unavailable or appear to be correctly set
 			if !light.Available() {
