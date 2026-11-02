@@ -1,0 +1,100 @@
+# Specify timezone as IANA style timezone. Required
+timezone: America/Chicago
+
+# Specify the period for evaluation of the calendar entries
+evaluation_period: 30s
+
+# Specify the period for rechecking currently set light colors
+recheck_period: 5m
+
+# Specify the lights and their IP addresses
+lights:
+  front_flood_ll: 192.168.20.202
+  front_flood_lr: 192.168.20.56
+  front_flood_cl: 192.168.20.12
+  front_flood_cr: 192.168.20.2
+  front_flood_rl: 192.168.20.64
+  front_flood_rr: 192.168.20.138
+  porch_l: 192.168.20.196
+  porch_c: 192.168.20.223
+  porch_r: 192.168.20.195
+  patio_ceiling_1: 192.168.20.165
+  patio_ceiling_2: 192.168.20.111
+  patio_wall: 192.168.20.168
+  office_stand_light_upper: 192.168.20.13
+  office_stand_light_lower: 192.168.20.244
+  office_minecraft_lamp: 192.168.20.163
+  office_ceiling_1: 192.168.20.192
+  office_ceiling_2: 192.168.20.251
+  office_ceiling_3: 192.168.20.84
+
+# Valid color specs:
+# Where RR,GG,BB are RGB hex values
+# Where CC, WW are cold and white hex values
+# Where brightness = 10-100
+# Where speed = 20-200
+# #RRGGBB(/brightness)
+# #RRGGBBCCWW(/brightness)
+# #CCWW(/brightness)
+# W<temperature>(/brightness)
+# scene(/brightness(/speed))
+colors:
+  red: "#FF0000"
+  green: "#00FF00"
+  blue: "#0000FF"
+  orange: "#FF8000"
+  purple: "#5800FF"
+  warmest_white: W2200
+  warm_white: W2700
+  warm_white_50: W2700/50
+  warm_white_30: W2700/30
+  warmish_white: W3300
+  daylight: W5800
+  cool_white: W6500
+  pastel_purple: "#B497E7"
+  pastel_blue: "#00FF87"
+  pastel_yellow: "#FFC400"
+  pastel_seafoam: "#00FF13"
+  pastel_green: "#12FF12"
+  pastel_pink: "#FF001A"
+  light_blue: "#1887FF"
+  yellow: "#FFFF00"
+  cyan: "#02FFDD"
+  pinkish: "#FFD8D9"
+  magenta: "#DC00FF"
+  greenish: "#30FF00"
+  
+# Group lights, N.B. group all is automatically provided
+light_groups:
+  outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall]
+  flood_left: [front_flood_ll, front_flood_lr]
+  flood_center: [front_flood_cl, front_flood_cr]
+  flood_right: [front_flood_rl, front_flood_rr]
+  porch: [porch_l, porch_c, porch_r]
+  patio: [patio_ceiling_1, patio_ceiling_2, patio_wall]
+  porch_carriage_lights: [ porch_l, porch_r ]
+  office_lights: [ office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
+  office_ceiling: [ office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
+  office_stand_light: [ office_stand_light_upper, office_stand_light_lower ]
+
+scenes:
+  default:
+    targets:
+      - outside_lights: warm_white
+      - porch_carriage_lights: warm_white_50
+      - office_lights: daylight
+  overnight:
+    targets:
+      - porch_c: warm_white
+      - porch_carriage_lights: warm_white_30
+
+# default_scene must be defined
+default_scene: default
+
+calendar:
+  - from: good_friday - 4
+    to: easter_sunday + 2
+    before: 10am
+    after: 6pm
+    scene: pastel
+  
