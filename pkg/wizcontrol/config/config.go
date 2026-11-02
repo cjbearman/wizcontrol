@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
@@ -23,19 +24,20 @@ const (
 
 // Config describes the structure in config.yaml.
 type Config struct {
-	Timezone         string                     `yaml:"timezone"`
-	EvaluationPeriod time.Duration              `yaml:"evaluation_period"`
-	RecheckPeriod    time.Duration              `yaml:"recheck_period"`
-	Colors           map[string]Color           `yaml:"colors"`
-	Lights           map[string]Light           `yaml:"lights"`
-	LightGroups      map[string][]Light         `yaml:"light_groups"`
-	Scenes           map[string]scenes.CnfScene `yaml:"scenes"`
-	DefaultScene     string                     `yaml:"default_scene"`
-	Calendar         []CalendarEntry            `yaml:"calendar"`
+	Timezone         string                       `yaml:"timezone"`
+	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
+	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
+	Colors           map[string]Color             `yaml:"colors"`
+	Lights           map[string]Light             `yaml:"lights"`
+	LightGroups      map[string][]Light           `yaml:"light_groups"`
+	Scenes           map[string][]scenes.CnfScene `yaml:"scenes"`
+	DefaultScene     string                       `yaml:"default_scene"`
+	Calendar         []CalendarEntry              `yaml:"calendar"`
 }
 
 // CalendarEntry describes when a scene should apply.
 type CalendarEntry struct {
+	Name   string `yaml:"name"`
 	From   string `yaml:"from"`
 	To     string `yaml:"to"`
 	Before string `yaml:"before"`
@@ -129,5 +131,22 @@ func (c *Config) Parse() error {
 		}
 		logger.Debugf("Added scene %q", name)
 	}
+
+	// Calendar entries
+	for _, entry := range c.Calendar {
+		if err := calendar.AddCalendarEntry(entry.Name, entry.From, entry.To, entry.Before, entry.After, entry.Scene); err != nil {
+			return fmt.Errorf("failed to add calendar entry %q: %v", entry.Name, err)
+		}
+		logger.Debugf("Added calendar entry %q", entry.Name)
+	}
+
+	// Enforce default scene
+	if c.DefaultScene == "" {
+		return fmt.Errorf("default scene is not defined")
+	}
+	if _, exists := c.Scenes[c.DefaultScene]; !exists {
+		return fmt.Errorf("default scene %q does not exist", c.DefaultScene)
+	}
+
 	return nil
 }

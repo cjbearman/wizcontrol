@@ -9,52 +9,50 @@ import (
 
 // CnfScene describes a named lighting scene.
 type CnfScene struct {
-	Targets []CnfTarget `yaml:"targets"`
+	Targets   []string `yaml:"targets"`
+	ColorName string   `yaml:"color"`
 }
 
 // CnfTarget is a single target mapping from light/group name to a color name.
 type CnfTarget map[string]string
 
-type TargetAndColor struct {
-	Target    string
+type TargetsAndColor struct {
+	Targets   []string
 	ColorName string
 }
 
-var Scenes = make(map[string][]TargetAndColor)
+var Scenes = make(map[string][]TargetsAndColor)
 
-func AddScene(name string, scene CnfScene) error {
+func AddScene(name string, targets []CnfScene) error {
 	// Scene must be distinct
 	if _, existing := Scenes[name]; existing {
 		return fmt.Errorf("scene %q already exists", name)
 	}
 
-	targetsAndColors := []TargetAndColor{}
+	sc := []TargetsAndColor{}
 
-	for _, target := range scene.Targets {
-		if len(target) != 1 {
-			return fmt.Errorf("all targets in scene %q must have exactly one mapping from light/group to color", name)
-		}
-		var targetName, colorName string
-		for k, v := range target {
-			targetName = k
-			colorName = v
-			break
+	for _, targetGroup := range targets {
+		t := TargetsAndColor{
+			ColorName: targetGroup.ColorName,
 		}
 
-		// Target must be a light or a light group
-		if !lights.IsValidLightOrGroup(targetName) {
-			return fmt.Errorf("target %q in scene %q is not a valid light or light group", targetName, name)
+		if _, exists := colors.Colors[targetGroup.ColorName]; !exists {
+			return fmt.Errorf("scene %q lists invalid color %q", name, targetGroup.ColorName)
 		}
 
-		if _, exists := colors.Colors[colorName]; !exists {
-			return fmt.Errorf("color %q in scene %q is not a valid color", colorName, name)
+		for _, target := range targetGroup.Targets {
+			if !lights.IsValidLightOrGroup(target) {
+				return fmt.Errorf("scene %q lists invalid target %q", name, target)
+			}
+			t.Targets = append(t.Targets, target)
 		}
-		targetsAndColors = append(targetsAndColors, TargetAndColor{
-			Target:    targetName,
-			ColorName: colorName,
+
+		sc = append(sc, TargetsAndColor{
+			Targets:   t.Targets,
+			ColorName: t.ColorName,
 		})
 	}
-	Scenes[name] = targetsAndColors
+	Scenes[name] = sc
 
 	return nil
 }

@@ -79,22 +79,125 @@ light_groups:
 
 scenes:
   default:
-    targets:
-      - outside_lights: warm_white
-      - porch_carriage_lights: warm_white_50
-      - office_lights: daylight
+    - targets:
+      - outside_lights
+      color: warm_white
+    - targets: [ porch_carriage_lights ]
+      color: warm_white_50
+    - targets: [ office_lights ]
+      color: daylight
   overnight:
-    targets:
-      - porch_c: warm_white
-      - porch_carriage_lights: warm_white_30
-
+    - targets:
+      - porch_c
+      color: warm_white
+      brightness: 50
+    - targets:
+      - porch_carriage_lights
+      color: warm_white
+      brightness: 30
+  halloween:
+    - targets: [ outside_lights ]
+      color: purple
+    - targets: [ porch_c, patio_wall ]
+      color: orange
+  paddy:
+    - targets: [ outside_lights ]
+      color: green
+  xmas:
+    - targets: [ outside_lights ]
+      color: red
+    - targets: [ flood_left, flood_center, porch_carriage_lights, patio_wall ]
+      color: green
+  patriotic:
+    - targets: [ outside_lights ]
+      color: warm_white
+    - targets: [ front_flood_ll, front_flood_cl, front_flood_rl, porch_l ]
+      color: blue
+    - targets: [ front_flood_lr, front_flood_cr, front_flood_rr, porch_r ]
+      color: red
+    - targets: [ porch_c ]
+      color: daylight
+  thanksgiving:
+    - targets: [ outside_lights ]
+      color: orange
+  pastel:
+    - targets: [ front_flood_ll ]
+      color: pastel_purple
+    - targets: [ front_flood_lr ]
+      color: pastel_blue
+    - targets: [ front_flood_cl, porch_r ]
+      color: pastel_yellow
+    - targets: [ front_flood_cr, porch_c, patio_wall ]
+      color: pastel_seafoam
+    - targets: [ front_flood_rl, patio_ceiling_1 ]
+      color: pastel_green
+    - targets: [ front_flood_rr, porch_l, patio_ceiling_2 ]
+      color: pastel_pink
+  office_warm:
+    - targets: [ office_lights ]
+      color: warmish_white
+  office_bright:
+    - targets: [ office_lights ]
+      color: cool_white
+  office_daylight:
+    - targets: [ office_lights ]
+      color: daylight
+  office_warmest:
+    - targets: [ office_lights ]
+      color: warmest_white
+  office_dim:
+    - targets: [ office_lights]
+      color: daylight
+      brightness: 40
+  office_yellow:
+    - targets: [ office_lights ]
+      color: yellow
+  office_blueish:
+    - targets: [ office_lights ]
+      color: light_blue
+  office_pinkish:
+    - targets: [ office_lights ]
+      color: pinkish
+  office_cyan:
+    - targets: [ office_lights ]
+      color: cyan
+  office_greenish:
+    - targets: [ office_lights ]
+      color: greenish
+      
 # default_scene must be defined
 default_scene: default
 
 calendar:
-  - from: good_friday - 4
+  - name: halloween
+    from: halloween - 10
+    to: halloween + 3
+    scene: halloween
+  - name: easter
+    from: good_friday - 5
     to: easter_sunday + 2
-    before: 10am
-    after: 6pm
     scene: pastel
-  
+  - name: independence_day
+    from: independence_day - 2
+    to: independence_day + 2
+    scene: patriotic
+  - name: memorial_day
+    from: memorial_day
+    to: memorial_day
+    scene: patriotic
+  - name: presidents_day
+    from: presidents_day
+    to: presidents_day
+    scene: patriotic
+  - name: xmas
+    from: dec 1
+    to: dec 31
+    scene: xmas
+  - name: st_patricks_day
+    from: st_patricks_day
+    to: st_patricks_day
+    scene: paddy
+  - name: thanksgiving
+    from: thanksgiving_day - 3
+    to: thanksgiving_day + 1
+    scene: thanksgiving
