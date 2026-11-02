@@ -32,6 +32,7 @@ func main() {
 	common.Logger.Infof("Operating in location: %v", common.Location)
 
 	// TEMPO
-	operations.ApplyScenes([]string{"default", "halloween", "pastel"}, true)
+	operations.UpdateAvailability(true)
+	operations.ApplyScenes([]string{"default", "halloween", "pastel"}, false)
 
 }
