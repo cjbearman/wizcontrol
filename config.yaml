@@ -103,7 +103,7 @@ scenes:
     - targets: [ porch_c, patio_wall ]
       color: orange
     - targets: [ patio_string ]
-      color: Halloween
+      color: wiz_halloween
   paddy:
     - targets: [ outside_lights ]
       color: green

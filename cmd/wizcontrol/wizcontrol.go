@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 
 	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
@@ -24,8 +26,24 @@ func main() {
 	f := flag.Bool("f", false, "Force apply scene")
 	d := flag.Bool("d", false, "Run as daemon")
 	cd := flag.Bool("cd", false, "Enable calendar debug")
+	presets := flag.Bool("presets", false, "List available preset colors")
 
 	flag.Parse()
+
+	if *presets {
+		// List presets before anything else, because if we load config, we'll get other non-preset colors defined
+		presetsList := []string{}
+		for preset := range colors.Colors {
+			presetsList = append(presetsList, preset)
+		}
+
+		slices.Sort(presetsList)
+
+		for _, preset := range presetsList {
+			fmt.Println(preset)
+		}
+		os.Exit(0)
+	}
 
 	level, err := logger.LevelFromString(*logLevel)
 	if err != nil {

@@ -71,7 +71,7 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 				logger.Debugf("Light has correct color of %q and is turned on, skipping", color)
 				continue
 			} else {
-				logger.Debugf("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastColor(), color, light.On())
+				logger.Infof("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastColor(), color, light.On())
 			}
 		}
 
