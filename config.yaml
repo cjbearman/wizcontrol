@@ -2,10 +2,10 @@
 timezone: America/Chicago
 
 # Specify the period for evaluation of the calendar entries
-evaluation_period: 5s
+evaluation_period: 30s
 
 # Specify the period for rechecking currently set light colors
-recheck_period: 30s
+recheck_period: 5m
 
 # Specify the lights and their IP addresses
 lights:
@@ -86,6 +86,8 @@ scenes:
       color: warm_white
     - targets: [ porch_carriage_lights ]
       color: warm_white_50
+    - targets: [ office_lights ]
+      color: daylight
   overnight:
     - targets:
       - porch_c
