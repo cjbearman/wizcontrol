@@ -178,7 +178,7 @@ default_scene: default
 calendar:
   - name: halloween
     from: halloween - 10
-    to: halloween + 3
+    to: halloween
     scene: halloween
   - name: easter
     from: good_friday - 5
