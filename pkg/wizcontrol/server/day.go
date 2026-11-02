@@ -1,0 +1,51 @@
+package server
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/scenes"
+)
+
+type DayRequest struct {
+	Scenes []string `json:"scenes"`
+}
+
+func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "set-day-scenes")
+
+	req := &DayRequest{}
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid request body"))
+		logger.Warnf("Invalid request body")
+		return
+	}
+
+	if len(req.Scenes) == 0 {
+		logger.Info("clearing day scenes")
+	} else {
+		for _, scene := range req.Scenes {
+			if scenes.Scenes[scene] == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(fmt.Appendf([]byte{}, "Scene %s not found", scene))
+				logger.Warnf("Requested scene not found")
+				return
+			}
+		}
+	}
+
+	today := time.Now().In(common.Location)
+	endOfDay := time.Date(today.Year(), today.Month(), today.Day(), 23, 59, 59, 0, common.Location)
+
+	logger.Infof("Setting day scenes to: %s", strings.Join(req.Scenes, ", "))
+	daemon.Daemon.SetAdditionalScenes(req.Scenes, endOfDay)
+	daemon.Daemon.Kick()
+	w.WriteHeader(http.StatusOK)
+}

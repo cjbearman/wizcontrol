@@ -46,7 +46,7 @@ func NewServer() *ServerInstance {
 	srv.Runner.Exec = srv.run
 
 	mux.HandleFunc("GET /", srv.statusHandler)
-	// mux.HandleFunc("POST /day", srv.dayHandler)
+	mux.HandleFunc("POST /day", srv.dayHandler)
 	// mux.HandleFunc("POST /set/{light}", srv.setHandler)
 	// mux.HandleFunc("POST /unlock/{light}", srv.unlockHandler)
 	// mux.HandleFunc("POST /reset", srv.resetHandler)

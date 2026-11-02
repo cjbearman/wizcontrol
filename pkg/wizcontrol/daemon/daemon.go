@@ -9,6 +9,7 @@ import (
 	"github.com/cjbearman/framework/pkg/logger"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol2/pkg/wizcontrol/operations"
 )
 
@@ -47,6 +48,7 @@ func NewDaemon() *DaemonInstance {
 		mode:            DaemonModeAuto,
 	}
 	d.Runner.Exec = d.run
+	lights.KickFunc = d.Kick
 	return d
 }
 

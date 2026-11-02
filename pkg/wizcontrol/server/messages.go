@@ -1,8 +1,5 @@
 package server
 
-type DayRequest struct {
-	Scenes []string `json:"scenes"`
-}
 type LightSetRequest struct {
 	Color   string `json:"color"`
 	LockFor int    `json:"for"`

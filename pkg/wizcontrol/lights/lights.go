@@ -12,6 +12,7 @@ import (
 
 type Light struct {
 	Light                   *wiz.Device
+	Locker                  *LightLock
 	Logger                  logger.Logger
 	available               bool
 	lastColor               string
@@ -96,6 +97,7 @@ func AddLight(name, ip string) error {
 		lastColor: "",
 		available: false,
 		Logger:    log,
+		Locker:    newLocker(name),
 	}
 	AllDevicesGroup.AddDevice(device)
 	return nil

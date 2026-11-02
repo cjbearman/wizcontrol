@@ -2,10 +2,10 @@
 timezone: America/Chicago
 
 # Specify the period for evaluation of the calendar entries
-evaluation_period: 10s
+evaluation_period: 30s
 
 # Specify the period for rechecking currently set light colors
-recheck_period: 30s
+recheck_period: 5m
 
 # Specify the lights and their IP addresses
 lights:
