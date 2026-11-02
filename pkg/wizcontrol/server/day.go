@@ -43,7 +43,12 @@ func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
 
 	today := time.Now().In(common.Location)
 	endOfDay := time.Date(today.Year(), today.Month(), today.Day(), 23, 59, 59, 0, common.Location)
-	daemon.Daemon.SetAdditionalScenes(req.Scenes, endOfDay)
+	if len(req.Scenes) > 0 {
+		daemon.Daemon.SetAdditionalScenes(req.Scenes, endOfDay)
+	} else {
+		daemon.Daemon.ClearAdditionalScenes()
+	}
+
 	daemon.Daemon.Kick()
 	logger.WithField(FieldScene, strings.Join(req.Scenes, ", ")).Infof("Day scenes set by web request")
 	w.WriteHeader(http.StatusOK)
