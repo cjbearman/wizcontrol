@@ -35,6 +35,7 @@ type DaemonInstance struct {
 	activeSceneNames string
 	lock             sync.Mutex
 	additionalScenes []string
+	calendarScenes   []string
 	additionalUntil  time.Time
 }
 
@@ -56,6 +57,12 @@ func (d *DaemonInstance) GetActiveSceneNames() string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.activeSceneNames
+}
+
+func (d *DaemonInstance) GetCalendarScenes() []string {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.calendarScenes
 }
 
 // Kick will send a kick on the kick channel, unless there is already one pending, in which case there's not much point
@@ -92,7 +99,7 @@ func (d *DaemonInstance) ClearAdditionalScenes() {
 	d.additionalUntil = time.Time{}
 }
 
-func (d *DaemonInstance) getAdditionalScenes() ([]string, time.Time) {
+func (d *DaemonInstance) GetAdditionalScenes() ([]string, time.Time) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if time.Now().After(d.additionalUntil) {
@@ -166,19 +173,17 @@ func (d *DaemonInstance) runIteration(logger logger.Logger) {
 		return
 	}
 
-	activeScenes := calendar.GetCalendarScenes()
+	calendarScenes := calendar.GetCalendarScenes()
+	additionalScenes, _ := d.GetAdditionalScenes()
+	activeScenes := append(calendarScenes, additionalScenes...)
 	activeSceneNames := strings.Join(activeScenes, ",")
+
 	d.lock.Lock()
+	d.calendarScenes = calendarScenes
 	d.activeSceneNames = activeSceneNames
 	d.lock.Unlock()
-	logger = logger.WithField("base-scenes", activeSceneNames)
 
-	additionalScenes, _ := d.getAdditionalScenes()
-
-	if len(additionalScenes) > 0 {
-		logger = logger.WithField("add-scenes", strings.Join(additionalScenes, ","))
-		activeScenes = append(activeScenes, additionalScenes...)
-	}
+	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalScenes, ","))
 
 	// Update light availability, and additionall request status update for found lights
 	// unless we are within a recheck period, in which case we'll be doing status updates on all

@@ -12,9 +12,12 @@ import (
 )
 
 type StatusResponse struct {
-	Scenes string                 `json:"scenes"`
-	Mode   string                 `json:"mode"`
-	Lights map[string]LightStatus `json:"lights"`
+	Scenes                string                 `json:"scenes"`
+	CalendarScenes        []string               `json:"calendar_scenes"`
+	AdditionalScenes      []string               `json:"additional_scenes"`
+	AdditionalScenesUntil *time.Time             `json:"additional_scenes_until,omitempty"`
+	Mode                  string                 `json:"mode"`
+	Lights                map[string]LightStatus `json:"lights"`
 }
 
 type LightStatus struct {
@@ -34,6 +37,15 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 	status := &StatusResponse{Lights: make(map[string]LightStatus)}
 	status.Mode = string(daemon.Daemon.GetMode())
 	status.Scenes = daemon.Daemon.GetActiveSceneNames()
+	status.CalendarScenes = daemon.Daemon.GetCalendarScenes()
+
+	add, addUntil := daemon.Daemon.GetAdditionalScenes()
+	status.AdditionalScenes = add
+	if len(status.AdditionalScenes) > 0 {
+		status.AdditionalScenesUntil = &addUntil
+	} else {
+		status.AdditionalScenes = []string{} // Prevent null
+	}
 
 	for _, light := range lights.Lights {
 		programmedColorName, programmedColor := light.GetLastProgrammedColor()
