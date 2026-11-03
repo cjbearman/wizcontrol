@@ -8,13 +8,12 @@ import (
 )
 
 func (s *ServerInstance) unlockHandler(w http.ResponseWriter, r *http.Request) {
-	nocache(w)
 	l := r.PathValue("light")
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "unlock").WithField(FieldLightOrGroup, l)
 
 	affectedLights, err := lights.GetLightOrGroup(l)
 	if err != nil || len(affectedLights) == 0 {
-		http.Error(w, "Light or group not found", http.StatusNotFound)
+		WriteError(w, http.StatusNotFound, "Light or group not found")
 		logger.Warn("Light or group not found")
 		return
 	}
@@ -22,6 +21,6 @@ func (s *ServerInstance) unlockHandler(w http.ResponseWriter, r *http.Request) {
 	for _, light := range affectedLights {
 		light.Locker.UnlockNow(false)
 	}
-	w.WriteHeader(http.StatusOK)
+	WriteSuccess(w)
 	logger.Info("Light(s) unlocked")
 }

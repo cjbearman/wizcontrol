@@ -17,13 +17,13 @@ type DayRequest struct {
 }
 
 func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
-	nocache(w)
+
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "set-day-scenes")
 	req := &DayRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid request body"))
+
+		WriteError(w, http.StatusBadRequest, "Invalid request body")
 		logger.Warnf("Invalid request body")
 		return
 	}
@@ -33,8 +33,7 @@ func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		for _, scene := range req.Scenes {
 			if scenes.Scenes[scene] == nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(fmt.Appendf([]byte{}, "Scene %s not found", scene))
+				WriteError(w, http.StatusBadRequest, fmt.Sprintf("Scene %s not found", scene))
 				logger.Warnf("Requested scene not found")
 				return
 			}
@@ -51,5 +50,5 @@ func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
 
 	daemon.Daemon.Kick()
 	logger.WithField(FieldScene, strings.Join(req.Scenes, ", ")).Infof("Day scenes set by web request")
-	w.WriteHeader(http.StatusOK)
+	WriteSuccess(w)
 }

@@ -32,6 +32,7 @@ func (l *Light) SetLastProgrammedColor(name, color string) {
 	l.LastProgrammedColorName = name
 	l.LastProgrammedColor = color
 }
+
 func (l *Light) GetLastProgrammedColor() (string, string) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()

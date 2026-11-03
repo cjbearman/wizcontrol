@@ -4,34 +4,48 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 type StatusResponse struct {
-	SceneName string                 `json:"scene_name"`
-	Mode      string                 `json:"mode"`
-	Lights    map[string]LightStatus `json:"lights"`
+	Scenes string                 `json:"scenes"`
+	Mode   string                 `json:"mode"`
+	Lights map[string]LightStatus `json:"lights"`
 }
 
 type LightStatus struct {
-	Color     string `json:"color"`
-	Available bool   `json:"available"`
+	ProgrammedColorName string `json:"programmed_color_name"`
+	ProgrammedColor     string `json:"programmed_color"`
+	ActualColorName     string `json:"actual_color_name"`
+	ActualColor         string `json:"actual_color"`
+	Available           bool   `json:"available"`
 }
 
 func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
-	nocache(w)
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "status")
 	status := &StatusResponse{Lights: make(map[string]LightStatus)}
 	status.Mode = string(daemon.Daemon.GetMode())
-	status.SceneName = daemon.Daemon.GetActiveSceneNames()
+	status.Scenes = daemon.Daemon.GetActiveSceneNames()
 
 	for _, light := range lights.Lights {
-		programmedColorName, _ := light.GetLastProgrammedColor()
+		programmedColorName, programmedColor := light.GetLastProgrammedColor()
+		actualColor := light.LastColor()
+		var actualColorName string = colors.UnknownColorName
+		if actualColor == "" {
+			actualColor = colors.UnknownColorName
+		} else {
+			actualColorName = colors.NameForColor(actualColor)
+		}
+
 		status.Lights[light.Device.Name()] = LightStatus{
-			Color:     programmedColorName,
-			Available: light.Available(),
+			ProgrammedColorName: programmedColorName,
+			ProgrammedColor:     programmedColor,
+			ActualColorName:     actualColorName,
+			ActualColor:         actualColor,
+			Available:           light.Available(),
 		}
 	}
 

@@ -25,15 +25,13 @@ type LightRespItem struct {
 }
 
 func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
-	nocache(w)
 	l := r.PathValue("light")
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldLightOrGroup, l).WithField(FieldOperation, "set")
 
 	// l is a light or light group, we must find it
 	lightsToUpdate, err := lights.GetLightOrGroup(l)
 	if err != nil || len(lightsToUpdate) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(fmt.Appendf([]byte{}, "Light or light group %s not found", l))
+		WriteError(w, http.StatusBadRequest, fmt.Sprintf("Light or light group %s not found", l))
 		logger.Warnf("Requested light or light group not found")
 		return
 	}
@@ -44,16 +42,14 @@ func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 
 	req := &LightSetRequest{}
 	if err := json.Unmarshal(rawBody, &req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(fmt.Appendf([]byte{}, "Invalid request body"))
+		WriteError(w, http.StatusBadRequest, "Invalid request body")
 		logger.Warnf("Failed to decode request body: %v", err)
 		return
 	}
 
 	// Validate request
 	if req.Color == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(fmt.Appendf([]byte{}, "Color not provided"))
+		WriteError(w, http.StatusBadRequest, "Color not provided")
 		logger.Warnf("Color not provided")
 		return
 	}
@@ -76,8 +72,7 @@ func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If not, maybe it's a raw color value
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(fmt.Appendf([]byte{}, "Invalid color value, not a config defined color or valid raw color"))
+		WriteError(w, http.StatusBadRequest, "Invalid color value, not a config defined color or valid raw color")
 		logger.Warnf("Invalid color: %s", req.Color)
 		return
 	}
@@ -101,8 +96,7 @@ func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	pilot, err := wiz.SettingsFromString(color)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(fmt.Appendf([]byte{}, "Failed to create pilot settings: %v", err))
+		WriteError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to create pilot settings: %v", err))
 		logger.Errorf("Failed to create pilot settings: %v", err)
 		return
 	}
@@ -132,7 +126,6 @@ func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(jResp)
-	logger.Infof("Web set color operation completed succesfully", color)
+	logger.Infof("Web set color operation completed succesfully: %s", color)
 }

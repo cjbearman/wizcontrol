@@ -6,6 +6,8 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+const UnknownColorName = "unknown"
+
 // Colors maps color names to color values
 var Colors = make(map[string]string)
 
@@ -15,4 +17,13 @@ func init() {
 		sceneLC := strings.ToLower(scene)
 		Colors["wiz_"+sceneLC] = sceneLC
 	}
+}
+
+func NameForColor(color string) string {
+	for name, value := range Colors {
+		if strings.ToLower(value) == strings.ToLower(color) {
+			return name
+		}
+	}
+	return UnknownColorName
 }

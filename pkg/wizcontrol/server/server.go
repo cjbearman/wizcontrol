@@ -46,11 +46,11 @@ func NewServer() *ServerInstance {
 	}
 	srv.Runner.Exec = srv.run
 
-	mux.HandleFunc("GET /", srv.statusHandler)
-	mux.HandleFunc("POST /day", srv.dayHandler)
-	mux.HandleFunc("POST /set/{light}", srv.setHandler)
-	mux.HandleFunc("POST /unlock/{light}", srv.unlockHandler)
-	mux.HandleFunc("POST /reset", srv.resetHandler)
+	mux.HandleFunc("GET /", intercept(srv.statusHandler))
+	mux.HandleFunc("POST /day", intercept(srv.dayHandler))
+	mux.HandleFunc("POST /set/{light}", intercept(srv.setHandler))
+	mux.HandleFunc("POST /unlock/{light}", intercept(srv.unlockHandler))
+	mux.HandleFunc("POST /reset", intercept(srv.resetHandler))
 
 	return srv
 
@@ -68,10 +68,4 @@ func (s *ServerInstance) Stop() {
 	defer cancel()
 	s.server.Shutdown(ctx)
 	logger.Info("Web server stopped")
-}
-
-func nocache(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
 }
