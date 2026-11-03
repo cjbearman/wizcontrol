@@ -104,9 +104,15 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 			light.SetOn(true)
 
 			// Retrieve the intended color for this light from the operationsToDo map
-			color, found := operationsToDo[light]
+			colorName, found := operationsToDo[light]
 			if !found {
 				logger.Errorf("Color for light not found")
+				continue
+			}
+
+			color, found := colors.Colors[colorName]
+			if !found {
+				logger.Errorf("Color not found: %s", colorName)
 				continue
 			}
 
