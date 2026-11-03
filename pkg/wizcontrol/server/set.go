@@ -11,6 +11,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 )
 
 type LightSetRequest struct {
@@ -121,6 +122,9 @@ func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 			refLight.SetLastProgrammedColor(colorName, color)
 			if req.LockFor > 0 {
 				refLight.Locker.LockFor(time.Duration(req.LockFor) * time.Second)
+			}
+			if mqtt.MqttInstance != nil {
+				mqtt.MqttInstance.SendLightStatus(refLight)
 			}
 		}
 	}

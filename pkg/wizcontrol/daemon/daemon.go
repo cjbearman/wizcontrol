@@ -138,6 +138,7 @@ func (d *DaemonInstance) run() {
 	ticker := time.NewTicker(EvaluationPeriod)
 	defer ticker.Stop()
 
+	firstRun := true
 	for {
 		select {
 		case <-d.kicker:
@@ -148,21 +149,21 @@ func (d *DaemonInstance) run() {
 			// We're going to do now, so we can reset our evaluation period for the next interval
 			ticker.Reset(EvaluationPeriod)
 
-			d.runIteration(logger)
+			d.runIteration(logger, firstRun)
 		case <-ticker.C:
 			// Triggered on our regular tick interval
 			logger.Debug("Tick")
-			d.runIteration(logger)
+			d.runIteration(logger, firstRun)
 		case <-d.Runner.StopSignalled:
 			// Triggered when the runner wants us to stop
 			logger.Info("Stopped")
 			return
 		}
+		firstRun = false
 	}
 }
 
-func (d *DaemonInstance) runIteration(logger logger.Logger) {
-	mqttAll := true // First iteration only
+func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 	recheck := false
 	if d.lastRecheck.Add(RecheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
@@ -200,8 +201,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger) {
 	}
 
 	logger.Debug("Apply scenes")
-	operations.ApplyScenes(activeScenes, false, true, mqttAll)
-	mqttAll = false
+	operations.ApplyScenes(activeScenes, false, true, firstRun)
 	d.SendDaemonStatus()
 }
 

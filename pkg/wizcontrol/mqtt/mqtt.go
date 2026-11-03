@@ -83,7 +83,7 @@ func (m *Mqtt) run() {
 			logger.Info("stop signalled")
 			return
 		case msg := <-m.outboundMessage:
-			client.Publish(msg.topic, 0, true, msg.message)
+			client.Publish(msg.topic, 1, true, msg.message)
 			logger.Debugf("Send a message to %s", msg.topic)
 		}
 	}
