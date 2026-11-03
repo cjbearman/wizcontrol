@@ -24,6 +24,7 @@ type LightStatus struct {
 	AffectedByScene     bool   `json:"affected_by_scene"`
 	ActiveScene         string `json:"active_scene"`
 	Available           bool   `json:"available"`
+	Locked              bool   `json:"locked"`
 }
 
 func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,12 +48,20 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 			programmedColor = ""
 		}
 
+		locked := light.Locker.IsLocked()
+		if locked {
+			// Kind of a special case, light is locked to an explicit color
+			// so although it has a programmed color, it's not *really* being driven by a scene
+			activeScene = ""
+		}
+
 		status.Lights[light.Device.Name()] = LightStatus{
 			ProgrammedColorName: programmedColorName,
 			ProgrammedColor:     programmedColor,
 			ActualColorName:     actualColorName,
 			ActualColor:         actualColor,
 			Available:           light.Available(),
+			Locked:              locked,
 			ActiveScene:         activeScene,
 			AffectedByScene:     activeScene != "",
 		}
