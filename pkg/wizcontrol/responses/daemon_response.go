@@ -4,12 +4,16 @@ import (
 	"time"
 )
 
-type DaemonStatus struct {
+type DaemonAttributes struct {
 	Scenes                string     `json:"scenes"`
 	CalendarScenes        []string   `json:"calendar_scenes"`
 	AdditionalScenes      []string   `json:"additional_scenes"`
 	AdditionalScenesUntil *time.Time `json:"additional_scenes_until,omitempty"`
-	Mode                  string     `json:"mode"`
+}
+
+type DaemonStatus struct {
+	Mode       string           `json:"mode"`
+	Attributes DaemonAttributes `json:"attributes"`
 }
 
 func BuildDaemonResponse(
@@ -20,10 +24,12 @@ func BuildDaemonResponse(
 	mode string,
 ) DaemonStatus {
 	return DaemonStatus{
-		Scenes:                scenes,
-		CalendarScenes:        calendarScenes,
-		AdditionalScenes:      additionalScenes,
-		AdditionalScenesUntil: additionalScenesUntil,
-		Mode:                  mode,
+		Attributes: DaemonAttributes{
+			Scenes:                scenes,
+			CalendarScenes:        calendarScenes,
+			AdditionalScenes:      additionalScenes,
+			AdditionalScenesUntil: additionalScenesUntil,
+		},
+		Mode: mode,
 	}
 }
