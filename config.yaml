@@ -2,7 +2,7 @@
 timezone: America/Chicago
 
 # Specify the period for evaluation of the calendar entries
-evaluation_period: 30s
+evaluation_period: 15s
 
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
