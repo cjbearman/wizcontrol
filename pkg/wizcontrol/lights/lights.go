@@ -20,6 +20,7 @@ type Light struct {
 	lock                    sync.RWMutex
 	LastProgrammedColorName string
 	LastProgrammedColor     string
+	activeScene             string
 }
 
 var Lights = make(map[string]*Light)
@@ -36,7 +37,22 @@ func (l *Light) SetLastProgrammedColor(name, color string) {
 func (l *Light) GetLastProgrammedColor() (string, string) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
+	if l.activeScene == "" {
+		return "", ""
+	}
 	return l.LastProgrammedColorName, l.LastProgrammedColor
+}
+
+func (l *Light) ActiveScene() string {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.activeScene
+}
+
+func (l *Light) SetActiveScene(scene string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.activeScene = scene
 }
 
 func (l *Light) Available() bool {

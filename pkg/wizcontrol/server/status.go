@@ -21,6 +21,8 @@ type LightStatus struct {
 	ProgrammedColor     string `json:"programmed_color"`
 	ActualColorName     string `json:"actual_color_name"`
 	ActualColor         string `json:"actual_color"`
+	AffectedByScene     bool   `json:"affected_by_scene"`
+	ActiveScene         string `json:"active_scene"`
 	Available           bool   `json:"available"`
 }
 
@@ -39,6 +41,11 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			actualColorName = colors.NameForColor(actualColor)
 		}
+		activeScene := light.ActiveScene()
+		if activeScene == "" {
+			programmedColorName = ""
+			programmedColor = ""
+		}
 
 		status.Lights[light.Device.Name()] = LightStatus{
 			ProgrammedColorName: programmedColorName,
@@ -46,10 +53,12 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 			ActualColorName:     actualColorName,
 			ActualColor:         actualColor,
 			Available:           light.Available(),
+			ActiveScene:         activeScene,
+			AffectedByScene:     activeScene != "",
 		}
 	}
 
-	w.WriteHeader(http.StatusOK)
+	WriteSuccess(w)
 	_ = json.NewEncoder(w).Encode(status)
 	logger.Info("Status sent")
 }

@@ -11,6 +11,12 @@ import (
 func ApplyScenes(sceneNames []string, unconditional bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
 
+	// Prefill a map of light to target scenes with all lights and initially empty values
+	lightSceneSettings := make(map[*lights.Light]string)
+	for _, light := range lights.Lights {
+		lightSceneSettings[light] = ""
+	}
+
 	// Map lights to their target colors
 	// mappings from later scenes WILL take precedence by overwriting previous determinations
 	operationsToDo := make(map[*lights.Light]string)
@@ -42,9 +48,17 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 				for _, light := range lights {
 					operationsToDo[light] = tc.ColorName
 					logger.WithField("device", light.Device.Name()).Debugf("Targetted color asserted")
+					lightSceneSettings[light] = sceneName
 				}
 			}
 		}
+	}
+
+	// Update target scenes for all lights,
+	// this will clear the scene name from any lights that are not in any of our scenes
+	// and also set the target scene for lights that are part of our scenes
+	for light, sceneName := range lightSceneSettings {
+		light.SetActiveScene(sceneName)
 	}
 
 	// Initiate application operations
