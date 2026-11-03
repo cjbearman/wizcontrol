@@ -73,7 +73,6 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	WriteSuccess(w)
 	_ = json.NewEncoder(w).Encode(status)
 	logger.Info("Status sent")
 }
