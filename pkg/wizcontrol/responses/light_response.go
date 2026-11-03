@@ -7,16 +7,20 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
-type LightStatus struct {
+type LightAttributes struct {
 	ProgrammedColorName string     `json:"programmed_color_name"`
 	ProgrammedColor     string     `json:"programmed_color"`
 	ActualColorName     string     `json:"actual_color_name"`
 	ActualColor         string     `json:"actual_color"`
 	AffectedByScene     bool       `json:"affected_by_scene"`
 	ActiveScene         string     `json:"active_scene"`
-	Available           bool       `json:"available"`
 	Locked              bool       `json:"locked"`
 	LockedUUntil        *time.Time `json:"locked_until,omitempty"`
+}
+
+type LightStatus struct {
+	Available  bool            `json:"available"`
+	Attributes LightAttributes `json:"attributes"`
 }
 
 func BuildLightStatus(light *lights.Light) LightStatus {
@@ -44,14 +48,16 @@ func BuildLightStatus(light *lights.Light) LightStatus {
 	}
 
 	return LightStatus{
-		ProgrammedColorName: programmedColorName,
-		ProgrammedColor:     programmedColor,
-		ActualColorName:     actualColorName,
-		ActualColor:         actualColor,
-		Available:           light.Available(),
-		Locked:              locked,
-		ActiveScene:         activeScene,
-		AffectedByScene:     activeScene != "",
-		LockedUUntil:        lockedUntil,
+		Available: light.Available(),
+		Attributes: LightAttributes{
+			ProgrammedColorName: programmedColorName,
+			ProgrammedColor:     programmedColor,
+			ActualColorName:     actualColorName,
+			ActualColor:         actualColor,
+			AffectedByScene:     activeScene != "",
+			ActiveScene:         activeScene,
+			Locked:              locked,
+			LockedUUntil:        lockedUntil,
+		},
 	}
 }
