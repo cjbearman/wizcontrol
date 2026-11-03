@@ -10,6 +10,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
@@ -26,12 +27,20 @@ const (
 	DefaultServerPort       = 12120
 )
 
+type MqttConfig struct {
+	Url      string `yaml:"url"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Topic    string `yaml:"topic"`
+}
+
 // Config describes the structure in config.yaml.
 type Config struct {
 	Timezone         string                       `yaml:"timezone"`
 	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
 	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
 	ServerPort       int                          `yaml:"server_port"`
+	Mqtt             *MqttConfig                  `yaml:"mqtt"`
 	Colors           map[string]Color             `yaml:"colors"`
 	Lights           map[string]Light             `yaml:"lights"`
 	LightGroups      map[string][]Light           `yaml:"light_groups"`
@@ -100,6 +109,26 @@ func (c *Config) Parse() error {
 		return fmt.Errorf("server port %d is out of valid range (1-65535)", c.ServerPort)
 	}
 	server.ServerPort = c.ServerPort
+
+	if c.Mqtt != nil {
+		if c.Mqtt.Url == "" {
+			return fmt.Errorf("Must provide MQTT URL when configuring MQTT")
+		}
+		mqtt.MqttURL = c.Mqtt.Url
+		mqtt.MqttUsername = c.Mqtt.Username
+		if c.Mqtt.Username == "" {
+			return fmt.Errorf("Must provide MQTT username when configuring MQTT")
+		}
+		mqtt.MqttPassword = c.Mqtt.Password
+		if c.Mqtt.Password == "" {
+			return fmt.Errorf("Must provide MQTT password when configuring MQTT")
+		}
+		mqtt.MqttTopic = c.Mqtt.Topic
+		if c.Mqtt.Topic == "" {
+			return fmt.Errorf("Must provide MQTT topic when configuring MQTT")
+		}
+		logger.Infof("Configured MQTT on %s", c.Mqtt.Url)
+	}
 
 	// Colors
 	for name, color := range c.Colors {

@@ -10,7 +10,9 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 )
 
 type DaemonMode string
@@ -42,11 +44,12 @@ type DaemonInstance struct {
 // NewDaemon returns a new daemon, not running
 func NewDaemon() *DaemonInstance {
 	d := &DaemonInstance{
-		Runner:          common.NewRunner(),
-		kicker:          make(chan struct{}, 1),
-		lastRecheck:     time.Time{},
-		additionalUntil: time.Time{},
-		mode:            DaemonModeAuto,
+		Runner:           common.NewRunner(),
+		kicker:           make(chan struct{}, 1),
+		lastRecheck:      time.Time{},
+		additionalUntil:  time.Time{},
+		mode:             DaemonModeAuto,
+		additionalScenes: []string{},
 	}
 	d.Runner.Exec = d.run
 	lights.KickFunc = d.Kick
@@ -103,7 +106,7 @@ func (d *DaemonInstance) GetAdditionalScenes() ([]string, time.Time) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if time.Now().After(d.additionalUntil) {
-		d.additionalScenes = nil
+		d.additionalScenes = []string{}
 		d.additionalUntil = time.Time{}
 	}
 	return d.additionalScenes, d.additionalUntil
@@ -159,7 +162,7 @@ func (d *DaemonInstance) run() {
 }
 
 func (d *DaemonInstance) runIteration(logger logger.Logger) {
-
+	mqttAll := true // First iteration only
 	recheck := false
 	if d.lastRecheck.Add(RecheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
@@ -170,6 +173,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger) {
 
 	if d.GetMode() == DaemonModeOff {
 		logger.Debug("Daemon is off, skipping iteration")
+		d.SendDaemonStatus()
 		return
 	}
 
@@ -196,5 +200,31 @@ func (d *DaemonInstance) runIteration(logger logger.Logger) {
 	}
 
 	logger.Debug("Apply scenes")
-	operations.ApplyScenes(activeScenes, false)
+	operations.ApplyScenes(activeScenes, false, true, mqttAll)
+	mqttAll = false
+	d.SendDaemonStatus()
+}
+
+func (d *DaemonInstance) SendDaemonStatus() error {
+	status := responses.BuildDaemonResponse(
+		d.GetActiveSceneNames(),
+		d.GetCalendarScenes(),
+		func() []string {
+			add, _ := d.GetAdditionalScenes()
+			return add
+		}(),
+		func() *time.Time {
+			_, addUntil := d.GetAdditionalScenes()
+			if add, _ := d.GetAdditionalScenes(); len(add) > 0 {
+				return &addUntil
+			}
+			return nil
+		}(),
+		string(d.GetMode()),
+	)
+
+	if mqtt.MqttInstance != nil {
+		return mqtt.MqttInstance.SendDaemonStatus(status)
+	}
+	return nil
 }

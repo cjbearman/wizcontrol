@@ -7,6 +7,12 @@ evaluation_period: 30s
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
 
+mqtt:
+  url: "mqtt://192.168.10.189:1883"
+  username: "wizcontrol_mqtt"
+  password: "asdkljiodsjf23489h!"
+  topic: "wizcontrol"
+
 # Specify the lights and their IP addresses
 lights:
   front_flood_ll: 192.168.20.202

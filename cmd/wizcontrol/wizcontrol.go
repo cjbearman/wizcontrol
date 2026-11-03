@@ -15,6 +15,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
@@ -70,7 +71,7 @@ func main() {
 			os.Exit(1)
 		}
 		operations.UpdateAvailability(true)
-		operations.ApplyScenes([]string{*apply}, *f)
+		operations.ApplyScenes([]string{*apply}, *f, false, false)
 		os.Exit(0)
 	}
 
@@ -93,23 +94,48 @@ func runAsDaemon() {
 	daemon.Daemon.Start()
 	server.Server = server.NewServer()
 	server.Server.Start()
+
+	// And MQTT if configured
+	mqtt.MqttInstance = mqtt.NewMqtt()
+	if mqtt.MqttURL != "" {
+		mqtt.MqttInstance.Start()
+	}
+
 	select {
 
-	case <-daemon.Daemon.Stopped():
-		logger.Warn("Daemon has stopped, stopping server")
+	case <-mqtt.MqttInstance.Stopped():
+		logger.Warn("MQTT has stopped, stopping daemon and server")
+		daemon.Daemon.Stop()
 		server.Server.Stop()
 
+	case <-daemon.Daemon.Stopped():
+		logger.Warn("Daemon has stopped, stopping other tasks")
+		server.Server.Stop()
+		if mqtt.MqttURL != "" {
+			mqtt.MqttInstance.Stop()
+		}
+
 	case <-server.Server.Stopped():
-		logger.Warn("Web server has stopped, stopping daemon")
+		logger.Warn("Web server has stopped, stopping other tasks")
 		daemon.Daemon.Stop()
+		if mqtt.MqttURL != "" {
+			mqtt.MqttInstance.Stop()
+		}
 	case sig := <-sigch:
-		logger.Warnf("Caught signal %v, stopping daemon and server", sig)
+		logger.Warnf("Caught signal %v, stopping tasksr", sig)
 		daemon.Daemon.Stop()
 		server.Server.Stop()
+		if mqtt.MqttURL != "" {
+			mqtt.MqttInstance.Stop()
+		}
 	}
 
 	<-daemon.Daemon.Stopped()
 	<-server.Server.Stopped()
+	if mqtt.MqttURL != "" {
+		<-mqtt.MqttInstance.Stopped()
+	}
 	logger.Info("Runner terminated")
 	os.Exit(0)
+
 }
