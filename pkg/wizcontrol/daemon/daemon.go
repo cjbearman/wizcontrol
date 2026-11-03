@@ -224,7 +224,10 @@ func (d *DaemonInstance) SendDaemonStatus() error {
 	)
 
 	if mqtt.MqttInstance != nil {
-		return mqtt.MqttInstance.SendDaemonStatus(status)
+		mqtt.MqttInstance.SendDaemonStatus(status)
+		for _, light := range lights.Lights {
+			mqtt.MqttInstance.SendLightStatus(light)
+		}
 	}
 	return nil
 }

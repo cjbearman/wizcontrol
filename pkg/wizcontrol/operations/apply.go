@@ -5,7 +5,6 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
@@ -134,23 +133,6 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			// Update light now that we definitively know it's setting
 			light.SetLastColor(color)
 			logger.Debugf("Successful application of color %q", color)
-		}
-	}
-	if mqtt.MqttInstance != nil {
-		if mqttAll {
-			logger.Debugf("Sending MQTT updates for all %d lights", len(lights.Lights))
-			for _, light := range lights.Lights {
-				mqtt.MqttInstance.SendLightStatus(light)
-			}
-		} else {
-			logger.Debugf("Sending MQTT updates for %d lights affected by apply", len(results))
-			for _, result := range results {
-				light, found := lights.Lights[result.Device.Name()]
-				if !found {
-					continue
-				}
-				mqtt.MqttInstance.SendLightStatus(light)
-			}
 		}
 	}
 }
