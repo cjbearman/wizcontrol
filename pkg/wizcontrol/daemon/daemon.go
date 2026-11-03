@@ -203,6 +203,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 	logger.Debug("Apply scenes")
 	operations.ApplyScenes(activeScenes, false, true, firstRun)
 	d.SendDaemonStatus()
+	logger.Info("daemon iteration completed")
 }
 
 func (d *DaemonInstance) SendDaemonStatus() error {

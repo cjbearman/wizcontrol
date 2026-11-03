@@ -15,13 +15,13 @@ var Colors = make(map[string]string)
 func init() {
 	for _, scene := range wiz.AllSceneNames() {
 		sceneLC := strings.ToLower(scene)
-		Colors["wiz_"+sceneLC] = sceneLC
+		Colors[sceneLC] = sceneLC
 	}
 }
 
 func NameForColor(color string) string {
 	for name, value := range Colors {
-		if strings.ToLower(value) == strings.ToLower(color) {
+		if strings.EqualFold(value, color) {
 			return name
 		}
 	}

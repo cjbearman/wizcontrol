@@ -36,17 +36,19 @@ type MqttConfig struct {
 
 // Config describes the structure in config.yaml.
 type Config struct {
-	Timezone         string                       `yaml:"timezone"`
-	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
-	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
-	ServerPort       int                          `yaml:"server_port"`
-	Mqtt             *MqttConfig                  `yaml:"mqtt"`
-	Colors           map[string]Color             `yaml:"colors"`
-	Lights           map[string]Light             `yaml:"lights"`
-	LightGroups      map[string][]Light           `yaml:"light_groups"`
-	Scenes           map[string][]scenes.CnfScene `yaml:"scenes"`
-	DefaultScene     string                       `yaml:"default_scene"`
-	Calendar         []CalendarEntry              `yaml:"calendar"`
+	Timezone          string                       `yaml:"timezone"`
+	EvaluationPeriod  time.Duration                `yaml:"evaluation_period"`
+	RecheckPeriod     time.Duration                `yaml:"recheck_period"`
+	ServerPort        int                          `yaml:"server_port"`
+	Mqtt              *MqttConfig                  `yaml:"mqtt"`
+	RandomFrequency   int                          `yaml:"random_frequency"`
+	RotationFrequency int                          `yaml:"rotation_frequency"`
+	Colors            map[string]Color             `yaml:"colors"`
+	Lights            map[string]Light             `yaml:"lights"`
+	LightGroups       map[string][]Light           `yaml:"light_groups"`
+	Scenes            map[string][]scenes.CnfScene `yaml:"scenes"`
+	DefaultScene      string                       `yaml:"default_scene"`
+	Calendar          []CalendarEntry              `yaml:"calendar"`
 }
 
 // CalendarEntry describes when a scene should apply.
@@ -128,6 +130,15 @@ func (c *Config) Parse() error {
 			return fmt.Errorf("Must provide MQTT topic when configuring MQTT")
 		}
 		logger.Infof("Configured MQTT on %s", c.Mqtt.Url)
+	}
+
+	if c.RandomFrequency != 0 {
+		calendar.RandomFrequencyMinutes = c.RandomFrequency
+		logger.Infof("Random selection frequency set to %d minutes", calendar.RandomFrequencyMinutes)
+	}
+	if c.RotationFrequency != 0 {
+		calendar.RotationFrequencyMinutes = c.RotationFrequency
+		logger.Infof("Rotation selection frequency set to %d minutes", calendar.RotationFrequencyMinutes)
 	}
 
 	// Colors

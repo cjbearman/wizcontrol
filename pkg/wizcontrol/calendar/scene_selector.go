@@ -3,7 +3,13 @@ package calendar
 import (
 	"crypto/sha256"
 	"fmt"
+	"time"
+
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
+
+var RandomFrequencyMinutes = 60
+var RotationFrequencyMinutes = 60
 
 type SceneSelector interface {
 	GetScene(dayNumber int) string
@@ -21,9 +27,21 @@ type RandomSceneSelector struct {
 	scenes []string
 }
 
+// GetScene returns a pseudo-random scene based on the current time and a defined
+// change frequency defined by RandomFrequencyMinutes
+// It returns a psuedo-random scene that remains constant for the given frequency minutes
+// but will then (likely) change for the next period
 func (f *RandomSceneSelector) GetScene(dayNumber int) string {
-	// Not really random, hash based so we get the same seen every day
-	sceneHashable := fmt.Sprintf("abc123%d", dayNumber)
+	// Number of minutes since epoch
+	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
+
+	// Divide this by our frequency of desired change
+	frequencyOffset := minutesSinceEpoch / int64(RandomFrequencyMinutes)
+
+	// This frequency offset will basically change every X minutes
+	// We'll add that into a hashable but otherwise consistent value and hash it to get a pseudo-random selection
+	sceneHashable := fmt.Sprintf("abc123%d", frequencyOffset)
+
 	hash := sha256.Sum256([]byte(sceneHashable))
 	index := (int(hash[0]) + int(hash[1]) + int(hash[2])) % len(f.scenes)
 	return f.scenes[index]
@@ -33,7 +51,16 @@ type RotateSceneSelector struct {
 	scenes []string
 }
 
+// GetScene returns scenes in order, changing on the given frequency
 func (f *RotateSceneSelector) GetScene(dayNumber int) string {
-	index := dayNumber % len(f.scenes)
+	// Number of minutes since epoch
+	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
+
+	// Divide this by our frequency of desired change
+	frequencyOffset := minutesSinceEpoch / int64(RotationFrequencyMinutes)
+
+	// Use the frequency offset to determine the index
+	index := int(frequencyOffset) % len(f.scenes)
+
 	return f.scenes[index]
 }

@@ -7,6 +7,12 @@ evaluation_period: 15s
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
 
+# Random and rotation frequencies is how often (in minutes) a change will occur
+# Random is pure random selection
+# Rotation is ordered from the selection list
+random_frequency: 30
+rotation_frequency: 1440
+
 mqtt:
   url: "mqtt://192.168.10.189:1883"
   username: "wizcontrol_mqtt"
@@ -35,6 +41,7 @@ lights:
   office_ceiling_2: 192.168.20.251
   office_ceiling_3: 192.168.20.84
 
+
 # Valid color specs:
 # Where RR,GG,BB are RGB hex values
 # Where CC, WW are cold and white hex values
@@ -56,7 +63,7 @@ colors:
   warm_white_50: W2700/50
   warm_white_30: W2700/30
   warmish_white: W3300
-  daylight: W5800
+  dlight: W5800
   cool_white: W6500
   pastel_purple: "#B497E7"
   pastel_blue: "#00FF87"
@@ -70,7 +77,24 @@ colors:
   pinkish: "#FFD8D9"
   magenta: "#DC00FF"
   greenish: "#30FF00"
-  
+  xmas_dynamic: christmas/100/75
+  diwali_dynamic: diwali/100/50
+  fall_dynamic: fall/100/75
+  fireplace_dynamic: fireplace/100/75
+  forest_dynamic: forest/100/150
+  jungle_dynamic: jungle/100/150
+  mojito_dynamic: mojito/100/150
+  ocean_dynamic: ocean/100/150
+  party_dynamic: party/100/75
+  pastel_dynamic: pastelcolors/100/200
+  pulse_dynamic: pulse/100/100
+  relax_dynamic: relax/100/200
+  romance_dynamic: romance/100/200
+  spring_dynamic: spring/100/200
+  steampunk_dynamic: steampunk/100/75
+  summer_dynamic: summer/100/200
+  sunset_dynamic: sunset/100/200
+
 # Group lights, N.B. group all is automatically provided
 light_groups:
   all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
@@ -79,7 +103,7 @@ light_groups:
   flood_center: [front_flood_cl, front_flood_cr]
   flood_right: [front_flood_rl, front_flood_rr]
   porch: [porch_l, porch_c, porch_r]
-  patio: [patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
+  patio_lights: [patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
   porch_carriage_lights: [ porch_l, porch_r ]
   office_lights: [ office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
   office_ceiling: [ office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
@@ -93,7 +117,7 @@ scenes:
     - targets: [ porch_carriage_lights ]
       color: warm_white_50
     - targets: [ office_lights ]
-      color: daylight
+      color: dlight
   overnight:
     - targets:
       - porch_c
@@ -109,7 +133,7 @@ scenes:
     - targets: [ porch_c, patio_wall ]
       color: orange
     - targets: [ patio_string ]
-      color: wiz_halloween
+      color: halloween
   paddy:
     - targets: [ outside_lights ]
       color: green
@@ -177,6 +201,53 @@ scenes:
   office_greenish:
     - targets: [ office_lights ]
       color: greenish
+
+# Dynamic scenes for the patio
+  patio_diwali_dynamic:
+    - targets: [ patio_lights ]
+      color: diwali_dynamic
+  patio_fall_dynamic:
+    - targets: [ patio_lights ]
+      color: fall_dynamic
+  patio_fireplace_dynamic:
+    - targets: [ patio_lights ]
+      color: fireplace_dynamic
+  patio_forest_dynamic:
+    - targets: [ patio_lights ]
+      color: forest_dynamic
+  patio_jungle_dynamic:
+    - targets: [ patio_lights ]
+      color: jungle_dynamic
+  patio_mojito_dynamic:
+    - targets: [ patio_lights ]
+      color: mojito_dynamic
+  patio_ocean_dynamic:
+    - targets: [ patio_lights ]
+      color: ocean_dynamic
+  patio_party_dynamic:
+    - targets: [ patio_lights ]
+      color: party_dynamic
+  patio_pastel_dynamic:
+    - targets: [ patio_lights ]
+      color: pastel_dynamic
+  patio_relax_dynamic:
+    - targets: [ patio_lights ]
+      color: relax_dynamic
+  patio_romance_dynamic:
+    - targets: [ patio_lights ]
+      color: romance_dynamic
+  patio_spring_dynamic:
+    - targets: [ patio_lights ]
+      color: spring_dynamic
+  patio_steampunk_dynamic:
+    - targets: [ patio_lights ]
+      color: steampunk_dynamic
+  patio_summer_dynamic:
+    - targets: [ patio_lights ]
+      color: summer_dynamic
+  patio_sunset_dynamic:
+    - targets: [ patio_lights ]
+      color: sunset_dynamic
       
 # default_scene must be defined
 default_scene: default
@@ -214,3 +285,22 @@ calendar:
     from: thanksgiving_day - 3
     to: thanksgiving_day + 1
     scene: thanksgiving
+  - name: patio_changeup
+    from: jan 1
+    to: dec 31
+    random:
+      - patio_diwali_dynamic
+      - patio_fall_dynamic
+      - patio_fireplace_dynamic
+      - patio_forest_dynamic
+      - patio_jungle_dynamic
+      - patio_mojito_dynamic
+      - patio_ocean_dynamic
+      - patio_party_dynamic
+      - patio_pastel_dynamic
+      - patio_relax_dynamic
+      - patio_romance_dynamic
+      - patio_spring_dynamic
+      - patio_steampunk_dynamic
+      - patio_summer_dynamic
+      - patio_sunset_dynamic
