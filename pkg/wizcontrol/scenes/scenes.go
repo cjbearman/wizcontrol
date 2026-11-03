@@ -56,3 +56,14 @@ func AddScene(name string, targets []CnfScene) error {
 
 	return nil
 }
+
+// ScenesExist will return true if all scenes exist
+// or false and the name of the first missing scene
+func ScenesExist(names ...string) (bool, string) {
+	for _, name := range names {
+		if _, exists := Scenes[name]; !exists {
+			return false, name
+		}
+	}
+	return true, ""
+}

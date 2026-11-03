@@ -23,7 +23,7 @@ type CalendarEntry struct {
 	ToDay      int
 	BeforeTime *CalendarTime
 	AfterTime  *CalendarTime
-	SceneName  string
+	Scene      SceneSelector
 }
 
 var CalendarEntries = make(map[string]CalendarEntry)
@@ -31,7 +31,7 @@ var CalendarEntries = make(map[string]CalendarEntry)
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
 
-func AddCalendarEntry(name, from, to, before, after, scene string) error {
+func AddCalendarEntry(name, from, to, before, after, scene string, random, rotate []string) error {
 	if _, exists := CalendarEntries[name]; exists {
 		return fmt.Errorf("calendar entry with name %s already exists", name)
 	}
@@ -42,14 +42,42 @@ func AddCalendarEntry(name, from, to, before, after, scene string) error {
 	if to == "" {
 		return fmt.Errorf("calendar entry %q requires to", name)
 	}
-	if scene == "" {
-		return fmt.Errorf("calendar entry %q requires scene", name)
+
+	// Must have exactly one of scene, random or rotate specified
+	var selector SceneSelector
+	count := 0
+	if scene != "" {
+		count++
+		if exists, missing := scenes.ScenesExist(scene); !exists {
+			return fmt.Errorf("calendar scene entry %q references unknown scene %q", name, missing)
+		}
+		selector = &FixedSceneSelector{scene: scene}
+
+	}
+
+	if len(random) > 0 {
+		count++
+		if exists, missing := scenes.ScenesExist(random...); !exists {
+			return fmt.Errorf("calendar random entry %q references unknown scene %q", name, missing)
+		}
+		selector = &RandomSceneSelector{scenes: random}
+	}
+	if len(rotate) > 0 {
+		count++
+		if exists, missing := scenes.ScenesExist(rotate...); !exists {
+			return fmt.Errorf("calendar rotate entry %q references unknown scene %q", name, missing)
+		}
+		selector = &RotateSceneSelector{scenes: rotate}
+	}
+
+	if count != 1 {
+		return fmt.Errorf("calendar entry %q must have exactly one of scene, random or rotate specified", name)
 	}
 
 	entry := CalendarEntry{
-		FromDay:   DateToDayNumber(from),
-		ToDay:     DateToDayNumber(to),
-		SceneName: scene,
+		FromDay: DateToDayNumber(from),
+		ToDay:   DateToDayNumber(to),
+		Scene:   selector,
 	}
 
 	if entry.FromDay == -1 {
@@ -73,10 +101,6 @@ func AddCalendarEntry(name, from, to, before, after, scene string) error {
 			return fmt.Errorf("invalid after time: %s", after)
 		}
 		entry.AfterTime = &afterTime
-	}
-
-	if _, found := scenes.Scenes[scene]; !found {
-		return fmt.Errorf("calendar entry %q references unknown scene %q", name, scene)
 	}
 
 	CalendarEntries[name] = entry
@@ -221,8 +245,10 @@ func GetCalendarScenes() []string {
 					continue
 				}
 			}
-			extCalendarDebugLog("Calendar entry %q is active for the current time, scene %q will be used", calendarName, entry.SceneName)
-			result = append(result, entry.SceneName)
+
+			sc := entry.Scene.GetScene(dayNo)
+			extCalendarDebugLog("Calendar entry %q is active for the current time, scene %q will be used", calendarName, sc)
+			result = append(result, sc)
 		} else {
 			extCalendarDebugLog("Calendar entry %q does not match current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
 		}

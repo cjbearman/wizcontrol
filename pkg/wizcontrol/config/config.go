@@ -42,12 +42,14 @@ type Config struct {
 
 // CalendarEntry describes when a scene should apply.
 type CalendarEntry struct {
-	Name   string `yaml:"name"`
-	From   string `yaml:"from"`
-	To     string `yaml:"to"`
-	Before string `yaml:"before"`
-	After  string `yaml:"after"`
-	Scene  string `yaml:"scene"`
+	Name   string   `yaml:"name"`
+	From   string   `yaml:"from"`
+	To     string   `yaml:"to"`
+	Before string   `yaml:"before"`
+	After  string   `yaml:"after"`
+	Scene  string   `yaml:"scene"`
+	Random []string `yaml:"random"`
+	Rotate []string `yaml:"rotate"`
 }
 
 // Load reads a YAML config from disk.
@@ -151,7 +153,7 @@ func (c *Config) Parse() error {
 
 	// Calendar entries
 	for _, entry := range c.Calendar {
-		if err := calendar.AddCalendarEntry(entry.Name, entry.From, entry.To, entry.Before, entry.After, entry.Scene); err != nil {
+		if err := calendar.AddCalendarEntry(entry.Name, entry.From, entry.To, entry.Before, entry.After, entry.Scene, entry.Random, entry.Rotate); err != nil {
 			return fmt.Errorf("failed to add calendar entry %q: %v", entry.Name, err)
 		}
 		logger.Debugf("Added calendar entry %q", entry.Name)
