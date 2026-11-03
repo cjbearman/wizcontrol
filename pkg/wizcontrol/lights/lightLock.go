@@ -71,8 +71,8 @@ func (l *LightLock) timerExpired() {
 	}
 }
 
-func (l *LightLock) IsLocked() bool {
+func (l *LightLock) IsLocked() (bool, time.Time) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	return time.Now().In(common.Location).Before(l.lockedUntil)
+	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockedUntil
 }

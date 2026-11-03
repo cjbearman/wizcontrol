@@ -73,7 +73,7 @@ func ApplyScenes(sceneNames []string, unconditional bool) {
 
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
-			if light.Locker.IsLocked() {
+			if locked, _ := light.Locker.IsLocked(); locked {
 				logger.Debugf("Skipping locked light")
 				continue
 			}

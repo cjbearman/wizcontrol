@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
@@ -17,14 +18,15 @@ type StatusResponse struct {
 }
 
 type LightStatus struct {
-	ProgrammedColorName string `json:"programmed_color_name"`
-	ProgrammedColor     string `json:"programmed_color"`
-	ActualColorName     string `json:"actual_color_name"`
-	ActualColor         string `json:"actual_color"`
-	AffectedByScene     bool   `json:"affected_by_scene"`
-	ActiveScene         string `json:"active_scene"`
-	Available           bool   `json:"available"`
-	Locked              bool   `json:"locked"`
+	ProgrammedColorName string     `json:"programmed_color_name"`
+	ProgrammedColor     string     `json:"programmed_color"`
+	ActualColorName     string     `json:"actual_color_name"`
+	ActualColor         string     `json:"actual_color"`
+	AffectedByScene     bool       `json:"affected_by_scene"`
+	ActiveScene         string     `json:"active_scene"`
+	Available           bool       `json:"available"`
+	Locked              bool       `json:"locked"`
+	LockedUUntil        *time.Time `json:"locked_until,omitempty"`
 }
 
 func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,11 +50,14 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 			programmedColor = ""
 		}
 
-		locked := light.Locker.IsLocked()
+		var lockedUntil *time.Time
+		locked, until := light.Locker.IsLocked()
 		if locked {
 			// Kind of a special case, light is locked to an explicit color
 			// so although it has a programmed color, it's not *really* being driven by a scene
 			activeScene = ""
+			lockedUntil = &until
+
 		}
 
 		status.Lights[light.Device.Name()] = LightStatus{
@@ -64,6 +69,7 @@ func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
 			Locked:              locked,
 			ActiveScene:         activeScene,
 			AffectedByScene:     activeScene != "",
+			LockedUUntil:        lockedUntil,
 		}
 	}
 
