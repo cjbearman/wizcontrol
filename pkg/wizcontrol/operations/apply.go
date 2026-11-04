@@ -79,7 +79,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 	// Lights that are locked get added / overriden here
 	for _, light := range lights.Lights {
 		if locked, color, _ := light.Locker.IsLocked(); locked {
-			operationsToDo[light] = colorAndName{name: colors.UnknownColorName, color: color}
+			operationsToDo[light] = colorAndName{name: colors.NameForColor(color), color: color}
 			logger.Debugf("Locked light %q will be set to color %q", light.Device.Name(), color)
 			light.SetActiveScene("")
 		}
