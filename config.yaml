@@ -305,3 +305,4 @@ calendar:
       - patio_summer_dynamic
       - patio_sunset_dynamic
     mode: random
+    frequency: 30m

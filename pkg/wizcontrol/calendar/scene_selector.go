@@ -24,7 +24,8 @@ func (f *AllSceneSelector) GetScene(dayNumber int) []string {
 }
 
 type RandomSceneSelector struct {
-	scenes []string
+	scenes    []string
+	Frequency time.Duration
 }
 
 // GetScene returns a pseudo-random scene based on the current time and a defined
@@ -35,8 +36,11 @@ func (f *RandomSceneSelector) GetScene(dayNumber int) []string {
 	// Number of minutes since epoch
 	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
 
+	// How often, in seconds, to change the scene
+	frequencyMins := f.Frequency.Minutes()
+
 	// Divide this by our frequency of desired change
-	frequencyOffset := minutesSinceEpoch / int64(RandomFrequencyMinutes)
+	frequencyOffset := minutesSinceEpoch / int64(frequencyMins)
 
 	// This frequency offset will basically change every X minutes
 	// We'll add that into a hashable but otherwise consistent value and hash it to get a pseudo-random selection
@@ -48,7 +52,8 @@ func (f *RandomSceneSelector) GetScene(dayNumber int) []string {
 }
 
 type RotateSceneSelector struct {
-	scenes []string
+	scenes    []string
+	Frequency time.Duration
 }
 
 // GetScene returns scenes in order, changing on the given frequency
@@ -56,8 +61,11 @@ func (f *RotateSceneSelector) GetScene(dayNumber int) []string {
 	// Number of minutes since epoch
 	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
 
+	// How often, in minutes, to change the scene
+	frequencyMins := f.Frequency.Minutes()
+
 	// Divide this by our frequency of desired change
-	frequencyOffset := minutesSinceEpoch / int64(RotationFrequencyMinutes)
+	frequencyOffset := minutesSinceEpoch / int64(frequencyMins)
 
 	// Use the frequency offset to determine the index
 	index := int(frequencyOffset) % len(f.scenes)

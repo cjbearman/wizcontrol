@@ -21,6 +21,8 @@ const (
 
 var CalendarDebug = false
 
+var DefaultFrequency = time.Duration(24) * time.Hour
+
 type CalendarTime struct {
 	Hour   int
 	Minute int
@@ -39,7 +41,7 @@ var CalendarEntries = make(map[string]CalendarEntry)
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
 
-func AddCalendarEntry(name, from, to, before, after string, scenesList []string, sceneMode SceneMode) error {
+func AddCalendarEntry(name, from, to, before, after string, scenesList []string, sceneMode SceneMode, frequency *time.Duration) error {
 	if _, exists := CalendarEntries[name]; exists {
 		return fmt.Errorf("calendar entry with name %s already exists", name)
 	}
@@ -61,14 +63,29 @@ func AddCalendarEntry(name, from, to, before, after string, scenesList []string,
 		}
 	}
 
+	frequencyDefined := false
+	if frequency != nil {
+		frequencyDefined = true
+		if *frequency < 1*time.Minute {
+			return fmt.Errorf("frequency for calendar entry %q must be at least 1 minute", name)
+		}
+	}
+
+	if frequency == nil {
+		frequency = &DefaultFrequency
+	}
+
 	var selector SceneSelector
 	switch sceneMode {
 	case SceneModeAll, "":
+		if frequencyDefined {
+			return fmt.Errorf("frequency cannot be defined for scene mode 'all'")
+		}
 		selector = &AllSceneSelector{scenes: scenesList}
 	case SceneModeRandom:
-		selector = &RandomSceneSelector{scenes: scenesList}
+		selector = &RandomSceneSelector{scenes: scenesList, Frequency: *frequency}
 	case SceneModeRotate:
-		selector = &RotateSceneSelector{scenes: scenesList}
+		selector = &RotateSceneSelector{scenes: scenesList, Frequency: *frequency}
 	default:
 		return fmt.Errorf("invalid scene mode %q for calendar entry %q", sceneMode, name)
 	}
