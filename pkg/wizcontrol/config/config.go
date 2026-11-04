@@ -35,12 +35,18 @@ type MqttConfig struct {
 	ControlEnabled *bool  `yaml:"allow_control"`
 }
 
+type Server struct {
+	Port      int    `yaml:"port"`
+	CertChain string `yaml:"cert_chain"`
+	Key       string `yaml:"key"`
+}
+
 // Config describes the structure in config.yaml.
 type Config struct {
 	Timezone         string                       `yaml:"timezone"`
 	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
 	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
-	ServerPort       int                          `yaml:"server_port"`
+	Server           Server                       `yaml:"http"`
 	Mqtt             *MqttConfig                  `yaml:"mqtt"`
 	Colors           map[string]Color             `yaml:"colors"`
 	Lights           map[string]Light             `yaml:"lights"`
@@ -102,13 +108,21 @@ func (c *Config) Parse() error {
 		common.Location = loc
 	}
 
-	if c.ServerPort == 0 {
-		c.ServerPort = DefaultServerPort
+	if c.Server.Port == 0 {
+		c.Server.Port = DefaultServerPort
 	}
-	if c.ServerPort < 1 || c.ServerPort > 65535 {
-		return fmt.Errorf("server port %d is out of valid range (1-65535)", c.ServerPort)
+	if c.Server.Port < 1 || c.Server.Port > 65535 {
+		return fmt.Errorf("server port %d is out of valid range (1-65535)", c.Server.Port)
 	}
-	server.ServerPort = c.ServerPort
+
+	server.ServerPort = c.Server.Port
+
+	if (c.Server.CertChain == "" && c.Server.Key != "") || (c.Server.CertChain != "" && c.Server.Key == "") {
+		return fmt.Errorf("Both server.cert_chain and server.key must be provided together to enable TLS")
+	}
+
+	server.CertChain = c.Server.CertChain
+	server.Key = c.Server.Key
 
 	if c.Mqtt != nil {
 		if c.Mqtt.Url == "" {

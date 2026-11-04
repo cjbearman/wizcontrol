@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,6 +11,8 @@ import (
 )
 
 var ServerPort int
+var CertChain string
+var Key string
 
 const (
 	FieldRemoteAddr = "remote_addr"
@@ -33,6 +36,15 @@ func NewServer() *ServerInstance {
 			Handler:      mux,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
+			TLSConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12, // Set minimum TLS version
+				MaxVersion: tls.VersionTLS13, // Set maximum TLS version
+				CipherSuites: []uint16{
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				},
+			},
 		},
 	}
 	srv.Runner.Exec = srv.run
@@ -50,8 +62,17 @@ func NewServer() *ServerInstance {
 
 }
 func (s *ServerInstance) run() {
-	common.Logger.GetLogger("server").Info("Starting server")
-	s.server.ListenAndServe()
+	var err error
+	if CertChain != "" && Key != "" {
+		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", ServerPort)
+		err = s.server.ListenAndServeTLS(CertChain, Key)
+	} else {
+		common.Logger.GetLogger("server").Infof("Starting server without TLS on port %d", ServerPort)
+		err = s.server.ListenAndServe()
+	}
+	if err != nil && err != http.ErrServerClosed {
+		common.Logger.GetLogger("server").Errorf("Server error: %v", err)
+	}
 	close(s.Closed)
 }
 

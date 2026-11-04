@@ -13,6 +13,11 @@ mqtt:
   password: "asdkljiodsjf23489h!"
   topic: "wizcontrol"
 
+http:
+  port: 12345
+  # cert_chain: test_certs/wizcontrol.crt
+  # key: test_certs/wizcontrol.key
+
 # Specify the lights and their IP addresses
 lights:
   front_flood_ll: 192.168.20.202
