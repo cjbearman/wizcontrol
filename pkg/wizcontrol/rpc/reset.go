@@ -15,5 +15,5 @@ func HandleResetRequest() []byte {
 	}
 	daemon.Daemon.Kick()
 	logger.Info("All lights unlocked and daily overrides reset")
-	return NewGeneralResponse(true, "All lights unlocked and daily overrides reset")
+	return NewGeneralResponse(true, "")
 }
