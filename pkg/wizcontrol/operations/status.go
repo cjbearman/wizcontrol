@@ -4,6 +4,7 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 )
 
 func UpdateStatusForAllAvailableLights(force bool) {
@@ -48,4 +49,7 @@ func handleStatusUpdate(statusUpdate wiz.DeviceResultAndError[*wiz.PilotResult])
 	}
 	light.SetLastColor(color)
 	logger.Debugf("State: color=%s, on=%v", color, on)
+
+	// MQTT update
+	senders.SendLightStatus(light)
 }
