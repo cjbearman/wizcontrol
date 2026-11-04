@@ -87,6 +87,10 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Subscribe(fmt.Sprintf("%s/control/set", MqttTopic), 1, m.handleSetRPC)
 	client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
 	client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handlResetRPC)
+
+	client.Publish(fmt.Sprintf("%s/scenes", MqttTopic), 1, true, rpc.HandleScenesRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/colors", MqttTopic), 1, true, rpc.HandleColorsRequest()).Wait()
+
 }
 
 func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
