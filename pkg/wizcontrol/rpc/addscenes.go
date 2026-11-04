@@ -10,9 +10,10 @@ import (
 )
 
 type AddScenesRequest struct {
-	Scenes []string `json:"scenes"`
-	For    string   `json:"for"`
-	Until  string   `json:"until"`
+	Scenes        []string `json:"scenes"`
+	ClearExisting bool     `json:"clear_existing"`
+	For           string   `json:"for"`
+	Until         string   `json:"until"`
 }
 
 func HandleAddScenesRequest(req []byte) ([]byte, *RpcError) {
@@ -28,7 +29,9 @@ func HandleAddScenesRequest(req []byte) ([]byte, *RpcError) {
 	if err2 != nil {
 		return NewGeneralResponse(false, err2.Error()), err2
 	}
-
+	if request.ClearExisting {
+		scenes.ClearAdditionalScenes()
+	}
 	for _, scene := range request.Scenes {
 		if _, found := scenes.Scenes[scene]; !found {
 			return NewGeneralResponse(false, fmt.Sprintf("scene %q not found", scene)), NewRpcError(404, "scene %q not found", scene)
