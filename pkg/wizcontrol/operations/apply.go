@@ -8,8 +8,22 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
+// This is set by MQTT if MQTT is running
+// prevents import loop
+var LightStatusDispatcher func(light *lights.Light) error
+
 func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
+	sendStatusFor := []*lights.Light{}
+
+	if mqttAll {
+		// If we are being asked to send MQTT status for all lights, just prefill a list of all lights
+		// into the list of lights to send
+		logger.Debug("This is the first daemon run, status for all lights will be sent")
+		for _, light := range lights.Lights {
+			sendStatusFor = append(sendStatusFor, light)
+		}
+	}
 
 	// Prefill a map of light to target scenes with all lights and initially empty values
 	lightSceneSettings := make(map[*lights.Light]string)
@@ -123,6 +137,9 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 				continue
 			}
 
+			// We will be sending a status for this light, if mqtt dispatch is enabled
+			sendStatusFor = append(sendStatusFor, light)
+
 			// Light is definitively on now
 			light.SetOn(true)
 
@@ -142,6 +159,12 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			// Update light now that we definitively know it's setting
 			light.SetLastColor(color)
 			logger.Debugf("Successful application of color %q", color)
+		}
+	}
+
+	if LightStatusDispatcher != nil && sendMqtt {
+		for _, light := range sendStatusFor {
+			LightStatusDispatcher(light)
 		}
 	}
 }

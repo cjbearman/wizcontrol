@@ -19,7 +19,6 @@ type DaemonMode string
 
 // Will be set by MQTT (prevents import loop)
 var DaemonStatusDispatcher func(responses.DaemonStatus) error
-var LightStatusDispatcher func(*lights.Light) error
 
 const (
 	DaemonModeOff  = "off"
@@ -178,7 +177,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 		operations.UpdateStatusForAllAvailableLights(false)
 	}
 
-	logger.Debug("Apply scenes")
+	logger.Debugf("Apply scenes, first run: %v", firstRun)
 	operations.ApplyScenes(activeScenes, false, true, firstRun)
 	d.SendDaemonStatus()
 	logger.Info("daemon iteration completed")
@@ -196,10 +195,5 @@ func (d *DaemonInstance) SendDaemonStatus() error {
 		DaemonStatusDispatcher(status)
 	}
 
-	if LightStatusDispatcher != nil {
-		for _, light := range lights.Lights {
-			LightStatusDispatcher(light)
-		}
-	}
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -42,8 +43,8 @@ func NewMqtt() *Mqtt {
 	mqtt.Exec = mqtt.run
 
 	daemon.DaemonStatusDispatcher = mqtt.SendDaemonStatus
-	daemon.LightStatusDispatcher = mqtt.SendLightStatus
 	rpc.LightStatusDispatcher = mqtt.SendLightStatus
+	operations.LightStatusDispatcher = mqtt.SendLightStatus
 
 	return &mqtt
 
@@ -156,6 +157,8 @@ func (m *Mqtt) run() {
 }
 
 func (m *Mqtt) SendLightStatus(light *lights.Light) error {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Debugf("Sending light status for %s", light.Device.Name())
 	response := responses.BuildLightStatus(light)
 
 	responseJson, err := json.Marshal(response)
@@ -179,7 +182,8 @@ func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 }
 
 func (m *Mqtt) SendDaemonStatus(status responses.DaemonStatus) error {
-
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Debugf("Sending daemon status")
 	responseJson, err := json.Marshal(status)
 	if err != nil {
 		common.Logger.GetLogger("mqtt").Errorf("failed to marshal daemon status: %v", err)
