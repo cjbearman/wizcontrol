@@ -7,11 +7,7 @@ import (
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
-
-// Will be set by MQTT (prevents import loop)
-var LightStatusDispatcher func(*lights.Light) error
 
 type GeneralResponse struct {
 	Success bool    `json:"success"`

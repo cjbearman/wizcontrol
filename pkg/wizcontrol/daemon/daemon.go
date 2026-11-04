@@ -13,12 +13,10 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 )
 
 type DaemonMode string
-
-// Will be set by MQTT (prevents import loop)
-var DaemonStatusDispatcher func(responses.DaemonStatus) error
 
 const (
 	DaemonModeOff  = "off"
@@ -191,9 +189,7 @@ func (d *DaemonInstance) SendDaemonStatus() error {
 		string(d.GetMode()),
 	)
 
-	if DaemonStatusDispatcher != nil {
-		DaemonStatusDispatcher(status)
-	}
+	senders.SendDaemonStatus(status)
 
 	return nil
 }

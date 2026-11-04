@@ -6,11 +6,10 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 )
@@ -42,9 +41,8 @@ func NewMqtt() *Mqtt {
 	}
 	mqtt.Exec = mqtt.run
 
-	daemon.DaemonStatusDispatcher = mqtt.SendDaemonStatus
-	rpc.LightStatusDispatcher = mqtt.SendLightStatus
-	operations.LightStatusDispatcher = mqtt.SendLightStatus
+	senders.DaemonStatus = mqtt.SendDaemonStatus
+	senders.LightStatus = mqtt.SendLightStatus
 
 	return &mqtt
 

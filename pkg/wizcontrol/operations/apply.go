@@ -6,11 +6,8 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 )
-
-// This is set by MQTT if MQTT is running
-// prevents import loop
-var LightStatusDispatcher func(light *lights.Light) error
 
 func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
@@ -162,9 +159,9 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 		}
 	}
 
-	if LightStatusDispatcher != nil && sendMqtt {
+	if sendMqtt {
 		for _, light := range sendStatusFor {
-			LightStatusDispatcher(light)
+			senders.SendLightStatus(light)
 		}
 	}
 }
