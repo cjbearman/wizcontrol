@@ -30,6 +30,7 @@ func HandleAddScenesRequest(req []byte) ([]byte, *RpcError) {
 		return NewGeneralResponse(false, err2.Error()), err2
 	}
 	if request.ClearExisting {
+		logger.Infof("Clearing all additional scenes")
 		scenes.ClearAdditionalScenes()
 	}
 	for _, scene := range request.Scenes {
