@@ -12,6 +12,16 @@ func intercept(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
 
+		// If auth is configured, authenticate the request
+		if AuthUsername != "" && AuthPassword != "" {
+			username, password, ok := r.BasicAuth()
+			if !ok || username != AuthUsername || password != AuthPassword {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Wizcontrol"`)
+				WriteError(w, http.StatusUnauthorized, "Unauthorized")
+				return
+			}
+		}
+
 		// We only send JSON
 		w.Header().Set("Content-Type", "application/json")
 

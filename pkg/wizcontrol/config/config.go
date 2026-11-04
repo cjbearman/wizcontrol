@@ -35,10 +35,16 @@ type MqttConfig struct {
 	ControlEnabled *bool  `yaml:"allow_control"`
 }
 
+type ServerAuth struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
 type Server struct {
-	Port      int    `yaml:"port"`
-	CertChain string `yaml:"cert_chain"`
-	Key       string `yaml:"key"`
+	Port      int         `yaml:"port"`
+	CertChain string      `yaml:"cert_chain"`
+	Key       string      `yaml:"key"`
+	Auth      *ServerAuth `yaml:"auth"`
 }
 
 // Config describes the structure in config.yaml.
@@ -118,11 +124,25 @@ func (c *Config) Parse() error {
 	server.ServerPort = c.Server.Port
 
 	if (c.Server.CertChain == "" && c.Server.Key != "") || (c.Server.CertChain != "" && c.Server.Key == "") {
-		return fmt.Errorf("Both server.cert_chain and server.key must be provided together to enable TLS")
+		return fmt.Errorf("Both http.cert_chain and http.key must be provided together to enable TLS")
 	}
 
 	server.CertChain = c.Server.CertChain
 	server.Key = c.Server.Key
+
+	if c.Server.Auth != nil {
+		if c.Server.Auth.Username == "" {
+			return fmt.Errorf("Must provide http.auth.username when configuring server auth")
+		}
+		if c.Server.Auth.Password == "" {
+			return fmt.Errorf("Must provide http.auth.password when configuring server auth")
+		}
+		server.AuthUsername = c.Server.Auth.Username
+		server.AuthPassword = c.Server.Auth.Password
+		if server.CertChain == "" {
+			logger.Warnf("*** HTTP auth is configured but TLS is not enabled. Credentials will be sent in plaintext over the network.")
+		}
+	}
 
 	if c.Mqtt != nil {
 		if c.Mqtt.Url == "" {

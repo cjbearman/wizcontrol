@@ -13,6 +13,8 @@ import (
 var ServerPort int
 var CertChain string
 var Key string
+var AuthUsername string
+var AuthPassword string
 
 const (
 	FieldRemoteAddr = "remote_addr"
