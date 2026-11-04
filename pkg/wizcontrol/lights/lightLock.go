@@ -14,6 +14,7 @@ type LightLock struct {
 	lock        sync.Mutex
 	timer       *time.Timer
 	lightName   string
+	lockToColor string
 }
 
 func newLocker(lightName string) *LightLock {
@@ -22,13 +23,14 @@ func newLocker(lightName string) *LightLock {
 	}
 }
 
-func (l *LightLock) LockFor(d time.Duration) {
+func (l *LightLock) LockFor(d time.Duration, color string) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.lockedUntil = time.Now().In(common.Location).Add(d)
+	l.lockToColor = color
 	l.setTimer(d)
-	logger.Debugf("Light locked for duration: %v, until %v", d, l.lockedUntil)
+	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, color)
 }
 
 func (l *LightLock) UnlockNow(noKick bool) {
@@ -71,8 +73,8 @@ func (l *LightLock) timerExpired() {
 	}
 }
 
-func (l *LightLock) IsLocked() (bool, time.Time) {
+func (l *LightLock) IsLocked() (bool, string, time.Time) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockedUntil
+	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockToColor, l.lockedUntil
 }

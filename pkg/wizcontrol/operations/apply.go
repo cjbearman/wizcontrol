@@ -61,6 +61,19 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 		light.SetActiveScene(sceneName)
 	}
 
+	// Lights that are locked get added / overriden here
+	for _, light := range lights.Lights {
+		if locked, colorName, _ := light.Locker.IsLocked(); locked {
+			_, found := colors.Colors[colorName]
+			if !found {
+				logger.Warnf("skipping locked light %q with unknown color %q", light.Device.Name(), colorName)
+			}
+			operationsToDo[light] = colorName
+			logger.Debugf("Locked light %q will be set to color %q", light.Device.Name(), colorName)
+			light.SetActiveScene("")
+		}
+	}
+
 	// Initiate application operations
 
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
@@ -73,10 +86,6 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
-			if locked, _ := light.Locker.IsLocked(); locked {
-				logger.Debugf("Skipping locked light")
-				continue
-			}
 			if !light.Available() {
 				logger.Debugf("Skipping unavailable light")
 				continue

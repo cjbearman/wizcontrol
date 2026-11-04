@@ -39,7 +39,7 @@ func BuildLightStatus(light *lights.Light) LightStatus {
 	}
 
 	var lockedUntil *time.Time
-	locked, until := light.Locker.IsLocked()
+	locked, _, until := light.Locker.IsLocked()
 	if locked {
 		// Kind of a special case, light is locked to an explicit color
 		// so although it has a programmed color, it's not *really* being driven by a scene
