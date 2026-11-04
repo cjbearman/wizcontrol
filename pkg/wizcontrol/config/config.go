@@ -28,10 +28,11 @@ const (
 )
 
 type MqttConfig struct {
-	Url      string `yaml:"url"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Topic    string `yaml:"topic"`
+	Url            string `yaml:"url"`
+	Username       string `yaml:"username"`
+	Password       string `yaml:"password"`
+	Topic          string `yaml:"topic"`
+	ControlEnabled *bool  `yaml:"allow_control"`
 }
 
 // Config describes the structure in config.yaml.
@@ -125,6 +126,9 @@ func (c *Config) Parse() error {
 		mqtt.MqttTopic = c.Mqtt.Topic
 		if c.Mqtt.Topic == "" {
 			return fmt.Errorf("Must provide MQTT topic when configuring MQTT")
+		}
+		if c.Mqtt.ControlEnabled != nil {
+			mqtt.ControlEnabled = *c.Mqtt.ControlEnabled
 		}
 		logger.Infof("Configured MQTT on %s", c.Mqtt.Url)
 	}

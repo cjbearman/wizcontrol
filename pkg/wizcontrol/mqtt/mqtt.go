@@ -32,6 +32,7 @@ var MqttURL string
 var MqttUsername string
 var MqttPassword string
 var MqttTopic string
+var ControlEnabled bool = true
 
 func NewMqtt() *Mqtt {
 	mqtt := Mqtt{
@@ -94,11 +95,13 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger.Info("MQTT connected")
 
 	// Subscribe to control topics
-	client.Subscribe(fmt.Sprintf("%s/control/lock", MqttTopic), 1, m.handleLockRPC)
-	client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
-	client.Subscribe(fmt.Sprintf("%s/control/addscene", MqttTopic), 1, m.handleAddSceneRPC)
-	client.Subscribe(fmt.Sprintf("%s/control/delscene", MqttTopic), 1, m.handleDelSceneRPC)
-	client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handleResetRPC)
+	if ControlEnabled {
+		client.Subscribe(fmt.Sprintf("%s/control/lock", MqttTopic), 1, m.handleLockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/addscene", MqttTopic), 1, m.handleAddSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/delscene", MqttTopic), 1, m.handleDelSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handleResetRPC)
+	}
 
 	// Publish initial scenes and colors, retained
 	client.Publish(fmt.Sprintf("%s/scenes", MqttTopic), 1, true, rpc.HandleScenesRequest()).Wait()
