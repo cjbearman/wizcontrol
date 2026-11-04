@@ -9,6 +9,10 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 )
 
+type colorAndName struct {
+	name, color string
+}
+
 func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
 	sendStatusFor := []*lights.Light{}
@@ -30,7 +34,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	// Map lights to their target colors
 	// mappings from later scenes WILL take precedence by overwriting previous determinations
-	operationsToDo := make(map[*lights.Light]string)
+	operationsToDo := make(map[*lights.Light]colorAndName)
 
 	for _, sceneName := range sceneNames {
 
@@ -57,7 +61,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 					continue
 				}
 				for _, light := range lights {
-					operationsToDo[light] = tc.ColorName
+					operationsToDo[light] = colorAndName{name: tc.ColorName, color: color}
 					logger.WithField("device", light.Device.Name()).Debugf("Targetted color asserted")
 					lightSceneSettings[light] = sceneName
 				}
@@ -74,13 +78,9 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	// Lights that are locked get added / overriden here
 	for _, light := range lights.Lights {
-		if locked, colorName, _ := light.Locker.IsLocked(); locked {
-			_, found := colors.Colors[colorName]
-			if !found {
-				logger.Warnf("skipping locked light %q with unknown color %q", light.Device.Name(), colorName)
-			}
-			operationsToDo[light] = colorName
-			logger.Debugf("Locked light %q will be set to color %q", light.Device.Name(), colorName)
+		if locked, color, _ := light.Locker.IsLocked(); locked {
+			operationsToDo[light] = colorAndName{name: colors.UnknownColorName, color: color}
+			logger.Debugf("Locked light %q will be set to color %q", light.Device.Name(), color)
 			light.SetActiveScene("")
 		}
 	}
@@ -89,11 +89,11 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
-	for light, colorName := range operationsToDo {
-		color := colors.Colors[colorName] // Already validated as present
+	for light, colorSpec := range operationsToDo {
+		color := colorSpec.color
 		logger := logger.WithField("device", light.Device.Name())
 
-		light.SetLastProgrammedColor(colorName, color)
+		light.SetLastProgrammedColor(colorSpec.name, color)
 
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
@@ -111,7 +111,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 		settings, err := wiz.SettingsFromString(color)
 		if err != nil {
-			logger.Warnf("Failed to parse color settings: %v", err)
+			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
 			continue
 		}
 		if color != colors.ColorOff {
@@ -139,24 +139,18 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			// We will be sending a status for this light, if mqtt dispatch is enabled
 			sendStatusFor = append(sendStatusFor, light)
 
-			light.SetOn(operationsToDo[light] != colors.ColorOff)
+			light.SetOn(operationsToDo[light].color != colors.ColorOff)
 
 			// Retrieve the intended color for this light from the operationsToDo map
-			colorName, found := operationsToDo[light]
+			colorSpec, found := operationsToDo[light]
 			if !found {
 				logger.Errorf("Color for light not found")
 				continue
 			}
 
-			color, found := colors.Colors[colorName]
-			if !found {
-				logger.Errorf("Color not found: %s", colorName)
-				continue
-			}
-
 			// Update light now that we definitively know it's setting
-			light.SetLastColor(color)
-			logger.Debugf("Successful application of color %q", color)
+			light.SetLastColor(colorSpec.name)
+			logger.Debugf("Successful application of color %q (%q)", colorSpec.color, colorSpec.name)
 		}
 	}
 

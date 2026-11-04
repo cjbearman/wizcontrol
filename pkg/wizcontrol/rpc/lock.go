@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
@@ -34,8 +35,16 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 		return NewGeneralResponse(false, "color is required"), NewRpcError(400, "color is required")
 	}
 
-	if _, found := colors.Colors[request.Color]; !found {
-		return NewGeneralResponse(false, fmt.Sprintf("invalid color: %s", request.Color)), NewRpcError(400, "invalid color: %s", request.Color)
+	var color string
+	if col, found := colors.Colors[request.Color]; found {
+		color = col
+	} else {
+		// So it wasn't a named color, check if it's a raw color spec
+		if _, err := wiz.SettingsFromString(request.Color); err != nil {
+			color = request.Color
+		} else {
+			return NewGeneralResponse(false, fmt.Sprintf("invalid color %q, must be named color or raw color specification", request.Color)), NewRpcError(400, "invalid color: %s", request.Color)
+		}
 	}
 
 	if request.For == "" && request.Until == "" {
@@ -66,8 +75,8 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	}
 	// Lock the targets
 	for _, target := range targetLights {
-		target.Locker.LockUntil(lockedUntil, request.Color)
-		logger.Infof("Locked %q until %v with color %s", target.Device.Name(), lockedUntil, request.Color)
+		target.Locker.LockUntil(lockedUntil, color)
+		logger.Infof("Locked %q until %v with color %s", target.Device.Name(), lockedUntil, color)
 	}
 
 	daemon.Daemon.Kick()
