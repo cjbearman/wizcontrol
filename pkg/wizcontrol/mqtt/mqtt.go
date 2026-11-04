@@ -14,6 +14,16 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	topicLock     = "lock"
+	topicUnlock   = "unlock"
+	topicAddScene = "addscene"
+	topicDelScene = "delscene"
+	topicReset    = "reset"
+	topicScenes   = "scenes"
+	topicColors   = "colors"
+	topicTargets  = "targets"
+)
 const BufferSize = 100
 
 type messageAndTopic struct {
@@ -95,16 +105,17 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 
 	// Subscribe to control topics
 	if ControlEnabled {
-		client.Subscribe(fmt.Sprintf("%s/control/lock", MqttTopic), 1, m.handleLockRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/addscene", MqttTopic), 1, m.handleAddSceneRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/delscene", MqttTopic), 1, m.handleDelSceneRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handleResetRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicLock), 1, m.handleLockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicUnlock), 1, m.handleUnlockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicAddScene), 1, m.handleAddSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicDelScene), 1, m.handleDelSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicReset), 1, m.handleResetRPC)
 	}
 
 	// Publish initial scenes and colors, retained
-	client.Publish(fmt.Sprintf("%s/scenes", MqttTopic), 1, true, rpc.HandleScenesRequest()).Wait()
-	client.Publish(fmt.Sprintf("%s/colors", MqttTopic), 1, true, rpc.HandleColorsRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest()).Wait()
 
 }
 
