@@ -37,9 +37,6 @@ func (l *Light) SetLastProgrammedColor(name, color string) {
 func (l *Light) GetLastProgrammedColor() (string, string) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	if l.activeScene == "" {
-		return "", ""
-	}
 	return l.LastProgrammedColorName, l.LastProgrammedColor
 }
 
