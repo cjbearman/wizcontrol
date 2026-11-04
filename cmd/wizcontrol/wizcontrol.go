@@ -70,7 +70,7 @@ func main() {
 			common.Logger.Errorf("Scene %q not found", *apply)
 			os.Exit(1)
 		}
-		operations.UpdateAvailability(true)
+		operations.UpdateAvailability()
 		operations.ApplyScenes([]string{*apply}, *f, false, false)
 		os.Exit(0)
 	}

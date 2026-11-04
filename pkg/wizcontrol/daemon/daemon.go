@@ -165,10 +165,9 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 
 	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalScenes, ","))
 	logger.Infof("Will apply the following scenes in order: %s", strings.Join(activeScenes, ","))
-	// Update light availability, and additionall request status update for found lights
-	// unless we are within a recheck period, in which case we'll be doing status updates on all
+	// Update light availability, and additionall request status update for returning lights
 	logger.Debugf("Update light availability")
-	operations.UpdateAvailability(!recheck)
+	operations.UpdateAvailability()
 
 	if recheck {
 		logger.Debugf("Recheck period reached, rechecking all light statuses")
