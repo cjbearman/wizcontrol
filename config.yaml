@@ -17,9 +17,9 @@ http:
   port: 12345
   # cert_chain: test_certs/wizcontrol.crt
   # key: test_certs/wizcontrol.key
-  auth:
-    username: "chris"
-    password: "changeme"
+  #auth:
+  #  username: "chris"
+  #  password: "changeme"
 
 # Specify the lights and their IP addresses
 lights:
