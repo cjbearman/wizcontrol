@@ -10,12 +10,15 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 )
 
 type DaemonMode string
+
+// Will be set by MQTT (prevents import loop)
+var DaemonStatusDispatcher func(responses.DaemonStatus) error
+var LightStatusDispatcher func(*lights.Light) error
 
 const (
 	DaemonModeOff  = "off"
@@ -224,10 +227,13 @@ func (d *DaemonInstance) SendDaemonStatus() error {
 		string(d.GetMode()),
 	)
 
-	if mqtt.MqttInstance != nil {
-		mqtt.MqttInstance.SendDaemonStatus(status)
+	if DaemonStatusDispatcher != nil {
+		DaemonStatusDispatcher(status)
+	}
+
+	if LightStatusDispatcher != nil {
 		for _, light := range lights.Lights {
-			mqtt.MqttInstance.SendLightStatus(light)
+			LightStatusDispatcher(light)
 		}
 	}
 	return nil

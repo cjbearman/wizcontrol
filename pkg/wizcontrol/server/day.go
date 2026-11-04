@@ -1,15 +1,11 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
 type DayRequest struct {
@@ -18,37 +14,23 @@ type DayRequest struct {
 
 func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
 
-	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "set-day-scenes")
-	req := &DayRequest{}
-	err := json.NewDecoder(r.Body).Decode(req)
-	if err != nil {
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 
-		WriteError(w, http.StatusBadRequest, "Invalid request body")
-		logger.Warnf("Invalid request body")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.Errorf("Failed to read request body: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if len(req.Scenes) == 0 {
-		logger.Info("clearing day scenes")
-	} else {
-		for _, scene := range req.Scenes {
-			if scenes.Scenes[scene] == nil {
-				WriteError(w, http.StatusBadRequest, fmt.Sprintf("Scene %s not found", scene))
-				logger.Warnf("Requested scene not found")
-				return
-			}
-		}
+	resp, err2 := rpc.HandleDayRequest(body)
+	if err2 != nil {
+		logger.Errorf("Failed to handle day request: %v", err)
+		w.WriteHeader(err2.Status())
+		w.Write(resp)
+		return
 	}
 
-	today := time.Now().In(common.Location)
-	endOfDay := time.Date(today.Year(), today.Month(), today.Day(), 23, 59, 59, 0, common.Location)
-	if len(req.Scenes) > 0 {
-		daemon.Daemon.SetAdditionalScenes(req.Scenes, endOfDay)
-	} else {
-		daemon.Daemon.ClearAdditionalScenes()
-	}
-
-	daemon.Daemon.Kick()
-	logger.WithField(FieldScene, strings.Join(req.Scenes, ", ")).Infof("Day scenes set by web request")
-	WriteSuccess(w)
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
 }

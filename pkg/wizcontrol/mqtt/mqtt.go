@@ -3,10 +3,13 @@ package mqtt
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 )
@@ -36,16 +39,29 @@ func NewMqtt() *Mqtt {
 		outboundMessage: make(chan messageAndTopic, BufferSize),
 	}
 	mqtt.Exec = mqtt.run
+
+	daemon.DaemonStatusDispatcher = mqtt.SendDaemonStatus
+	daemon.LightStatusDispatcher = mqtt.SendLightStatus
+
 	return &mqtt
 
 }
 
-func (l *Mqtt) connectHandler(client mqtt.Client) {
+func (m *Mqtt) handleDayRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
-	logger.Info("MQTT connected")
+	_, err := rpc.HandleDayRequest(msg.Payload())
+	if err != nil {
+		logger.Errorf("Failed to handle day request: %v", err)
+	}
 }
 
-func (l *Mqtt) disconnectHandler(client mqtt.Client, err error) {
+func (m *Mqtt) connectHandler(client mqtt.Client) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("MQTT connected")
+	client.Subscribe(fmt.Sprintf("%s/control/day", MqttTopic), 1, m.handleDayRPC)
+}
+
+func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Errorf("MQTT disconnected: %v", err)
 }
@@ -81,16 +97,14 @@ func (m *Mqtt) run() {
 		select {
 		case <-m.Runner.StopSignalled:
 			logger.Info("stop signalled")
+			client.Disconnect(250)
+			logger.Info("mqtt stopped")
 			return
 		case msg := <-m.outboundMessage:
 			client.Publish(msg.topic, 1, true, msg.message)
 			logger.Debugf("Send a message to %s", msg.topic)
 		}
 	}
-
-	// And then disconnect
-	client.Disconnect(250)
-	logger.Info("mqtt stopped")
 }
 
 func (m *Mqtt) SendLightStatus(light *lights.Light) error {
