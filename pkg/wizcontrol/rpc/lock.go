@@ -11,7 +11,7 @@ import (
 )
 
 type LockRequest struct {
-	Targets []string `json:"target"`
+	Targets []string `json:"targets"`
 	For     string   `json:"for"`
 	Until   string   `json:"until"`
 	Color   string   `json:"color"`
