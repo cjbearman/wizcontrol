@@ -8,6 +8,7 @@ import (
 )
 
 type LightAttributes struct {
+	On                  bool       `json:"on"`
 	ProgrammedColorName string     `json:"programmed_color_name"`
 	ProgrammedColor     string     `json:"programmed_color"`
 	ActualColorName     string     `json:"actual_color_name"`
@@ -50,6 +51,7 @@ func BuildLightStatus(light *lights.Light) LightStatus {
 	return LightStatus{
 		Available: light.Available(),
 		Attributes: LightAttributes{
+			On:                  light.On() && light.Available(),
 			ProgrammedColorName: programmedColorName,
 			ProgrammedColor:     programmedColor,
 			ActualColorName:     actualColorName,
