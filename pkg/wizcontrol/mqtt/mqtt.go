@@ -50,6 +50,7 @@ func NewMqtt() *Mqtt {
 
 func (m *Mqtt) handleDayRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received day RPC message")
 	_, err := rpc.HandleDayRequest(msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle day request: %v", err)
@@ -58,10 +59,25 @@ func (m *Mqtt) handleDayRPC(client mqtt.Client, msg mqtt.Message) {
 
 func (m *Mqtt) handleSetRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received set RPC message")
 	_, err := rpc.HandleSetRequest(msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle set request: %v", err)
 	}
+}
+func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received unlock RPC message")
+	_, err := rpc.HandleUnlockRequest(msg.Payload())
+	if err != nil {
+		logger.Errorf("Failed to handle unlock request: %v", err)
+	}
+}
+
+func (m *Mqtt) handlResetRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received reset RPC message")
+	_ = rpc.HandleResetRequest()
 }
 
 func (m *Mqtt) connectHandler(client mqtt.Client) {
@@ -69,6 +85,8 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger.Info("MQTT connected")
 	client.Subscribe(fmt.Sprintf("%s/control/day", MqttTopic), 1, m.handleDayRPC)
 	client.Subscribe(fmt.Sprintf("%s/control/set", MqttTopic), 1, m.handleSetRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handlResetRPC)
 }
 
 func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {

@@ -13,9 +13,8 @@ type DayRequest struct {
 }
 
 func (s *ServerInstance) dayHandler(w http.ResponseWriter, r *http.Request) {
-
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
-
+	logger.Info("day request received")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Errorf("Failed to read request body: %v", err)

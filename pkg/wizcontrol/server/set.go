@@ -21,7 +21,7 @@ type LightRespItem struct {
 
 func (s *ServerInstance) setHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
-
+	logger.Info("set request received")
 	rawBody, _ := io.ReadAll(r.Body)
 
 	resp, err := rpc.HandleSetRequest(rawBody)

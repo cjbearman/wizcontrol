@@ -1,26 +1,25 @@
 package server
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
 func (s *ServerInstance) unlockHandler(w http.ResponseWriter, r *http.Request) {
-	l := r.PathValue("light")
-	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "unlock").WithField(FieldLightOrGroup, l)
 
-	affectedLights, err := lights.GetLightOrGroup(l)
-	if err != nil || len(affectedLights) == 0 {
-		WriteError(w, http.StatusNotFound, "Light or group not found")
-		logger.Warn("Light or group not found")
-		return
-	}
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
+	logger.Info("Unlock request received")
 
-	for _, light := range affectedLights {
-		light.Locker.UnlockNow(false)
+	rawBody, _ := io.ReadAll(r.Body)
+
+	resp, err := rpc.HandleUnlockRequest(rawBody)
+	if err != nil {
+		w.WriteHeader(err.Status())
+	} else {
+		w.WriteHeader(http.StatusOK)
 	}
-	WriteSuccess(w)
-	logger.Info("Light(s) unlocked")
+	w.Write(resp)
 }
