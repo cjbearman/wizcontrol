@@ -65,7 +65,7 @@ colors:
   warm_white_30: W2700/30
   warmish_white: W3300
   dlight: W5800
-  dlight_40: W5800/40
+  dlight40: W5800/40
   cool_white: W6500
   pastel_purple: "#B497E7"
   pastel_blue: "#00FF87"
