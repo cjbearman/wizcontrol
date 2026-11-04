@@ -33,6 +33,16 @@ func (l *LightLock) LockFor(d time.Duration, color string) {
 	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, color)
 }
 
+func (l *LightLock) LockUntil(t time.Time, color string) {
+	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.lockedUntil = t
+	l.lockToColor = color
+	l.setTimer(time.Until(t))
+	logger.Debugf("Light locked until: %v, color: %s", l.lockedUntil, color)
+}
+
 func (l *LightLock) UnlockNow(noKick bool) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
