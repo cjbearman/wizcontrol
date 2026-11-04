@@ -14,7 +14,7 @@ mqtt:
   topic: "wizcontrol"
 
 http:
-  port: 12345
+  port: 12120
   # cert_chain: test_certs/wizcontrol.crt
   # key: test_certs/wizcontrol.key
   #auth:
