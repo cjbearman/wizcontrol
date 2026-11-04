@@ -7,16 +7,19 @@ import (
 )
 
 const UnknownColorName = "unknown"
+const ColorOff = "off"
 
 // Colors maps color names to color values
 var Colors = make(map[string]string)
 
 // Preload all wiz scenes as colors under the same name
+// and add "off" color
 func init() {
 	for _, scene := range wiz.AllSceneNames() {
 		sceneLC := strings.ToLower(scene)
 		Colors[sceneLC] = sceneLC
 	}
+	Colors[ColorOff] = ColorOff
 }
 
 func NameForColor(color string) string {

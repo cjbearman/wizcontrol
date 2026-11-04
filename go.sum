@@ -4,6 +4,10 @@ github.com/cjbearman/wiz v0.0.0-20261102215304-55285a409205 h1:tzpTf3EGG5YTYmGWr
 github.com/cjbearman/wiz v0.0.0-20261102215304-55285a409205/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
 github.com/cjbearman/wiz v0.0.0-20261104162502-34874ffd7279 h1:T/GvW8QL53qlXGk5yGPyeuq8L0G0pwqNQ2//lesAHaA=
 github.com/cjbearman/wiz v0.0.0-20261104162502-34874ffd7279/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
+github.com/cjbearman/wiz v0.0.0-20261104205050-3d22fe921528 h1:crWktqq2PK5jBo9p0CLGvpQd8+HaIT2o9j6aQ9IH8yw=
+github.com/cjbearman/wiz v0.0.0-20261104205050-3d22fe921528/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
+github.com/cjbearman/wiz v0.0.0-20261104205633-c565e4e8bc24 h1:QVHgx6pHe8IX5/jjzqtsA6EVay0427kbd7D7mTA/OZk=
+github.com/cjbearman/wiz v0.0.0-20261104205633-c565e4e8bc24/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/eclipse/paho.mqtt.golang v1.5.1 h1:/VSOv3oDLlpqR2Epjn1Q7b2bSTplJIeV2ISgCl2W7nE=
 github.com/eclipse/paho.mqtt.golang v1.5.1/go.mod h1:1/yJCneuyOoCOzKSsOTUc0AJfpsItBGWvYpBLimhArU=

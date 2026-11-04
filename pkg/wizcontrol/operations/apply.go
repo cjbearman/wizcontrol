@@ -101,8 +101,8 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 				logger.Debugf("Skipping unavailable light")
 				continue
 			}
-			if light.LastColor() == color && light.On() {
-				logger.Debugf("Light has correct color of %q and is turned on, skipping", color)
+			if light.LastColor() == color {
+				logger.Debugf("Light has correct color of %q, skipping", color)
 				continue
 			} else {
 				logger.Infof("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastColor(), color, light.On())
@@ -114,7 +114,9 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			logger.Warnf("Failed to parse color settings: %v", err)
 			continue
 		}
-		settings.On()
+		if color != colors.ColorOff {
+			settings.On()
+		}
 
 		asyncs = append(asyncs, light.Device.SetPilotAsync(settings))
 	}
@@ -137,8 +139,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			// We will be sending a status for this light, if mqtt dispatch is enabled
 			sendStatusFor = append(sendStatusFor, light)
 
-			// Light is definitively on now
-			light.SetOn(true)
+			light.SetOn(operationsToDo[light] != colors.ColorOff)
 
 			// Retrieve the intended color for this light from the operationsToDo map
 			colorName, found := operationsToDo[light]

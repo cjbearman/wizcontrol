@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/cjbearman/framework v1.0.3
-	github.com/cjbearman/wiz v0.0.0-20261104162502-34874ffd7279
+	github.com/cjbearman/wiz v0.0.0-20261104205633-c565e4e8bc24
 	github.com/rickar/cal/v2 v2.1.32
 	gopkg.in/yaml.v3 v3.0.1
 )
