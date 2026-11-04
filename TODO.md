@@ -15,3 +15,5 @@
 * TLS support for API
 
 * Optional control disable for MQTT
+
+* Auth support (REST only)

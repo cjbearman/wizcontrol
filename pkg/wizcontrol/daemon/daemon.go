@@ -12,6 +12,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
 type DaemonMode string
@@ -39,7 +40,6 @@ type DaemonInstance struct {
 	mode             DaemonMode
 	activeSceneNames string
 	lock             sync.Mutex
-	additionalScenes []string
 	calendarScenes   []string
 	additionalUntil  time.Time
 }
@@ -47,12 +47,11 @@ type DaemonInstance struct {
 // NewDaemon returns a new daemon, not running
 func NewDaemon() *DaemonInstance {
 	d := &DaemonInstance{
-		Runner:           common.NewRunner(),
-		kicker:           make(chan struct{}, 1),
-		lastRecheck:      time.Time{},
-		additionalUntil:  time.Time{},
-		mode:             DaemonModeAuto,
-		additionalScenes: []string{},
+		Runner:          common.NewRunner(),
+		kicker:          make(chan struct{}, 1),
+		lastRecheck:     time.Time{},
+		additionalUntil: time.Time{},
+		mode:            DaemonModeAuto,
 	}
 	d.Runner.Exec = d.run
 	lights.KickFunc = d.Kick
@@ -89,30 +88,6 @@ func (d *DaemonInstance) GetMode() DaemonMode {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.mode
-}
-
-func (d *DaemonInstance) SetAdditionalScenes(scenes []string, until time.Time) {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	d.additionalScenes = scenes
-	d.additionalUntil = until
-}
-
-func (d *DaemonInstance) ClearAdditionalScenes() {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	d.additionalScenes = nil
-	d.additionalUntil = time.Time{}
-}
-
-func (d *DaemonInstance) GetAdditionalScenes() ([]string, time.Time) {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	if time.Now().After(d.additionalUntil) {
-		d.additionalScenes = []string{}
-		d.additionalUntil = time.Time{}
-	}
-	return d.additionalScenes, d.additionalUntil
 }
 
 // Internal run method, called by Runner to execute the daemon loop
@@ -182,7 +157,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 	}
 
 	calendarScenes := calendar.GetCalendarScenes()
-	additionalScenes, _ := d.GetAdditionalScenes()
+	additionalScenes := scenes.GetAdditionalScenes()
 	activeScenes := append(calendarScenes, additionalScenes...)
 	activeSceneNames := strings.Join(activeScenes, ",")
 
@@ -213,17 +188,7 @@ func (d *DaemonInstance) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
 		d.GetActiveSceneNames(),
 		d.GetCalendarScenes(),
-		func() []string {
-			add, _ := d.GetAdditionalScenes()
-			return add
-		}(),
-		func() *time.Time {
-			_, addUntil := d.GetAdditionalScenes()
-			if add, _ := d.GetAdditionalScenes(); len(add) > 0 {
-				return &addUntil
-			}
-			return nil
-		}(),
+		scenes.GetAdditionalScenesAndTimes(),
 		string(d.GetMode()),
 	)
 

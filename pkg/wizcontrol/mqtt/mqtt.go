@@ -66,7 +66,24 @@ func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
-func (m *Mqtt) handlResetRPC(client mqtt.Client, msg mqtt.Message) {
+func (m *Mqtt) handleAddSceneRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received add scene RPC message")
+	_, err := rpc.HandleAddScenesRequest(msg.Payload())
+	if err != nil {
+		logger.Errorf("Failed to handle add scene request: %v", err)
+	}
+}
+func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received delete scene RPC message")
+	_, err := rpc.HandleDelScenesRequest(msg.Payload())
+	if err != nil {
+		logger.Errorf("Failed to handle delete scene request: %v", err)
+	}
+}
+
+func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received reset RPC message")
 	_ = rpc.HandleResetRequest()
@@ -79,7 +96,9 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	// Subscribe to control topics
 	client.Subscribe(fmt.Sprintf("%s/control/lock", MqttTopic), 1, m.handleLockRPC)
 	client.Subscribe(fmt.Sprintf("%s/control/unlock", MqttTopic), 1, m.handleUnlockRPC)
-	client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handlResetRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/addscene", MqttTopic), 1, m.handleAddSceneRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/delscene", MqttTopic), 1, m.handleDelSceneRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/reset", MqttTopic), 1, m.handleResetRPC)
 
 	// Publish initial scenes and colors, retained
 	client.Publish(fmt.Sprintf("%s/scenes", MqttTopic), 1, true, rpc.HandleScenesRequest()).Wait()

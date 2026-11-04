@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
@@ -47,6 +46,7 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	lockedUntil, err2 := validateForUntil(request.For, request.Until)
 	if err2 != nil {
 		return NewGeneralResponse(false, err2.Error()), err2
+
 	}
 
 	// Validate targets
@@ -73,29 +73,4 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	daemon.Daemon.Kick()
 
 	return NewGeneralResponse(true, ""), nil
-}
-
-func validateForUntil(forspec, until string) (time.Time, *RpcError) {
-	if forspec == "" && until == "" {
-		return time.Time{}, NewRpcError(400, "either 'for' or 'until' is required")
-	}
-	if forspec != "" && until != "" {
-		return time.Time{}, NewRpcError(400, "'for' and 'until' are mutually exclusive")
-	}
-	if forspec != "" {
-		duration, err := time.ParseDuration(forspec)
-		if err != nil {
-			return time.Time{}, NewRpcError(400, "invalid 'for' duration: %v", err)
-		}
-		return time.Now().In(common.Location).Add(duration), nil
-	}
-	if until != "" {
-		// TODO: Support additional time formats
-		lockUntil, err := time.ParseInLocation("2006-01-02 15:04", until, common.Location)
-		if err != nil {
-			return time.Time{}, NewRpcError(400, "invalid 'until' time: %v", err)
-		}
-		return lockUntil, nil
-	}
-	return time.Time{}, NewRpcError(400, "either 'for' or 'until' is required")
 }

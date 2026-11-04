@@ -4,12 +4,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
 func HandleResetRequest() []byte {
 	logger := common.Logger.GetLogger("rpc-reset")
 
-	daemon.Daemon.ClearAdditionalScenes()
+	scenes.ClearAdditionalScenes()
 	for _, light := range lights.Lights {
 		light.Locker.UnlockNow(true)
 	}
