@@ -249,46 +249,47 @@ scenes:
     - targets: [ patio_lights ]
       color: sunset_dynamic
       
-# default_scene must be defined
-default_scene: default
-
 calendar:
+  - name: default
+    from: jan 1
+    to: dec 31
+    scenes: [ default ]
   - name: halloween
     from: halloween - 10
     to: halloween
-    scene: halloween
+    scenes: [ halloween ]
   - name: easter
     from: good_friday - 5
     to: easter_sunday + 2
-    scene: pastel
+    scenes: [ pastel ]
   - name: independence_day
     from: independence_day - 2
     to: independence_day + 2
-    scene: patriotic
+    scenes: [ patriotic ]
   - name: memorial_day
     from: memorial_day
     to: memorial_day
-    scene: patriotic
+    scenes: [ patriotic ]
   - name: presidents_day
     from: presidents_day
     to: presidents_day
-    scene: patriotic
+    scenes: [ patriotic ]
   - name: xmas
     from: dec 1
     to: dec 31
-    scene: xmas
+    scenes: [ xmas ]
   - name: st_patricks_day
     from: st_patricks_day
     to: st_patricks_day
-    scene: paddy
+    scenes: [ paddy ]
   - name: thanksgiving
     from: thanksgiving_day - 3
     to: thanksgiving_day + 1
-    scene: thanksgiving
+    scenes: [ thanksgiving ]  
   - name: patio_changeup
     from: jan 1
     to: dec 31
-    random:
+    scenes:
       - patio_diwali_dynamic
       - patio_fall_dynamic
       - patio_fireplace_dynamic
@@ -299,8 +300,8 @@ calendar:
       - patio_party_dynamic
       - patio_pastel_dynamic
       - patio_relax_dynamic
-      - patio_romance_dynamic
       - patio_spring_dynamic
       - patio_steampunk_dynamic
       - patio_summer_dynamic
       - patio_sunset_dynamic
+    mode: random

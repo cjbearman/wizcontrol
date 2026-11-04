@@ -17,7 +17,7 @@ type StatusResponse struct {
 }
 
 func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
-	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "status")
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	status := &StatusResponse{
 		Lights: make(map[string]responses.LightStatus),
 		Server: responses.BuildDaemonResponse(

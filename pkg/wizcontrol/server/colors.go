@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ServerInstance) colorsHandler(w http.ResponseWriter, r *http.Request) {
-	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr).WithField(FieldOperation, "colors")
+	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("colors request received")
 	resp := rpc.HandleColorsRequest()
 	w.WriteHeader(http.StatusOK)

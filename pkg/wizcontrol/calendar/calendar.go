@@ -11,6 +11,14 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
+type SceneMode string
+
+const (
+	SceneModeAll    SceneMode = "all"
+	SceneModeRandom SceneMode = "random"
+	SceneModeRotate SceneMode = "rotate"
+)
+
 var CalendarDebug = false
 
 type CalendarTime struct {
@@ -23,7 +31,7 @@ type CalendarEntry struct {
 	ToDay      int
 	BeforeTime *CalendarTime
 	AfterTime  *CalendarTime
-	Scene      SceneSelector
+	Scenes     SceneSelector
 }
 
 var CalendarEntries = make(map[string]CalendarEntry)
@@ -31,7 +39,7 @@ var CalendarEntries = make(map[string]CalendarEntry)
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
 
-func AddCalendarEntry(name, from, to, before, after, scene string, random, rotate []string) error {
+func AddCalendarEntry(name, from, to, before, after string, scenesList []string, sceneMode SceneMode) error {
 	if _, exists := CalendarEntries[name]; exists {
 		return fmt.Errorf("calendar entry with name %s already exists", name)
 	}
@@ -43,41 +51,32 @@ func AddCalendarEntry(name, from, to, before, after, scene string, random, rotat
 		return fmt.Errorf("calendar entry %q requires to", name)
 	}
 
-	// Must have exactly one of scene, random or rotate specified
-	var selector SceneSelector
-	count := 0
-	if scene != "" {
-		count++
+	if len(scenesList) == 0 {
+		return fmt.Errorf("calendar entry %q requires at least one scene", name)
+	}
+
+	for _, scene := range scenesList {
 		if exists, missing := scenes.ScenesExist(scene); !exists {
-			return fmt.Errorf("calendar scene entry %q references unknown scene %q", name, missing)
+			return fmt.Errorf("calendar entry %q contains undefined scene %q", name, missing)
 		}
-		selector = &FixedSceneSelector{scene: scene}
-
 	}
 
-	if len(random) > 0 {
-		count++
-		if exists, missing := scenes.ScenesExist(random...); !exists {
-			return fmt.Errorf("calendar random entry %q references unknown scene %q", name, missing)
-		}
-		selector = &RandomSceneSelector{scenes: random}
-	}
-	if len(rotate) > 0 {
-		count++
-		if exists, missing := scenes.ScenesExist(rotate...); !exists {
-			return fmt.Errorf("calendar rotate entry %q references unknown scene %q", name, missing)
-		}
-		selector = &RotateSceneSelector{scenes: rotate}
-	}
-
-	if count != 1 {
-		return fmt.Errorf("calendar entry %q must have exactly one of scene, random or rotate specified", name)
+	var selector SceneSelector
+	switch sceneMode {
+	case SceneModeAll, "":
+		selector = &AllSceneSelector{scenes: scenesList}
+	case SceneModeRandom:
+		selector = &RandomSceneSelector{scenes: scenesList}
+	case SceneModeRotate:
+		selector = &RotateSceneSelector{scenes: scenesList}
+	default:
+		return fmt.Errorf("invalid scene mode %q for calendar entry %q", sceneMode, name)
 	}
 
 	entry := CalendarEntry{
 		FromDay: DateToDayNumber(from),
 		ToDay:   DateToDayNumber(to),
-		Scene:   selector,
+		Scenes:  selector,
 	}
 
 	if entry.FromDay == -1 {
@@ -215,10 +214,6 @@ func dayValid(day int, month time.Month) bool {
 func GetCalendarScenes() []string {
 	result := []string{}
 
-	// The default scene is always returned as the first element of the active scenes
-	// because it must always be active at lowest priority
-	result = append(result, "default")
-
 	dayNo, now := GetTodayNumber()
 	extCalendarDebugLog("Searching for active calendar scenes for day number %d", dayNo)
 	for calendarName, entry := range CalendarEntries {
@@ -246,9 +241,9 @@ func GetCalendarScenes() []string {
 				}
 			}
 
-			sc := entry.Scene.GetScene(dayNo)
-			extCalendarDebugLog("Calendar entry %q is active for the current time, scene %q will be used", calendarName, sc)
-			result = append(result, sc)
+			sc := entry.Scenes.GetScene(dayNo)
+			extCalendarDebugLog("Calendar entry %q is active for the current time, scenes %v will be used", calendarName, sc)
+			result = append(result, sc...)
 		} else {
 			extCalendarDebugLog("Calendar entry %q does not match current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
 		}

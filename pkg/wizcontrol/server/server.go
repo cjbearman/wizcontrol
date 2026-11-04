@@ -12,16 +12,7 @@ import (
 var ServerPort int
 
 const (
-	FieldRemoteAddr   = "remote_addr"
-	FieldOperation    = "operation"
-	FieldScene        = "scene"
-	FieldLight        = "light"
-	FieldLightOrGroup = "light_or_group"
-	FieldLights       = "lights"
-	FieldDuration     = "duration"
-	FieldColor        = "color"
-	FieldColorName    = "color-name"
-	FieldBrightness   = "brightness"
+	FieldRemoteAddr = "remote_addr"
 )
 
 var Server *ServerInstance

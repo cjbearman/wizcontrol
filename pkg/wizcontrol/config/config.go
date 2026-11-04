@@ -47,20 +47,18 @@ type Config struct {
 	Lights            map[string]Light             `yaml:"lights"`
 	LightGroups       map[string][]Light           `yaml:"light_groups"`
 	Scenes            map[string][]scenes.CnfScene `yaml:"scenes"`
-	DefaultScene      string                       `yaml:"default_scene"`
 	Calendar          []CalendarEntry              `yaml:"calendar"`
 }
 
 // CalendarEntry describes when a scene should apply.
 type CalendarEntry struct {
-	Name   string   `yaml:"name"`
-	From   string   `yaml:"from"`
-	To     string   `yaml:"to"`
-	Before string   `yaml:"before"`
-	After  string   `yaml:"after"`
-	Scene  string   `yaml:"scene"`
-	Random []string `yaml:"random"`
-	Rotate []string `yaml:"rotate"`
+	Name      string             `yaml:"name"`
+	From      string             `yaml:"from"`
+	To        string             `yaml:"to"`
+	Before    string             `yaml:"before"`
+	After     string             `yaml:"after"`
+	Scenes    []string           `yaml:"scenes"`
+	SceneMode calendar.SceneMode `yaml:"mode"`
 }
 
 // Load reads a YAML config from disk.
@@ -193,18 +191,10 @@ func (c *Config) Parse() error {
 
 	// Calendar entries
 	for _, entry := range c.Calendar {
-		if err := calendar.AddCalendarEntry(entry.Name, entry.From, entry.To, entry.Before, entry.After, entry.Scene, entry.Random, entry.Rotate); err != nil {
+		if err := calendar.AddCalendarEntry(entry.Name, entry.From, entry.To, entry.Before, entry.After, entry.Scenes, entry.SceneMode); err != nil {
 			return fmt.Errorf("failed to add calendar entry %q: %v", entry.Name, err)
 		}
 		logger.Debugf("Added calendar entry %q", entry.Name)
-	}
-
-	// Enforce default scene
-	if c.DefaultScene == "" {
-		return fmt.Errorf("default scene is not defined")
-	}
-	if _, exists := c.Scenes[c.DefaultScene]; !exists {
-		return fmt.Errorf("default scene %q does not exist", c.DefaultScene)
 	}
 
 	return nil
