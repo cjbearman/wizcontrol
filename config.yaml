@@ -206,8 +206,8 @@ scenes:
   go_democrats:
     - targets: [ outside_lights ]
       color: democratic_blue
-    - targets: [ porch_c ]
-      color: daylight
+    - targets: [ patio_lights, porch_c ]
+      color: ocean_dynamic
 
 # Dynamic scenes for the patio
   patio_diwali_dynamic:
