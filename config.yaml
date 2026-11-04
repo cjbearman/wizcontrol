@@ -64,8 +64,8 @@ colors:
   warm_white_50: W2700/50
   warm_white_30: W2700/30
   warmish_white: W3300
-  dlight: W5800
-  dlight40: W5800/40
+  daylight: W5800
+  daylight40: W5800/40
   cool_white: W6500
   pastel_purple: "#B497E7"
   pastel_blue: "#00FF87"
@@ -119,7 +119,7 @@ scenes:
     - targets: [ porch_carriage_lights ]
       color: warm_white_50
     - targets: [ office_lights ]
-      color: dlight
+      color: daylight
   overnight:
     - targets:
       - porch_c
@@ -133,7 +133,7 @@ scenes:
     - targets: [ porch_c, patio_wall ]
       color: orange
     - targets: [ patio_string ]
-      color: halloween
+      color: wiz_halloween
   paddy:
     - targets: [ outside_lights ]
       color: green
@@ -150,7 +150,7 @@ scenes:
     - targets: [ front_flood_lr, front_flood_cr, front_flood_rr, porch_r ]
       color: red
     - targets: [ porch_c ]
-      color: dlight
+      color: daylight
   thanksgiving:
     - targets: [ outside_lights ]
       color: orange
@@ -178,13 +178,13 @@ scenes:
       color: cool_white
   office_daylight:
     - targets: [ office_lights ]
-      color: dlight
+      color: daylight
   office_warmest:
     - targets: [ office_lights ]
       color: warmest_white
   office_dim:
     - targets: [ office_lights]
-      color: dlight40
+      color: daylight40
   office_yellow:
     - targets: [ office_lights ]
       color: yellow
