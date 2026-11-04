@@ -34,10 +34,6 @@ func BuildLightStatus(light *lights.Light) LightStatus {
 		actualColorName = colors.NameForColor(actualColor)
 	}
 	activeScene := light.ActiveScene()
-	if activeScene == "" {
-		activeScene = "-"
-	}
-
 	var lockedUntil *time.Time
 	locked, _, until := light.Locker.IsLocked()
 	if locked {
