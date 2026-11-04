@@ -42,6 +42,7 @@ func NewMqtt() *Mqtt {
 
 	daemon.DaemonStatusDispatcher = mqtt.SendDaemonStatus
 	daemon.LightStatusDispatcher = mqtt.SendLightStatus
+	rpc.LightStatusDispatcher = mqtt.SendLightStatus
 
 	return &mqtt
 
@@ -55,10 +56,19 @@ func (m *Mqtt) handleDayRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+func (m *Mqtt) handleSetRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	_, err := rpc.HandleSetRequest(msg.Payload())
+	if err != nil {
+		logger.Errorf("Failed to handle set request: %v", err)
+	}
+}
+
 func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("MQTT connected")
 	client.Subscribe(fmt.Sprintf("%s/control/day", MqttTopic), 1, m.handleDayRPC)
+	client.Subscribe(fmt.Sprintf("%s/control/set", MqttTopic), 1, m.handleSetRPC)
 }
 
 func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {

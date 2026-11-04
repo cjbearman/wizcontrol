@@ -48,7 +48,7 @@ func NewServer() *ServerInstance {
 
 	mux.HandleFunc("GET /", intercept(srv.statusHandler))
 	mux.HandleFunc("POST /day", intercept(srv.dayHandler))
-	mux.HandleFunc("POST /set/{light}", intercept(srv.setHandler))
+	mux.HandleFunc("POST /set", intercept(srv.setHandler))
 	mux.HandleFunc("POST /unlock/{light}", intercept(srv.unlockHandler))
 	mux.HandleFunc("POST /reset", intercept(srv.resetHandler))
 
