@@ -8,7 +8,7 @@ import (
 )
 
 type ColorsResponse struct {
-	Colors []string
+	Colors []string `json:"colors"`
 }
 
 func HandleColorsRequest() []byte {

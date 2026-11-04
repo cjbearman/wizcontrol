@@ -7,12 +7,6 @@ evaluation_period: 15s
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
 
-# Random and rotation frequencies is how often (in minutes) a change will occur
-# Random is pure random selection
-# Rotation is ordered from the selection list
-random_frequency: 30
-rotation_frequency: 1440
-
 mqtt:
   url: "mqtt://192.168.10.189:1883"
   username: "wizcontrol_mqtt"
@@ -40,7 +34,6 @@ lights:
   office_ceiling_1: 192.168.20.192
   office_ceiling_2: 192.168.20.251
   office_ceiling_3: 192.168.20.84
-
 
 # Valid color specs:
 # Where RR,GG,BB are RGB hex values

@@ -8,7 +8,7 @@ import (
 )
 
 type ScenesResponse struct {
-	Scenes []string
+	Scenes []string `json:"scenes"`
 }
 
 func HandleScenesRequest() []byte {
