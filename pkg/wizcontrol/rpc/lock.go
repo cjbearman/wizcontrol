@@ -38,9 +38,10 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	var color string
 	if col, found := colors.Colors[request.Color]; found {
 		color = col
+
 	} else {
 		// So it wasn't a named color, check if it's a raw color spec
-		if _, err := wiz.SettingsFromString(request.Color); err != nil {
+		if _, err := wiz.SettingsFromString(request.Color); err == nil {
 			color = request.Color
 		} else {
 			return NewGeneralResponse(false, fmt.Sprintf("invalid color %q, must be named color or raw color specification", request.Color)), NewRpcError(400, "invalid color: %s", request.Color)

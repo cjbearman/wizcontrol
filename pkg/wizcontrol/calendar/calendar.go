@@ -29,6 +29,7 @@ type CalendarTime struct {
 }
 
 type CalendarEntry struct {
+	Name       string
 	FromDay    int
 	ToDay      int
 	BeforeTime *CalendarTime
@@ -36,13 +37,13 @@ type CalendarEntry struct {
 	Scenes     SceneSelector
 }
 
-var CalendarEntries = make(map[string]CalendarEntry)
+var CalendarEntries = []CalendarEntry{}
 
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
 
 func AddCalendarEntry(name, from, to, before, after string, scenesList []string, sceneMode SceneMode, frequency *time.Duration) error {
-	if _, exists := CalendarEntries[name]; exists {
+	if CalendarEntryExists(name) {
 		return fmt.Errorf("calendar entry with name %s already exists", name)
 	}
 
@@ -94,6 +95,7 @@ func AddCalendarEntry(name, from, to, before, after string, scenesList []string,
 		FromDay: DateToDayNumber(from),
 		ToDay:   DateToDayNumber(to),
 		Scenes:  selector,
+		Name:    name,
 	}
 
 	if entry.FromDay == -1 {
@@ -119,7 +121,7 @@ func AddCalendarEntry(name, from, to, before, after string, scenesList []string,
 		entry.AfterTime = &afterTime
 	}
 
-	CalendarEntries[name] = entry
+	CalendarEntries = append(CalendarEntries, entry)
 	return nil
 }
 
@@ -229,13 +231,19 @@ func dayValid(day int, month time.Month) bool {
 }
 
 func GetCalendarScenes() []string {
+	logger := common.Logger.GetLogger("calendar")
 	result := []string{}
 
 	dayNo, now := GetTodayNumber()
 	extCalendarDebugLog("Searching for active calendar scenes for day number %d", dayNo)
-	for calendarName, entry := range CalendarEntries {
+
+	for name := range CalendarEntries {
+		extCalendarDebugLog("Found calendar entry: %q", name)
+	}
+
+	for _, entry := range CalendarEntries {
 		if dayNo >= entry.FromDay && dayNo <= entry.ToDay {
-			extCalendarDebugLog("Calendar entry %q matches current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
+			extCalendarDebugLog("Calendar entry %q matches current day (%d) with from %d, to %d", entry.Name, dayNo, entry.FromDay, entry.ToDay)
 			// Scene matches the current day, but how about any time period
 
 			nowHour := now.In(common.Location).Hour()
@@ -246,25 +254,27 @@ func GetCalendarScenes() []string {
 			if entry.BeforeTime != nil {
 				compareTo := time.Date(1, 1, 1, entry.BeforeTime.Hour, entry.BeforeTime.Minute, 0, 0, common.Location)
 				if compareWith.After(compareTo) {
-					extCalendarDebugLog("Current time is after the before time for calendar entry %q", calendarName)
+					extCalendarDebugLog("Current time is after the before time for calendar entry %q", entry.Name)
 					continue
 				}
 			}
 			if entry.AfterTime != nil {
 				compareTo := time.Date(1, 1, 1, entry.AfterTime.Hour, entry.AfterTime.Minute, 0, 0, common.Location)
 				if compareWith.Before(compareTo) {
-					extCalendarDebugLog("Current time is before the after time for calendar entry %q", calendarName)
+					extCalendarDebugLog("Current time is before the after time for calendar entry %q", entry.Name)
 					continue
 				}
 			}
 
 			sc := entry.Scenes.GetScene(dayNo)
-			extCalendarDebugLog("Calendar entry %q is active for the current time, scenes %v will be used", calendarName, sc)
+			extCalendarDebugLog("Calendar entry %q is active for the current time, scenes %v will be used", entry.Name, sc)
 			result = append(result, sc...)
 		} else {
-			extCalendarDebugLog("Calendar entry %q does not match current day (%d) with from %d, to %d", calendarName, dayNo, entry.FromDay, entry.ToDay)
+			extCalendarDebugLog("Calendar entry %q does not match current day (%d) with from %d, to %d", entry.Name, dayNo, entry.FromDay, entry.ToDay)
 		}
 	}
+
+	logger.Infof("Calendar scenes selected: %s", strings.Join(result, ","))
 
 	return result
 
@@ -274,4 +284,13 @@ func extCalendarDebugLog(format string, v ...any) {
 	if CalendarDebug {
 		common.Logger.GetLogger("calendar").Debugf(format, v...)
 	}
+}
+
+func CalendarEntryExists(name string) bool {
+	for _, item := range CalendarEntries {
+		if item.Name == name {
+			return true
+		}
+	}
+	return false
 }

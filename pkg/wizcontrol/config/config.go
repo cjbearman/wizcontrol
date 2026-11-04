@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
@@ -224,6 +225,11 @@ func (c *Config) Parse() error {
 		}
 		logger.Debugf("Added calendar entry %q", entry.Name)
 	}
+	definedCalendarEntries := []string{}
+	for _, entry := range c.Calendar {
+		definedCalendarEntries = append(definedCalendarEntries, entry.Name)
+	}
+	logger.Infof("Defined calendar entries in order: %s", strings.Join(definedCalendarEntries, ","))
 
 	return nil
 }
