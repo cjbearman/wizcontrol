@@ -9,7 +9,7 @@ import (
 )
 
 type UnlockRequest struct {
-	Targets string `json:"targets"`
+	Targets []string `json:"targets"`
 }
 
 func HandleUnlockRequest(req []byte) ([]byte, *RpcError) {
@@ -22,10 +22,19 @@ func HandleUnlockRequest(req []byte) ([]byte, *RpcError) {
 		return NewGeneralResponse(false, fmt.Sprintf("invalid request: %v", err)), NewRpcError(400, "invalid request: %v", err)
 	}
 
-	affectedLights, err := lights.GetLightOrGroup(request.Targets)
-	if err != nil || len(affectedLights) == 0 {
-		logger.Errorf("Light or group %q not found", request.Targets)
-		return NewGeneralResponse(false, "Light or group not found"), NewRpcError(404, "Light or group not found")
+	if len(request.Targets) == 0 {
+		return NewGeneralResponse(false, "no targets specified"), NewRpcError(400, "no targets specified")
+	}
+
+	affectedLights := []*lights.Light{}
+
+	for _, item := range request.Targets {
+		lights, err := lights.GetLightOrGroup(item)
+		if err != nil {
+			logger.Errorf("Light or group %q not found", item)
+			return NewGeneralResponse(false, fmt.Sprintf("Light or group %q not found", item)), NewRpcError(400, "Light or group not found")
+		}
+		affectedLights = append(affectedLights, lights...)
 	}
 
 	for _, light := range affectedLights {
