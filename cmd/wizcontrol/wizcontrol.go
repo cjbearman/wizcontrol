@@ -19,6 +19,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
 
 func main() {
@@ -88,6 +89,11 @@ func runAsDaemon() {
 	logger.Info("Runner starting")
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM)
+
+	// Load any state recovery file
+	if err := state.RecoverState(); err != nil {
+		common.Logger.Warnf("Failed to recover state: %v", err)
+	}
 
 	// Start the main daemon and web server
 	daemon.Daemon = daemon.NewDaemon()

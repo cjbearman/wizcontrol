@@ -13,6 +13,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
@@ -50,16 +51,17 @@ type Server struct {
 
 // Config describes the structure in config.yaml.
 type Config struct {
-	Timezone         string                       `yaml:"timezone"`
-	EvaluationPeriod time.Duration                `yaml:"evaluation_period"`
-	RecheckPeriod    time.Duration                `yaml:"recheck_period"`
-	Server           Server                       `yaml:"http"`
-	Mqtt             *MqttConfig                  `yaml:"mqtt"`
-	Colors           map[string]Color             `yaml:"colors"`
-	Lights           map[string]Light             `yaml:"lights"`
-	LightGroups      map[string][]Light           `yaml:"light_groups"`
-	Scenes           map[string][]scenes.CnfScene `yaml:"scenes"`
-	Calendar         []CalendarEntry              `yaml:"calendar"`
+	Timezone          string                       `yaml:"timezone"`
+	EvaluationPeriod  time.Duration                `yaml:"evaluation_period"`
+	RecheckPeriod     time.Duration                `yaml:"recheck_period"`
+	Server            Server                       `yaml:"http"`
+	Mqtt              *MqttConfig                  `yaml:"mqtt"`
+	StateRecoveryFile string                       `yaml:"state_recovery_file"`
+	Colors            map[string]Color             `yaml:"colors"`
+	Lights            map[string]Light             `yaml:"lights"`
+	LightGroups       map[string][]Light           `yaml:"light_groups"`
+	Scenes            map[string][]scenes.CnfScene `yaml:"scenes"`
+	Calendar          []CalendarEntry              `yaml:"calendar"`
 }
 
 // CalendarEntry describes when a scene should apply.
@@ -167,6 +169,8 @@ func (c *Config) Parse() error {
 		}
 		logger.Infof("Configured MQTT on %s", c.Mqtt.Url)
 	}
+
+	state.StateRecoveryFile = c.StateRecoveryFile
 
 	// Colors
 	for name, color := range c.Colors {

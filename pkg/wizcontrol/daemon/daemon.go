@@ -14,6 +14,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
 
 type DaemonMode string
@@ -177,6 +178,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 	logger.Debugf("Apply scenes, first run: %v", firstRun)
 	operations.ApplyScenes(activeScenes, false, true, firstRun)
 	d.SendDaemonStatus()
+	state.WriteState()
 	logger.Info("daemon iteration completed")
 }
 

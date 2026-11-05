@@ -65,6 +65,17 @@ func clearExpiredScenes() {
 	additionalScenes = revised
 }
 
+func GetAdditionalScenesWithUntils() []SceneUntil {
+	additionalScenesLock.RLock()
+	defer additionalScenesLock.RUnlock()
+	clearExpiredScenes()
+	result := []SceneUntil{}
+	for _, existing := range additionalScenes {
+		result = append(result, existing)
+	}
+	return result
+}
+
 func GetAdditionalScenes() []string {
 	additionalScenesLock.RLock()
 	defer additionalScenesLock.RUnlock()

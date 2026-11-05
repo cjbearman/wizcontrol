@@ -7,6 +7,8 @@ evaluation_period: 15s
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
 
+state_recovery_file: "state.json"
+
 mqtt:
   url: "mqtt://192.168.10.189:1883"
   username: "wizcontrol_mqtt"
