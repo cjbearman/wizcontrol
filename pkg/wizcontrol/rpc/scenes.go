@@ -14,7 +14,7 @@ type ScenesResponse struct {
 func HandleScenesRequest() []byte {
 	resp := &ScenesResponse{}
 
-	for name := range scenes.Scenes {
+	for name := range scenes.GetScenes() {
 		resp.Scenes = append(resp.Scenes, name)
 	}
 	slices.Sort(resp.Scenes)

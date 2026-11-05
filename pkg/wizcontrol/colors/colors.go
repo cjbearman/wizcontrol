@@ -11,20 +11,24 @@ const ColorOff = "off"
 const WizScenePrefix = "wiz_"
 
 // Colors maps color names to color values
-var Colors = make(map[string]string)
+var colors = make(map[string]string)
+
+func GetColors() map[string]string {
+	return colors
+}
 
 // Preload all wiz scenes as colors under the same name
 // and add "off" color
 func init() {
 	for _, scene := range wiz.AllSceneNames() {
 		sceneLC := strings.ToLower(scene)
-		Colors[WizScenePrefix+sceneLC] = sceneLC
+		colors[WizScenePrefix+sceneLC] = sceneLC
 	}
-	Colors[ColorOff] = ColorOff
+	colors[ColorOff] = ColorOff
 }
 
 func NameForColor(color string) string {
-	for name, value := range Colors {
+	for name, value := range colors {
 		if strings.EqualFold(value, color) {
 			return name
 		}

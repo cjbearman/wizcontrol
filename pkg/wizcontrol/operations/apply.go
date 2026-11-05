@@ -21,14 +21,14 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 		// If we are being asked to send MQTT status for all lights, just prefill a list of all lights
 		// into the list of lights to send
 		logger.Debug("This is the first daemon run, status for all lights will be sent")
-		for _, light := range lights.Lights {
+		for _, light := range lights.GetLights() {
 			sendStatusFor = append(sendStatusFor, light)
 		}
 	}
 
 	// Prefill a map of light to target scenes with all lights and initially empty values
 	lightSceneSettings := make(map[*lights.Light]string)
-	for _, light := range lights.Lights {
+	for _, light := range lights.GetLights() {
 		lightSceneSettings[light] = ""
 	}
 
@@ -38,7 +38,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	for _, sceneName := range sceneNames {
 
-		targets, found := scenes.Scenes[sceneName]
+		targets, found := scenes.GetScenes()[sceneName]
 		if !found {
 			logger.Warnf("Scene not found: %s", sceneName)
 			continue
@@ -47,7 +47,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 		for _, tc := range targets {
 
-			color, found := colors.Colors[tc.ColorName]
+			color, found := colors.GetColors()[tc.ColorName]
 			if !found {
 				logger.Warnf("Color not found: %s", tc.ColorName)
 				continue
@@ -77,7 +77,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 	}
 
 	// Lights that are locked get added / overriden here
-	for _, light := range lights.Lights {
+	for _, light := range lights.GetLights() {
 		if locked, color, _ := light.Locker.IsLocked(); locked {
 			operationsToDo[light] = colorAndName{name: colors.NameForColor(color), color: color}
 			logger.Debugf("Locked light %q will be set to color %q", light.GetName(), color)
@@ -135,7 +135,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			logger.Debugf("Set pilot succeeded")
 
 			// Find the light
-			light, found := lights.Lights[result.Device.Name()]
+			light, found := lights.GetLights()[result.Device.Name()]
 			if !found {
 				logger.Errorf("Light not found")
 				continue

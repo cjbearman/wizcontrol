@@ -37,7 +37,11 @@ type CalendarEntry struct {
 	Scenes     SceneSelector
 }
 
-var CalendarEntries = []CalendarEntry{}
+var calendarEntries = []CalendarEntry{}
+
+func GetCalendarEntries() []CalendarEntry {
+	return calendarEntries
+}
 
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
@@ -121,7 +125,7 @@ func AddCalendarEntry(name, from, to, before, after string, scenesList []string,
 		entry.AfterTime = &afterTime
 	}
 
-	CalendarEntries = append(CalendarEntries, entry)
+	calendarEntries = append(calendarEntries, entry)
 	return nil
 }
 
@@ -237,11 +241,11 @@ func GetCalendarScenes() []string {
 	dayNo, now := GetTodayNumber()
 	extCalendarDebugLog("Searching for active calendar scenes for day number %d", dayNo)
 
-	for name := range CalendarEntries {
+	for name := range calendarEntries {
 		extCalendarDebugLog("Found calendar entry: %q", name)
 	}
 
-	for _, entry := range CalendarEntries {
+	for _, entry := range calendarEntries {
 		if dayNo >= entry.FromDay && dayNo <= entry.ToDay {
 			extCalendarDebugLog("Calendar entry %q matches current day (%d) with from %d, to %d", entry.Name, dayNo, entry.FromDay, entry.ToDay)
 			// Scene matches the current day, but how about any time period
@@ -287,7 +291,7 @@ func extCalendarDebugLog(format string, v ...any) {
 }
 
 func CalendarEntryExists(name string) bool {
-	for _, item := range CalendarEntries {
+	for _, item := range calendarEntries {
 		if item.Name == name {
 			return true
 		}

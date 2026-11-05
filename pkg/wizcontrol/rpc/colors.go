@@ -14,7 +14,7 @@ type ColorsResponse struct {
 func HandleColorsRequest() []byte {
 	resp := &ColorsResponse{}
 
-	for name := range colors.Colors {
+	for name := range colors.GetColors() {
 		resp.Colors = append(resp.Colors, name)
 	}
 	slices.Sort(resp.Colors)

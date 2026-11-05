@@ -42,7 +42,7 @@ func WriteState() error {
 		LightLocks: []LockState{},
 		SceneLocks: []SceneState{},
 	}
-	for name, light := range lights.Lights {
+	for name, light := range lights.GetLights() {
 		locked, color, until := light.Locker.IsLocked()
 		if locked {
 			state.LightLocks = append(state.LightLocks, LockState{
@@ -102,9 +102,9 @@ func RecoverState() error {
 
 	// Apply the recovered state
 	for _, lock := range state.LightLocks {
-		if light, ok := lights.Lights[lock.LightName]; ok {
+		if light, ok := lights.GetLights()[lock.LightName]; ok {
 
-			if _, found := colors.Colors[lock.Color]; !found {
+			if _, found := colors.GetColors()[lock.Color]; !found {
 				// Not a defined color, maybe a custom color
 				if _, err := wiz.SettingsFromString(lock.Color); err != nil {
 					// Nope

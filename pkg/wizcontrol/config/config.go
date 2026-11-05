@@ -199,7 +199,7 @@ func (c *Config) Parse() error {
 	for name, color := range c.Colors {
 		// Each color must be unique
 		// Whilst this is a map, and cannot have duplicates, there may be preloaded colors with the same name
-		if _, found := colors.Colors[name]; found {
+		if _, found := colors.GetColors()[name]; found {
 			logger.Errorf("Color %q is pre-defined and the name is reserved", name)
 		}
 
@@ -211,13 +211,13 @@ func (c *Config) Parse() error {
 		}
 
 		// Each named color must have a unique value
-		for existingName, existingValue := range colors.Colors {
+		for existingName, existingValue := range colors.GetColors() {
 			if rationalized == existingValue {
 				return fmt.Errorf("Color named %q has the same functional value as %q", name, existingName)
 			}
 		}
 
-		colors.Colors[name] = rationalized
+		colors.GetColors()[name] = rationalized
 		logger.Debugf("Loaded color %q: %s", name, rationalized)
 	}
 

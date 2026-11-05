@@ -39,7 +39,7 @@ func main() {
 	if *presets {
 		// List presets before anything else, because if we load config, we'll get other non-preset colors defined
 		presetsList := []string{}
-		for preset := range colors.Colors {
+		for preset := range colors.GetColors() {
 			presetsList = append(presetsList, preset)
 		}
 
@@ -69,7 +69,7 @@ func main() {
 
 	if *apply != "" {
 
-		_, found := scenes.Scenes[*apply]
+		_, found := scenes.GetScenes()[*apply]
 		if !found {
 			common.Logger.Errorf("Scene %q not found", *apply)
 			os.Exit(1)
@@ -111,8 +111,7 @@ func runAsDaemon() {
 	}
 
 	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
-
-	for _, light := range lights.Lights {
+	for _, light := range lights.GetLights() {
 		if light.RequiresDiscovery() {
 			logger.Info("One or more lights require discovery, discovery service will be started")
 			discovery.Instance = discovery.NewDiscovery()

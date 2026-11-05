@@ -36,7 +36,7 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	}
 
 	var color string
-	if col, found := colors.Colors[request.Color]; found {
+	if col, found := colors.GetColors()[request.Color]; found {
 		color = col
 
 	} else {

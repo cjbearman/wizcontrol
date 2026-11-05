@@ -21,11 +21,15 @@ type TargetsAndColor struct {
 	ColorName string
 }
 
-var Scenes = make(map[string][]TargetsAndColor)
+var scenes = make(map[string][]TargetsAndColor)
+
+func GetScenes() map[string][]TargetsAndColor {
+	return scenes
+}
 
 func AddScene(name string, targets []CnfScene) error {
 	// Scene must be distinct
-	if _, existing := Scenes[name]; existing {
+	if _, existing := scenes[name]; existing {
 		return fmt.Errorf("scene %q already exists", name)
 	}
 
@@ -36,7 +40,7 @@ func AddScene(name string, targets []CnfScene) error {
 			ColorName: targetGroup.ColorName,
 		}
 
-		if _, exists := colors.Colors[targetGroup.ColorName]; !exists {
+		if _, exists := colors.GetColors()[targetGroup.ColorName]; !exists {
 			return fmt.Errorf("scene %q lists invalid color %q", name, targetGroup.ColorName)
 		}
 
@@ -52,7 +56,7 @@ func AddScene(name string, targets []CnfScene) error {
 			ColorName: t.ColorName,
 		})
 	}
-	Scenes[name] = sc
+	scenes[name] = sc
 
 	return nil
 }
@@ -61,7 +65,7 @@ func AddScene(name string, targets []CnfScene) error {
 // or false and the name of the first missing scene
 func ScenesExist(names ...string) (bool, string) {
 	for _, name := range names {
-		if _, exists := Scenes[name]; !exists {
+		if _, exists := scenes[name]; !exists {
 			return false, name
 		}
 	}

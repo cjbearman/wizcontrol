@@ -34,7 +34,7 @@ func HandleAddScenesRequest(req []byte) ([]byte, *RpcError) {
 		scenes.ClearAdditionalScenes()
 	}
 	for _, scene := range request.Scenes {
-		if _, found := scenes.Scenes[scene]; !found {
+		if _, found := scenes.GetScenes()[scene]; !found {
 			return NewGeneralResponse(false, fmt.Sprintf("scene %q not found", scene)), NewRpcError(404, "scene %q not found", scene)
 		}
 	}

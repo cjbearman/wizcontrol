@@ -28,7 +28,7 @@ func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 		),
 	}
 
-	for _, light := range lights.Lights {
+	for _, light := range lights.GetLights() {
 		status.Lights[light.GetName()] = responses.BuildLightStatus(light)
 	}
 

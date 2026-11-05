@@ -15,10 +15,10 @@ type TargetsResponse struct {
 func HandleTargetsRequest() []byte {
 	resp := &TargetsResponse{}
 
-	for name := range lights.LightGroups {
+	for name := range lights.GetLightGroups() {
 		resp.LightGroups = append(resp.LightGroups, name)
 	}
-	for name := range lights.Lights {
+	for name := range lights.GetLights() {
 		resp.Lights = append(resp.Lights, name)
 	}
 	slices.Sort(resp.LightGroups)

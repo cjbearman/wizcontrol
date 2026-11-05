@@ -14,7 +14,7 @@ func UpdateAvailability() {
 
 	for _, result := range lights.GetAllLightsDeviceGroup().Reachable().AwaitAll() {
 		logger := logger.WithField("device", result.Device.Name())
-		if light, exists := lights.Lights[result.Device.Name()]; exists {
+		if light, exists := lights.GetLights()[result.Device.Name()]; exists {
 			lastState := light.Available()
 			if result.Result && lastState == false {
 				logger.Infof("Device became reachable, updating status")

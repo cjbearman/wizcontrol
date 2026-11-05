@@ -32,8 +32,16 @@ type Light struct {
 	activeScene             string
 }
 
-var Lights = make(map[string]*Light)
-var LightGroups = make(map[string][]*Light)
+var lights = make(map[string]*Light)
+var lightGroups = make(map[string][]*Light)
+
+func GetLights() map[string]*Light {
+	return lights
+}
+
+func GetLightGroups() map[string][]*Light {
+	return lightGroups
+}
 
 func (l *Light) SetLastProgrammedColor(name, color string) {
 	l.lock.Lock()
@@ -114,7 +122,7 @@ func AddLight(name, addr string) error {
 		}
 	}
 
-	for existingName, existingLight := range Lights {
+	for existingName, existingLight := range lights {
 		if addressIsIp && existingLight.device != nil && existingLight.device.IP() == addr {
 			return fmt.Errorf("light with Address %q already exists as %q", addr, existingName)
 		}
@@ -138,7 +146,7 @@ func AddLight(name, addr string) error {
 
 	log := common.Logger.GetLogger(fmt.Sprintf("device-%s", name))
 
-	Lights[name] = &Light{
+	lights[name] = &Light{
 		device:    device,
 		ip:        ip,
 		mac:       mac,
@@ -153,39 +161,39 @@ func AddLight(name, addr string) error {
 }
 
 func AddLightGroup(name string, members []string) error {
-	if _, exists := LightGroups[name]; exists {
+	if _, exists := lightGroups[name]; exists {
 		return fmt.Errorf("light group %q already exists", name)
 
 	}
 
-	if _, exists := Lights[name]; exists {
+	if _, exists := lights[name]; exists {
 		return fmt.Errorf("light group %q already exists as a light, all lights and light groups must have distinct names", name)
 	}
 
 	devices := make([]*Light, 0, len(members))
 	for _, member := range members {
-		device, exists := Lights[member]
+		device, exists := lights[member]
 		if !exists {
 			return fmt.Errorf("light %q does not exist", member)
 		}
 		devices = append(devices, device)
 	}
 
-	LightGroups[name] = devices
+	lightGroups[name] = devices
 	return nil
 }
 
 func IsValidLightOrGroup(name string) bool {
-	_, isLight := Lights[name]
-	_, isGroup := LightGroups[name]
+	_, isLight := lights[name]
+	_, isGroup := lightGroups[name]
 	return isLight || isGroup
 }
 
 func GetLightOrGroup(name string) ([]*Light, error) {
-	if light, isLight := Lights[name]; isLight {
+	if light, isLight := lights[name]; isLight {
 		return []*Light{light}, nil
 	}
-	if group, isGroup := LightGroups[name]; isGroup {
+	if group, isGroup := lightGroups[name]; isGroup {
 		return group, nil
 	}
 	return nil, fmt.Errorf("no light or group found with name %q", name)
@@ -233,7 +241,7 @@ func (l *Light) GetAddress() (ip, mac string) {
 // that were configured with MAC address and for which we have not yet discovered an IP
 func GetAllLightsDeviceGroup() *wiz.DeviceGroup {
 	group := wiz.NewDeviceGroup()
-	for _, light := range Lights {
+	for _, light := range lights {
 		if light.device != nil {
 			group.AddDevice(light.device)
 		}

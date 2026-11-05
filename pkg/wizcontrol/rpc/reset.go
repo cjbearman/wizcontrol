@@ -11,7 +11,7 @@ func HandleResetRequest() []byte {
 	logger := common.Logger.GetLogger("rpc-reset")
 
 	scenes.ClearAdditionalScenes()
-	for _, light := range lights.Lights {
+	for _, light := range lights.GetLights() {
 		light.Locker.UnlockNow(true)
 	}
 	daemon.Instance.Kick()
