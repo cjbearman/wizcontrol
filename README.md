@@ -50,3 +50,5 @@ Create your config.yaml, and run as follows:
 wizcontrol -d -config config.yaml
 ```
 
+A JSON schema for config.yaml is available in [config.schema.json](./config.schema.json).
+

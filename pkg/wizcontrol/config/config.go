@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -87,7 +86,7 @@ type CalendarEntry struct {
 
 // Load reads a YAML config from disk.
 func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
+	data, err := loadAndValidate(path)
 	if err != nil {
 		return nil, err
 	}
