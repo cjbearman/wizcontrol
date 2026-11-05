@@ -99,15 +99,15 @@ func runAsDaemon() {
 	}
 
 	// Start the main daemon and web server
-	daemon.Daemon = daemon.NewDaemon()
-	daemon.Daemon.Start()
-	server.Server = server.NewServer()
-	server.Server.Start()
+	daemon.Instance = daemon.NewDaemon()
+	daemon.Instance.Start()
+	server.Instance = server.NewServer()
+	server.Instance.Start()
 
 	// And MQTT if configured
-	mqtt.MqttInstance = mqtt.NewMqtt()
+	mqtt.Instance = mqtt.NewMqtt()
 	if mqtt.MqttURL != "" {
-		mqtt.MqttInstance.Start()
+		mqtt.Instance.Start()
 	}
 
 	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
@@ -115,61 +115,61 @@ func runAsDaemon() {
 	for _, light := range lights.Lights {
 		if light.RequiresDiscovery() {
 			logger.Info("One or more lights require discovery, discovery service will be started")
-			discovery.DiscoveryInstance = discovery.NewDiscovery()
-			discovery.DiscoveryInstance.Start()
+			discovery.Instance = discovery.NewDiscovery()
+			discovery.Instance.Start()
 			break
 		}
 	}
 
-	if discovery.DiscoveryInstance == nil {
+	if discovery.Instance == nil {
 		logger.Info("No devices are configured with MAC address, so discovery is not needed and discovery service will not run")
 	}
 
 	// We may or may not have running services, but we need a valid channel
 	// for all to listen to (even if there is no service backing it)
-	mqttStopCh := guaranteeChannel(mqtt.MqttInstance)
-	discoveryStopCh := guaranteeChannel(discovery.DiscoveryInstance)
-	daemonStopCh := guaranteeChannel(daemon.Daemon)
-	serverStopCh := guaranteeChannel(server.Server)
+	mqttStopCh := guaranteeChannel(mqtt.Instance)
+	discoveryStopCh := guaranteeChannel(discovery.Instance)
+	daemonStopCh := guaranteeChannel(daemon.Instance)
+	serverStopCh := guaranteeChannel(server.Instance)
 
 	select {
 
 	case <-mqttStopCh:
 		logger.Warn("MQTT has stopped, stopping daemon and server")
-		stop(daemon.Daemon)
-		stop(server.Server)
-		stop(discovery.DiscoveryInstance)
+		stop(daemon.Instance)
+		stop(server.Instance)
+		stop(discovery.Instance)
 
 	case <-daemonStopCh:
 		logger.Warn("Daemon has stopped, stopping other tasks")
-		stop(server.Server)
-		stop(mqtt.MqttInstance)
-		stop(discovery.DiscoveryInstance)
+		stop(server.Instance)
+		stop(mqtt.Instance)
+		stop(discovery.Instance)
 
 	case <-serverStopCh:
 		logger.Warn("Web server has stopped, stopping other tasks")
-		stop(daemon.Daemon)
-		stop(mqtt.MqttInstance)
-		stop(discovery.DiscoveryInstance)
+		stop(server.Instance)
+		stop(mqtt.Instance)
+		stop(discovery.Instance)
 
 	case <-discoveryStopCh:
 		logger.Warn("Discovery service has stopped, stopping other tasks")
-		stop(daemon.Daemon)
-		stop(server.Server)
-		stop(mqtt.MqttInstance)
+		stop(daemon.Instance)
+		stop(server.Instance)
+		stop(mqtt.Instance)
 
 	case sig := <-sigch:
 		logger.Warnf("Caught signal %v, stopping tasksr", sig)
-		stop(daemon.Daemon)
-		stop(server.Server)
-		stop(mqtt.MqttInstance)
-		stop(discovery.DiscoveryInstance)
+		stop(daemon.Instance)
+		stop(server.Instance)
+		stop(mqtt.Instance)
+		stop(discovery.Instance)
 	}
 
-	waitStopped(daemon.Daemon)
-	waitStopped(server.Server)
-	waitStopped(mqtt.MqttInstance)
-	waitStopped(discovery.DiscoveryInstance)
+	waitStopped(daemon.Instance)
+	waitStopped(server.Instance)
+	waitStopped(mqtt.Instance)
+	waitStopped(discovery.Instance)
 	logger.Info("Runner terminated")
 	os.Exit(0)
 

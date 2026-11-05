@@ -31,12 +31,12 @@ type messageAndTopic struct {
 	message []byte
 }
 
+var Instance *Mqtt
+
 type Mqtt struct {
-	*common.Runner
+	*common.BaseRunner
 	outboundMessage chan messageAndTopic
 }
-
-var MqttInstance *Mqtt
 
 var MqttURL string
 var MqttUsername string
@@ -46,10 +46,10 @@ var ControlEnabled bool = true
 
 func NewMqtt() *Mqtt {
 	mqtt := Mqtt{
-		Runner:          common.NewRunner(),
+		BaseRunner:      common.NewRunner("mqtt"),
 		outboundMessage: make(chan messageAndTopic, BufferSize),
 	}
-	mqtt.Exec = mqtt.run
+	mqtt.BaseRunner.Exec = mqtt.run
 
 	senders.DaemonStatus = mqtt.SendDaemonStatus
 	senders.LightStatus = mqtt.SendLightStatus
@@ -126,7 +126,7 @@ func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
 
 func (m *Mqtt) run() {
 	logger := common.Logger.GetLogger("mqtt")
-	defer close(m.Runner.Closed)
+	defer close(m.BaseRunner.Closed)
 
 	logger.Info("mqtt started")
 
@@ -153,7 +153,7 @@ func (m *Mqtt) run() {
 
 	for {
 		select {
-		case <-m.Runner.StopSignalled:
+		case <-m.BaseRunner.StopSignalled:
 			logger.Info("stop signalled")
 			client.Disconnect(250)
 			logger.Info("mqtt stopped")
@@ -167,7 +167,7 @@ func (m *Mqtt) run() {
 
 func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 	logger := common.Logger.GetLogger("mqtt")
-	logger.Debugf("Sending light status for %s", light.Device.Name())
+	logger.Debugf("Sending light status for %s", light.GetName())
 	response := responses.BuildLightStatus(light)
 
 	responseJson, err := json.Marshal(response)
@@ -176,7 +176,7 @@ func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 		return err
 	}
 	mqttMessage := messageAndTopic{
-		topic:   MqttTopic + "/light/" + light.Device.Name(),
+		topic:   MqttTopic + "/light/" + light.GetName(),
 		message: responseJson,
 	}
 	select {

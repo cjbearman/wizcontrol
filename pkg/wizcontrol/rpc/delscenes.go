@@ -14,7 +14,7 @@ type DelScenesRequest struct {
 }
 
 func HandleDelScenesRequest(req []byte) ([]byte, *RpcError) {
-	logger := common.Logger.GetLogger("rpc-add-scenes")
+	logger := common.Logger.GetLogger("rpc-del-scenes")
 	request := &DelScenesRequest{}
 
 	err := json.Unmarshal(req, request)
@@ -32,6 +32,6 @@ func HandleDelScenesRequest(req []byte) ([]byte, *RpcError) {
 		logger.Infof("Additional scene %q removed", scene)
 		scenes.DeleteAdditionalScene(scene)
 	}
-	daemon.Daemon.Kick()
+	daemon.Instance.Kick()
 	return NewGeneralResponse(true, ""), nil
 }

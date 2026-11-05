@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/discovery"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
@@ -49,6 +51,12 @@ type Server struct {
 	Auth      *ServerAuth `yaml:"auth"`
 }
 
+type Discovery struct {
+	BroadcastAddress string        `yaml:"broadcast_address"`
+	Interval         time.Duration `yaml:"interval"`
+	Period           time.Duration `yaml:"period"`
+}
+
 // Config describes the structure in config.yaml.
 type Config struct {
 	Timezone          string                       `yaml:"timezone"`
@@ -57,6 +65,7 @@ type Config struct {
 	Server            Server                       `yaml:"http"`
 	Mqtt              *MqttConfig                  `yaml:"mqtt"`
 	StateRecoveryFile string                       `yaml:"state_recovery_file"`
+	Discovery         Discovery                    `yaml:"discovery"`
 	Colors            map[string]Color             `yaml:"colors"`
 	Lights            map[string]Light             `yaml:"lights"`
 	LightGroups       map[string][]Light           `yaml:"light_groups"`
@@ -115,6 +124,20 @@ func (c *Config) Parse() error {
 			return fmt.Errorf("failed to load timezone %q: %v", c.Timezone, err)
 		}
 		common.Location = loc
+	}
+
+	if c.Discovery.BroadcastAddress != "" {
+		if valid := net.ParseIP(c.Discovery.BroadcastAddress) != nil; !valid {
+			return fmt.Errorf("invalid discovery broadcast address %q", c.Discovery.BroadcastAddress)
+		}
+		discovery.DiscoveryBroadcastAddr = c.Discovery.BroadcastAddress
+	}
+
+	if c.Discovery.Interval > 0 {
+		discovery.DiscoveryInterval = c.Discovery.Interval
+	}
+	if c.Discovery.Period > 0 {
+		discovery.DiscoveryPeriod = c.Discovery.Period
 	}
 
 	if c.Server.Port == 0 {
@@ -199,11 +222,11 @@ func (c *Config) Parse() error {
 	}
 
 	// Lights
-	for name, ip := range c.Lights {
-		if err := lights.AddLight(name, ip); err != nil {
+	for name, addr := range c.Lights {
+		if err := lights.AddLight(name, addr); err != nil {
 			return fmt.Errorf("failed to add light %q: %v", name, err)
 		}
-		logger.Debugf("Added light %q with IP %q", name, ip)
+		logger.Debugf("Added light %q with Address %q", name, addr)
 	}
 
 	// Light groups

@@ -8,7 +8,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
-func (s *ServerInstance) addScenesHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) addScenesHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("Add scenes request received")
 

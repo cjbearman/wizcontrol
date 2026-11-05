@@ -8,7 +8,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
-func (s *ServerInstance) lockHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) lockHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("lock request received")
 	rawBody, _ := io.ReadAll(r.Body)

@@ -25,14 +25,15 @@ const (
 )
 
 var (
-	Daemon           *DaemonInstance
 	EvaluationPeriod time.Duration
 	RecheckPeriod    time.Duration
 )
 
+var Instance *Daemon
+
 // Daemon is the runner that handles automatic light setting based on configured calendar
-type DaemonInstance struct {
-	*common.Runner
+type Daemon struct {
+	*common.BaseRunner
 	kicker           chan struct{}
 	lastRecheck      time.Time
 	mode             DaemonMode
@@ -43,56 +44,56 @@ type DaemonInstance struct {
 }
 
 // NewDaemon returns a new daemon, not running
-func NewDaemon() *DaemonInstance {
-	d := &DaemonInstance{
-		Runner:          common.NewRunner(),
+func NewDaemon() *Daemon {
+	d := &Daemon{
+		BaseRunner:      common.NewRunner("daemon"),
 		kicker:          make(chan struct{}, 1),
 		lastRecheck:     time.Time{},
 		additionalUntil: time.Time{},
 		mode:            DaemonModeAuto,
 	}
-	d.Runner.Exec = d.run
+	d.BaseRunner.Exec = d.run
 	lights.KickFunc = d.Kick
 	return d
 }
 
-func (d *DaemonInstance) GetActiveSceneNames() string {
+func (d *Daemon) GetActiveSceneNames() string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.activeSceneNames
 }
 
-func (d *DaemonInstance) GetCalendarScenes() []string {
+func (d *Daemon) GetCalendarScenes() []string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.calendarScenes
 }
 
 // Kick will send a kick on the kick channel, unless there is already one pending, in which case there's not much point
-func (d *DaemonInstance) Kick() {
+func (d *Daemon) Kick() {
 	select {
 	case d.kicker <- struct{}{}:
 	default:
 	}
 }
 
-func (d *DaemonInstance) SetMode(mode DaemonMode) {
+func (d *Daemon) SetMode(mode DaemonMode) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.mode = mode
 }
 
-func (d *DaemonInstance) GetMode() DaemonMode {
+func (d *Daemon) GetMode() DaemonMode {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.mode
 }
 
 // Internal run method, called by Runner to execute the daemon loop
-func (d *DaemonInstance) run() {
+func (d *Daemon) run() {
 
 	// Make sure we mark the runner as closed when we exit
-	defer close(d.Runner.Closed)
+	defer close(d.BaseRunner.Closed)
 
 	if EvaluationPeriod <= 0 {
 		panic("Invalid evaluation period")
@@ -130,7 +131,7 @@ func (d *DaemonInstance) run() {
 			// Triggered on our regular tick interval
 			logger.Debug("Tick")
 			d.runIteration(logger, firstRun)
-		case <-d.Runner.StopSignalled:
+		case <-d.BaseRunner.StopSignalled:
 			// Triggered when the runner wants us to stop
 			logger.Info("Stopped")
 			return
@@ -139,7 +140,7 @@ func (d *DaemonInstance) run() {
 	}
 }
 
-func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
+func (d *Daemon) runIteration(logger logger.Logger, firstRun bool) {
 	recheck := false
 	if d.lastRecheck.Add(RecheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
@@ -182,7 +183,7 @@ func (d *DaemonInstance) runIteration(logger logger.Logger, firstRun bool) {
 	logger.Info("daemon iteration completed")
 }
 
-func (d *DaemonInstance) SendDaemonStatus() error {
+func (d *Daemon) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
 		d.GetActiveSceneNames(),
 		d.GetCalendarScenes(),

@@ -16,20 +16,20 @@ type StatusResponse struct {
 	Lights map[string]responses.LightStatus `json:"lights"`
 }
 
-func (s *ServerInstance) statusHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	status := &StatusResponse{
 		Lights: make(map[string]responses.LightStatus),
 		Server: responses.BuildDaemonResponse(
-			daemon.Daemon.GetActiveSceneNames(),
-			daemon.Daemon.GetCalendarScenes(),
+			daemon.Instance.GetActiveSceneNames(),
+			daemon.Instance.GetCalendarScenes(),
 			scenes.GetAdditionalScenesAndTimes(),
-			string(daemon.Daemon.GetMode()),
+			string(daemon.Instance.GetMode()),
 		),
 	}
 
 	for _, light := range lights.Lights {
-		status.Lights[light.Device.Name()] = responses.BuildLightStatus(light)
+		status.Lights[light.GetName()] = responses.BuildLightStatus(light)
 	}
 
 	_ = json.NewEncoder(w).Encode(status)

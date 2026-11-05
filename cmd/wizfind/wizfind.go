@@ -62,7 +62,7 @@ func findWizLights(broadcastAddr string) int {
 }
 
 func discoveryCallback(dev *wiz.Device) {
-	fmt.Printf("Discovered device, MAC: %s, IP: %s\n", macReformat(dev.GetMac()), dev.IP())
+	fmt.Printf("Discovered device, MAC: %s, IP: %s\n", dev.GetMac(), dev.IP())
 }
 
 func setWizLight(ip string, color string) int {
@@ -94,12 +94,4 @@ func setWizLight(ip string, color string) int {
 	fmt.Printf("Done.\n")
 
 	return 0
-}
-
-func macReformat(mac string) string {
-	if len(mac) != 12 {
-		return fmt.Sprintf("%s (invalid)", mac)
-	}
-	return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
-		mac[0:2], mac[2:4], mac[4:6], mac[6:8], mac[8:10], mac[10:12])
 }

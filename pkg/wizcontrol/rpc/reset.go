@@ -14,7 +14,7 @@ func HandleResetRequest() []byte {
 	for _, light := range lights.Lights {
 		light.Locker.UnlockNow(true)
 	}
-	daemon.Daemon.Kick()
+	daemon.Instance.Kick()
 	logger.Info("All lights unlocked and daily overrides reset")
 	return NewGeneralResponse(true, "")
 }

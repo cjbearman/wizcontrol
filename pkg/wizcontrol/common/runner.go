@@ -1,34 +1,50 @@
 package common
 
+import (
+	"fmt"
+
+	"github.com/cjbearman/framework/pkg/logger"
+)
+
+type Runner interface {
+	Start()
+	Stop()
+	Stopped() <-chan struct{}
+}
+
 // Runner is a parent object for lifecycle management using channels for stop and close signals
-type Runner struct {
+type BaseRunner struct {
 	StopSignalled chan struct{}
 	Closed        chan struct{}
 	Exec          func()
+	logger        logger.Logger
 }
 
 // Creates a new runner
 // Returns a pointer to the newly created Runner instance
 // Exec method must be set before calling start
-func NewRunner() *Runner {
-	return &Runner{
+func NewRunner(name string) *BaseRunner {
+	return &BaseRunner{
 		StopSignalled: make(chan struct{}),
 		Closed:        make(chan struct{}),
+		logger:        Logger.GetLogger(fmt.Sprintf("runner-%s", name)),
 	}
 }
 
 // Start runs the exec method in a goroutine
-func (r *Runner) Start() {
+func (r *BaseRunner) Start() {
+	r.logger.Info("Starting runner")
 	go r.Exec()
 }
 
 // Stop signals exit
 // Deriving class can override this if needed
-func (r *Runner) Stop() {
+func (r *BaseRunner) Stop() {
+	r.logger.Info("Stopping runner by closing StopSignalled channel")
 	close(r.StopSignalled)
 }
 
 // Stopped returns a channel that will be closed when the runner has stopped
-func (r *Runner) Stopped() <-chan struct{} {
+func (r *BaseRunner) Stopped() <-chan struct{} {
 	return r.Closed
 }

@@ -20,19 +20,19 @@ const (
 	FieldRemoteAddr = "remote_addr"
 )
 
-var Server *ServerInstance
+var Instance *Server
 
-type ServerInstance struct {
-	*common.Runner
+type Server struct {
+	*common.BaseRunner
 	mux    *http.ServeMux
 	server *http.Server
 }
 
-func NewServer() *ServerInstance {
+func NewServer() *Server {
 	mux := http.NewServeMux()
-	srv := &ServerInstance{
-		Runner: common.NewRunner(),
-		mux:    mux,
+	srv := &Server{
+		BaseRunner: common.NewRunner("server"),
+		mux:        mux,
 		server: &http.Server{
 			Addr:         fmt.Sprintf(":%d", ServerPort),
 			Handler:      mux,
@@ -49,7 +49,7 @@ func NewServer() *ServerInstance {
 			},
 		},
 	}
-	srv.Runner.Exec = srv.run
+	srv.BaseRunner.Exec = srv.run
 
 	mux.HandleFunc("GET /", intercept(srv.statusHandler))
 	mux.HandleFunc("GET /scenes", intercept(srv.scenesHandler))
@@ -64,7 +64,8 @@ func NewServer() *ServerInstance {
 	return srv
 
 }
-func (s *ServerInstance) run() {
+func (s *Server) run() {
+	logger := common.Logger.GetLogger("server")
 	var err error
 	if CertChain != "" && Key != "" {
 		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", ServerPort)
@@ -76,14 +77,18 @@ func (s *ServerInstance) run() {
 	if err != nil && err != http.ErrServerClosed {
 		common.Logger.GetLogger("server").Errorf("Server error: %v", err)
 	}
-	close(s.Closed)
+
+	logger.Info("Server stopped")
+	close(s.BaseRunner.Closed)
 }
 
-func (s *ServerInstance) Stop() {
+func (s *Server) Stop() {
 	logger := common.Logger.GetLogger("server")
-	logger.Info("Stopping server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	s.server.Shutdown(ctx)
-	logger.Info("Web server stopped")
+	err := s.server.Shutdown(ctx)
+	if err != nil {
+		logger.Errorf("Error during server shutdown: %v", err)
+	}
+	logger.Info("Server indicates shutdown complete")
 }

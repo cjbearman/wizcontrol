@@ -3,6 +3,9 @@ package lights
 import (
 	"errors"
 	"fmt"
+	"net"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/cjbearman/framework/pkg/logger"
@@ -10,8 +13,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
+var macReg = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
+
 type Light struct {
-	Device                  *wiz.Device
+	name                    string
+	mac                     string
+	device                  *wiz.Device
+	deviceLoc               sync.Mutex
 	Locker                  *LightLock
 	Logger                  logger.Logger
 	available               bool
@@ -25,7 +33,6 @@ type Light struct {
 
 var Lights = make(map[string]*Light)
 var LightGroups = make(map[string][]*Light)
-var AllDevicesGroup *wiz.DeviceGroup = wiz.NewDeviceGroup()
 
 func (l *Light) SetLastProgrammedColor(name, color string) {
 	l.lock.Lock()
@@ -87,33 +94,56 @@ func (l *Light) SetOn(on bool) {
 	l.on = on
 }
 
-func AddLight(name, ip string) error {
+func AddLight(name, addr string) error {
+
+	addr = strings.ToLower(strings.TrimSpace(addr))
+	addressIsIp := true
+	if net.ParseIP(addr) != nil {
+		addressIsIp = true
+	} else {
+		if macReg.MatchString(addr) {
+			addressIsIp = false
+		} else {
+			return fmt.Errorf("invalid address %q", addr)
+		}
+	}
+
 	for existingName, existingLight := range Lights {
-		if existingLight.Device.IP() == ip {
-			return fmt.Errorf("light with IP %q already exists as %q", ip, existingName)
+		if addressIsIp && existingLight.device != nil && existingLight.device.IP() == addr {
+			return fmt.Errorf("light with Address %q already exists as %q", addr, existingName)
+		}
+		if !addressIsIp && existingLight.mac == addr {
+			return fmt.Errorf("light with Address %q already exists as %q", addr, existingName)
 		}
 		if existingName == name {
 			return errors.New("duplicate light name")
 		}
 	}
 
-	device, err := wiz.NewDevice(ip)
-	if err != nil {
-		return err
+	var device *wiz.Device
+	var err error
+	if addressIsIp {
+		device, err = wiz.NewDevice(addr)
+		if err != nil {
+			return err
+		}
+		device.SetName(name).WithLogger(common.Logger.GetLogger(fmt.Sprintf("device-%s", name)))
 	}
-
-	device.SetName(name).WithLogger(common.Logger.GetLogger(fmt.Sprintf("device-%s", name)))
 
 	log := common.Logger.GetLogger(fmt.Sprintf("device-%s", name))
 
 	Lights[name] = &Light{
-		Device:    device.SetName(name).WithLogger(log),
+		device:    device,
 		lastColor: "",
 		available: false,
 		Logger:    log,
 		Locker:    newLocker(name),
+		name:      name,
 	}
-	AllDevicesGroup.AddDevice(device)
+	if !addressIsIp {
+		Lights[name].mac = addr
+	}
+
 	return nil
 }
 
@@ -154,4 +184,41 @@ func GetLightOrGroup(name string) ([]*Light, error) {
 		return group, nil
 	}
 	return nil, fmt.Errorf("no light or group found with name %q", name)
+}
+
+func (l *Light) GetName() string {
+	return l.name
+}
+
+// GetDevice returns the underlying wiz device
+// caution: may be nil if discovery is used
+func (l *Light) GetDevice() *wiz.Device {
+	l.deviceLoc.Lock()
+	defer l.deviceLoc.Unlock()
+	return l.device
+}
+
+func (l *Light) SetDevice(dev *wiz.Device) {
+	l.deviceLoc.Lock()
+	defer l.deviceLoc.Unlock()
+	l.device = dev
+	dev.SetName(l.name).WithLogger(l.Logger)
+}
+
+func (l *Light) RequiresDiscovery() bool {
+	return l.mac != ""
+}
+
+func (l *Light) GetMac() string {
+	return l.mac
+}
+
+func GetAllLightsDeviceGroup() *wiz.DeviceGroup {
+	group := wiz.NewDeviceGroup()
+	for _, light := range Lights {
+		if light.device != nil {
+			group.AddDevice(light.device)
+		}
+	}
+	return group
 }

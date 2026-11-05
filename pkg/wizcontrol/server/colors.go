@@ -7,7 +7,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
-func (s *ServerInstance) colorsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) colorsHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("colors request received")
 	resp := rpc.HandleColorsRequest()

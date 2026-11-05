@@ -7,7 +7,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
-func (s *ServerInstance) targetsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) targetsHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("targets request received")
 	resp := rpc.HandleTargetsRequest()

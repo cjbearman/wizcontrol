@@ -9,6 +9,11 @@ recheck_period: 5m
 
 state_recovery_file: "state.json"
 
+discovery:
+  broadcast_address: 192.168.21.255
+  interval: 30s
+  period: 5s
+
 mqtt:
   url: "mqtt://192.168.10.189:1883"
   username: "wizcontrol_mqtt"
@@ -44,6 +49,12 @@ lights:
   office_ceiling_1: 192.168.20.192
   office_ceiling_2: 192.168.20.251
   office_ceiling_3: 192.168.20.84
+  #office_stand_light_upper: cc:40:85:c5:a8:de
+  #office_stand_light_lower: 98:77:d5:30:8a:14
+  #office_minecraft_lamp: 98:77:d5:46:9b:d8
+  #office_ceiling_1: 98:77:d5:46:6e:d4
+  #office_ceiling_2: 98:77:d5:a6:b7:3a
+  #office_ceiling_3: 98:77:d5:30:1a:fc
 
 # Valid color specs:
 # Where RR,GG,BB are RGB hex values

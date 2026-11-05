@@ -62,7 +62,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 				}
 				for _, light := range lights {
 					operationsToDo[light] = colorAndName{name: tc.ColorName, color: color}
-					logger.WithField("device", light.Device.Name()).Debugf("Targetted color asserted")
+					logger.WithField("device", light.GetName()).Debugf("Targetted color asserted")
 					lightSceneSettings[light] = sceneName
 				}
 			}
@@ -80,7 +80,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 	for _, light := range lights.Lights {
 		if locked, color, _ := light.Locker.IsLocked(); locked {
 			operationsToDo[light] = colorAndName{name: colors.NameForColor(color), color: color}
-			logger.Debugf("Locked light %q will be set to color %q", light.Device.Name(), color)
+			logger.Debugf("Locked light %q will be set to color %q", light.GetName(), color)
 			light.SetActiveScene("")
 		}
 	}
@@ -91,7 +91,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	for light, colorSpec := range operationsToDo {
 		color := colorSpec.color
-		logger := logger.WithField("device", light.Device.Name())
+		logger := logger.WithField("device", light.GetName())
 
 		light.SetLastProgrammedColor(colorSpec.name, color)
 
@@ -118,7 +118,12 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 			settings.On()
 		}
 
-		asyncs = append(asyncs, light.Device.SetPilotAsync(settings))
+		dev := light.GetDevice()
+		if dev == nil {
+			logger.Warnf("No discovered device, skipping")
+			continue
+		}
+		asyncs = append(asyncs, dev.SetPilotAsync(settings))
 	}
 
 	results := asyncs.AwaitAll()

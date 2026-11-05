@@ -11,11 +11,15 @@ func UpdateStatusForAllAvailableLights(force bool) {
 
 	targetLights := wiz.NewDeviceGroup()
 	if force {
-		targetLights = lights.AllDevicesGroup
+		targetLights = lights.GetAllLightsDeviceGroup()
 	} else {
 		for _, light := range lights.Lights {
 			if light.Available() {
-				targetLights.AddDevice(light.Device)
+				dev := light.GetDevice()
+				if dev == nil {
+					continue
+				}
+				targetLights.AddDevice(dev)
 			}
 		}
 	}

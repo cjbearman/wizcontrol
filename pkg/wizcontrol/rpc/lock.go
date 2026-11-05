@@ -77,10 +77,10 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	// Lock the targets
 	for _, target := range targetLights {
 		target.Locker.LockUntil(lockedUntil, color)
-		logger.Infof("Locked %q until %v with color %s", target.Device.Name(), lockedUntil, color)
+		logger.Infof("Locked %q until %v with color %s", target.GetName(), lockedUntil, color)
 	}
 
-	daemon.Daemon.Kick()
+	daemon.Instance.Kick()
 
 	return NewGeneralResponse(true, ""), nil
 }

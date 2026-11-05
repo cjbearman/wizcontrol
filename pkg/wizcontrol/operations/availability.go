@@ -12,7 +12,7 @@ func UpdateAvailability() {
 
 	updateStatusOps := wiz.AsyncOperations[*wiz.PilotResult]{}
 
-	for _, result := range lights.AllDevicesGroup.Reachable().AwaitAll() {
+	for _, result := range lights.GetAllLightsDeviceGroup().Reachable().AwaitAll() {
 		logger := logger.WithField("device", result.Device.Name())
 		if light, exists := lights.Lights[result.Device.Name()]; exists {
 			lastState := light.Available()
