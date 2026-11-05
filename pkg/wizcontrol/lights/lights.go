@@ -18,8 +18,9 @@ var macReg = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
 type Light struct {
 	name                    string
 	mac                     string
+	ip                      string
 	device                  *wiz.Device
-	deviceLoc               sync.Mutex
+	deviceLock              sync.Mutex
 	Locker                  *LightLock
 	Logger                  logger.Logger
 	available               bool
@@ -98,11 +99,16 @@ func AddLight(name, addr string) error {
 
 	addr = strings.ToLower(strings.TrimSpace(addr))
 	addressIsIp := true
+
+	var ip, mac string
+
 	if net.ParseIP(addr) != nil {
 		addressIsIp = true
+		ip = addr
 	} else {
 		if macReg.MatchString(addr) {
 			addressIsIp = false
+			mac = addr
 		} else {
 			return fmt.Errorf("invalid address %q", addr)
 		}
@@ -134,14 +140,13 @@ func AddLight(name, addr string) error {
 
 	Lights[name] = &Light{
 		device:    device,
+		ip:        ip,
+		mac:       mac,
 		lastColor: "",
 		available: false,
 		Logger:    log,
 		Locker:    newLocker(name),
 		name:      name,
-	}
-	if !addressIsIp {
-		Lights[name].mac = addr
 	}
 
 	return nil
@@ -193,26 +198,39 @@ func (l *Light) GetName() string {
 // GetDevice returns the underlying wiz device
 // caution: may be nil if discovery is used
 func (l *Light) GetDevice() *wiz.Device {
-	l.deviceLoc.Lock()
-	defer l.deviceLoc.Unlock()
+	l.deviceLock.Lock()
+	defer l.deviceLock.Unlock()
 	return l.device
 }
 
+// SetDevice is used by discovery to associated a discovered device with this light
 func (l *Light) SetDevice(dev *wiz.Device) {
-	l.deviceLoc.Lock()
-	defer l.deviceLoc.Unlock()
-	l.device = dev
-	dev.SetName(l.name).WithLogger(l.Logger)
+	l.deviceLock.Lock()
+	defer l.deviceLock.Unlock()
+	l.device = dev.SetName(l.name).WithLogger(l.Logger)
+	l.ip = dev.IP()
 }
 
+// RequiresDiscovery returns true if the device was configured with a MAC address
+// Such devices require discovery assistance to obtain the IP so we can talk to them
 func (l *Light) RequiresDiscovery() bool {
 	return l.mac != ""
 }
 
-func (l *Light) GetMac() string {
-	return l.mac
+// GetAddress returns the IP and MAC address of the light
+// At least one will be defined but either may be empty
+// If mac is defined, device will participate in discovery
+func (l *Light) GetAddress() (ip, mac string) {
+	// N.B. because SetDevice might be updating the IP, we will use deviceLock to
+	// ensure against concurrent updates to the IP by SetDevice
+	l.deviceLock.Lock()
+	defer l.deviceLock.Unlock()
+	return l.ip, l.mac
 }
 
+// GetAllLightsDeviceGroup returns a wiz device group with devices
+// for all lights. This will exclude any lights
+// that were configured with MAC address and for which we have not yet discovered an IP
 func GetAllLightsDeviceGroup() *wiz.DeviceGroup {
 	group := wiz.NewDeviceGroup()
 	for _, light := range Lights {

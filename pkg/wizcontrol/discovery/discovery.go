@@ -69,24 +69,29 @@ func (d *Discovery) callback(dev *wiz.Device) {
 	logger.Debugf("Device discovery inbound for MAC %s IP %s", dev.GetMac(), dev.IP())
 
 	for _, l := range lights.Lights {
-		if strings.EqualFold(l.GetMac(), dev.GetMac()) {
-			updateDevice := false
-			// There is a device that is set to use this MAC address
-			existingDevice := l.GetDevice()
+		_, mac := l.GetAddress()
+		if mac != "" {
+			// Device has a MAC and is enabled for discovery
 
-			if existingDevice == nil {
-				logger.Infof("First discovery of configured device with MAC %s at IP %s", dev.GetMac(), dev.IP())
-				updateDevice = true
-			} else {
-				if existingDevice.IP() != dev.IP() {
-					logger.Infof("Device with MAC %s has new IP %s (was %s)", dev.GetMac(), dev.IP(), existingDevice.IP())
+			if strings.EqualFold(mac, dev.GetMac()) {
+				updateDevice := false
+				// There is a device that is set to use this MAC address
+				existingDevice := l.GetDevice()
+
+				if existingDevice == nil {
+					logger.Infof("First discovery of configured device with MAC %s at IP %s", dev.GetMac(), dev.IP())
 					updateDevice = true
 				} else {
-					logger.Debugf("Rediscovered device with MAC %s at unchanged IP %s", dev.GetMac(), dev.IP())
+					if existingDevice.IP() != dev.IP() {
+						logger.Infof("Device with MAC %s has new IP %s (was %s)", dev.GetMac(), dev.IP(), existingDevice.IP())
+						updateDevice = true
+					} else {
+						logger.Debugf("Rediscovered device with MAC %s at unchanged IP %s", dev.GetMac(), dev.IP())
+					}
 				}
-			}
-			if updateDevice {
-				l.SetDevice(dev)
+				if updateDevice {
+					l.SetDevice(dev)
+				}
 			}
 		}
 	}
