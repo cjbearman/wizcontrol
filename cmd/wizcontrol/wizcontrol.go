@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"slices"
 	"syscall"
 	"time"
@@ -15,6 +16,8 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/discovery"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
@@ -107,41 +110,102 @@ func runAsDaemon() {
 		mqtt.MqttInstance.Start()
 	}
 
+	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
+
+	for _, light := range lights.Lights {
+		if light.RequiresDiscovery() {
+			logger.Info("One or more lights require discovery, discovery service will be started")
+			discovery.DiscoveryInstance = discovery.NewDiscovery()
+			discovery.DiscoveryInstance.Start()
+			break
+		}
+	}
+
+	if discovery.DiscoveryInstance == nil {
+		logger.Info("No devices are configured with MAC address, so discovery is not needed and discovery service will not run")
+	}
+
+	// We may or may not have running services, but we need a valid channel
+	// for all to listen to (even if there is no service backing it)
+	mqttStopCh := guaranteeChannel(mqtt.MqttInstance)
+	discoveryStopCh := guaranteeChannel(discovery.DiscoveryInstance)
+	daemonStopCh := guaranteeChannel(daemon.Daemon)
+	serverStopCh := guaranteeChannel(server.Server)
+
 	select {
 
-	case <-mqtt.MqttInstance.Stopped():
+	case <-mqttStopCh:
 		logger.Warn("MQTT has stopped, stopping daemon and server")
-		daemon.Daemon.Stop()
-		server.Server.Stop()
+		stop(daemon.Daemon)
+		stop(server.Server)
+		stop(discovery.DiscoveryInstance)
 
-	case <-daemon.Daemon.Stopped():
+	case <-daemonStopCh:
 		logger.Warn("Daemon has stopped, stopping other tasks")
-		server.Server.Stop()
-		if mqtt.MqttURL != "" {
-			mqtt.MqttInstance.Stop()
-		}
+		stop(server.Server)
+		stop(mqtt.MqttInstance)
+		stop(discovery.DiscoveryInstance)
 
-	case <-server.Server.Stopped():
+	case <-serverStopCh:
 		logger.Warn("Web server has stopped, stopping other tasks")
-		daemon.Daemon.Stop()
-		if mqtt.MqttURL != "" {
-			mqtt.MqttInstance.Stop()
-		}
+		stop(daemon.Daemon)
+		stop(mqtt.MqttInstance)
+		stop(discovery.DiscoveryInstance)
+
+	case <-discoveryStopCh:
+		logger.Warn("Discovery service has stopped, stopping other tasks")
+		stop(daemon.Daemon)
+		stop(server.Server)
+		stop(mqtt.MqttInstance)
+
 	case sig := <-sigch:
 		logger.Warnf("Caught signal %v, stopping tasksr", sig)
-		daemon.Daemon.Stop()
-		server.Server.Stop()
-		if mqtt.MqttURL != "" {
-			mqtt.MqttInstance.Stop()
-		}
+		stop(daemon.Daemon)
+		stop(server.Server)
+		stop(mqtt.MqttInstance)
+		stop(discovery.DiscoveryInstance)
 	}
 
-	<-daemon.Daemon.Stopped()
-	<-server.Server.Stopped()
-	if mqtt.MqttURL != "" {
-		<-mqtt.MqttInstance.Stopped()
-	}
+	waitStopped(daemon.Daemon)
+	waitStopped(server.Server)
+	waitStopped(mqtt.MqttInstance)
+	waitStopped(discovery.DiscoveryInstance)
 	logger.Info("Runner terminated")
 	os.Exit(0)
 
+}
+
+func stop(service common.Runner) {
+	if !isNil(service) {
+		service.Stop()
+	}
+}
+
+func waitStopped(service common.Runner) {
+	if !isNil(service) {
+		<-service.Stopped()
+	}
+}
+
+func guaranteeChannel(service common.Runner) <-chan struct{} {
+	if !isNil(service) {
+		return service.Stopped()
+	}
+	ch := make(chan struct{})
+	return ch
+}
+
+func isNil(i any) bool {
+	if i == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	// Only call IsNil on types that can actually be nil
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return v.IsNil()
+	}
+
+	return false
 }
