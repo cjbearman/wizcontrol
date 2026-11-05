@@ -106,7 +106,7 @@ func (l *Light) SetOn(on bool) {
 func AddLight(name, addr string) error {
 
 	addr = strings.ToLower(strings.TrimSpace(addr))
-	addressIsIp := true
+	var addressIsIp bool
 
 	var ip, mac string
 

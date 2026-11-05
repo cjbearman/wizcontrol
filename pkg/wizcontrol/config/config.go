@@ -149,7 +149,7 @@ func (c *Config) Parse() error {
 	server.ServerPort = c.Server.Port
 
 	if (c.Server.CertChain == "" && c.Server.Key != "") || (c.Server.CertChain != "" && c.Server.Key == "") {
-		return fmt.Errorf("Both http.cert_chain and http.key must be provided together to enable TLS")
+		return fmt.Errorf("both http.cert_chain and http.key must be provided together to enable TLS")
 	}
 
 	server.CertChain = c.Server.CertChain
@@ -157,10 +157,10 @@ func (c *Config) Parse() error {
 
 	if c.Server.Auth != nil {
 		if c.Server.Auth.Username == "" {
-			return fmt.Errorf("Must provide http.auth.username when configuring server auth")
+			return fmt.Errorf("must provide http.auth.username when configuring server auth")
 		}
 		if c.Server.Auth.Password == "" {
-			return fmt.Errorf("Must provide http.auth.password when configuring server auth")
+			return fmt.Errorf("must provide http.auth.password when configuring server auth")
 		}
 		server.AuthUsername = c.Server.Auth.Username
 		server.AuthPassword = c.Server.Auth.Password
@@ -171,20 +171,20 @@ func (c *Config) Parse() error {
 
 	if c.Mqtt != nil {
 		if c.Mqtt.Url == "" {
-			return fmt.Errorf("Must provide MQTT URL when configuring MQTT")
+			return fmt.Errorf("must provide MQTT URL when configuring MQTT")
 		}
 		mqtt.MqttURL = c.Mqtt.Url
 		mqtt.MqttUsername = c.Mqtt.Username
 		if c.Mqtt.Username == "" {
-			return fmt.Errorf("Must provide MQTT username when configuring MQTT")
+			return fmt.Errorf("must provide MQTT username when configuring MQTT")
 		}
 		mqtt.MqttPassword = c.Mqtt.Password
 		if c.Mqtt.Password == "" {
-			return fmt.Errorf("Must provide MQTT password when configuring MQTT")
+			return fmt.Errorf("must provide MQTT password when configuring MQTT")
 		}
 		mqtt.MqttTopic = c.Mqtt.Topic
 		if c.Mqtt.Topic == "" {
-			return fmt.Errorf("Must provide MQTT topic when configuring MQTT")
+			return fmt.Errorf("must provide MQTT topic when configuring MQTT")
 		}
 		if c.Mqtt.ControlEnabled != nil {
 			mqtt.ControlEnabled = *c.Mqtt.ControlEnabled
@@ -199,20 +199,20 @@ func (c *Config) Parse() error {
 		// Each color must be unique
 		// Whilst this is a map, and cannot have duplicates, there may be preloaded colors with the same name
 		if _, found := colors.GetColors()[name]; found {
-			logger.Errorf("Color %q is pre-defined and the name is reserved", name)
+			logger.Errorf("color %q is pre-defined and the name is reserved", name)
 		}
 
 		// Each color must be a valid color string, we will also rationalize it to include default
 		// brightness and speed values as appropriate
 		rationalized, err := wiz.RationalizeColor(color)
 		if err != nil {
-			return fmt.Errorf("Color %q is invalid: %v", name, err)
+			return fmt.Errorf("color %q is invalid: %v", name, err)
 		}
 
 		// Each named color must have a unique value
 		for existingName, existingValue := range colors.GetColors() {
 			if rationalized == existingValue {
-				return fmt.Errorf("Color named %q has the same functional value as %q", name, existingName)
+				return fmt.Errorf("color named %q has the same functional value as %q", name, existingName)
 			}
 		}
 

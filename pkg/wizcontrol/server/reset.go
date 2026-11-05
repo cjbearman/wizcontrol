@@ -12,5 +12,5 @@ func (s *Server) resetHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("reset request received")
 	resp := rpc.HandleResetRequest()
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }

@@ -16,16 +16,16 @@ func UpdateAvailability() {
 		logger := logger.WithField("device", result.Device.Name())
 		if light, exists := lights.GetLights()[result.Device.Name()]; exists {
 			lastState := light.Available()
-			if result.Result && lastState == false {
+			if result.Result && !lastState {
 				logger.Infof("Device became reachable, updating status")
 				updateStatusOps = append(updateStatusOps, result.Device.GetPilotAsync())
 				light.SetAvailable(true)
 
-			} else if !result.Result && lastState == true {
+			} else if !result.Result && lastState {
 				logger.Warnf("Light %q has become unreachable", result.Device.Name())
 				light.SetAvailable(false)
 				// Light not available, so update MQTT status since we won't be updating it's status
-				senders.SendLightStatus(light)
+				_ = senders.SendLightStatus(light)
 			} else {
 				if lastState {
 					logger.Debugf("Light %q had no change in availability state, currently available", result.Device.Name())

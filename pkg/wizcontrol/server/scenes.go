@@ -12,5 +12,5 @@ func (s *Server) scenesHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("scenes request received")
 	resp := rpc.HandleScenesRequest()
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }

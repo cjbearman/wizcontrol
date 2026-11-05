@@ -202,7 +202,7 @@ func isNil(i any) bool {
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
 	// Only call IsNil on types that can actually be nil
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+	case reflect.Pointer, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
 		return v.IsNil()
 	}
 

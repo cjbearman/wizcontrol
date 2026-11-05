@@ -16,7 +16,7 @@ func WriteError(w http.ResponseWriter, status int, message string) {
 		Success: false,
 		Error:   &message,
 	}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(response) // nolint:errcheck
 }
 
 func WriteSuccess(w http.ResponseWriter) {
@@ -25,5 +25,5 @@ func WriteSuccess(w http.ResponseWriter) {
 		Success: true,
 		Error:   nil,
 	}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(response) // nolint:errcheck
 }

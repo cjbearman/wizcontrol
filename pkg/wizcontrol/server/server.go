@@ -49,7 +49,7 @@ func NewServer() *Server {
 			},
 		},
 	}
-	srv.BaseRunner.Exec = srv.run
+	srv.Exec = srv.run
 
 	mux.HandleFunc("GET /", intercept(srv.statusHandler))
 	mux.HandleFunc("GET /scenes", intercept(srv.scenesHandler))
@@ -79,7 +79,7 @@ func (s *Server) run() {
 	}
 
 	logger.Info("Server stopped")
-	close(s.BaseRunner.Closed)
+	close(s.Closed)
 }
 
 func (s *Server) Stop() {

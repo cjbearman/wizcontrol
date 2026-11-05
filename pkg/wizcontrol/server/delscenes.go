@@ -20,5 +20,5 @@ func (s *Server) delScenesHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }

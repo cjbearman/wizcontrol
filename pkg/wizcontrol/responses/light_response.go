@@ -27,7 +27,7 @@ type LightStatus struct {
 func BuildLightStatus(light *lights.Light) LightStatus {
 	programmedColorName, programmedColor := light.GetLastProgrammedColor()
 	actualColor := light.LastColor()
-	var actualColorName string = colors.UnknownColorName
+	actualColorName := colors.UnknownColorName
 	if actualColor == "" {
 		actualColor = colors.UnknownColorName
 	} else {

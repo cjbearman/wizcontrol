@@ -161,7 +161,7 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 
 	if sendMqtt {
 		for _, light := range sendStatusFor {
-			senders.SendLightStatus(light)
+			_ = senders.SendLightStatus(light)
 		}
 	}
 }

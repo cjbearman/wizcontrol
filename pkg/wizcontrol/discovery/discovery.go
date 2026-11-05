@@ -24,7 +24,7 @@ func NewDiscovery() *Discovery {
 		BaseRunner: common.NewRunner("discovery"),
 	}
 
-	d.BaseRunner.Exec = d.run
+	d.Exec = d.run
 	return d
 }
 

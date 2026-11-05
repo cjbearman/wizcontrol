@@ -52,7 +52,7 @@ func NewDaemon() *Daemon {
 		additionalUntil: time.Time{},
 		mode:            DaemonModeAuto,
 	}
-	d.BaseRunner.Exec = d.run
+	d.Exec = d.run
 	lights.KickFunc = d.Kick
 	return d
 }
@@ -93,7 +93,7 @@ func (d *Daemon) GetMode() DaemonMode {
 func (d *Daemon) run() {
 
 	// Make sure we mark the runner as closed when we exit
-	defer close(d.BaseRunner.Closed)
+	defer close(d.Closed)
 
 	if EvaluationPeriod <= 0 {
 		panic("Invalid evaluation period")
@@ -131,7 +131,7 @@ func (d *Daemon) run() {
 			// Triggered on our regular tick interval
 			logger.Debug("Tick")
 			d.runIteration(logger, firstRun)
-		case <-d.BaseRunner.StopSignalled:
+		case <-d.StopSignalled:
 			// Triggered when the runner wants us to stop
 			logger.Info("Stopped")
 			return
@@ -151,7 +151,7 @@ func (d *Daemon) runIteration(logger logger.Logger, firstRun bool) {
 
 	if d.GetMode() == DaemonModeOff {
 		logger.Debug("Daemon is off, skipping iteration")
-		d.SendDaemonStatus()
+		_ = d.SendDaemonStatus()
 		return
 	}
 
@@ -178,8 +178,8 @@ func (d *Daemon) runIteration(logger logger.Logger, firstRun bool) {
 
 	logger.Debugf("Apply scenes, first run: %v", firstRun)
 	operations.ApplyScenes(activeScenes, false, true, firstRun)
-	d.SendDaemonStatus()
-	state.WriteState()
+	_ = d.SendDaemonStatus()
+	_ = state.WriteState()
 	logger.Info("daemon iteration completed")
 }
 
@@ -191,7 +191,7 @@ func (d *Daemon) SendDaemonStatus() error {
 		string(d.GetMode()),
 	)
 
-	senders.SendDaemonStatus(status)
+	_ = senders.SendDaemonStatus(status)
 
 	return nil
 }

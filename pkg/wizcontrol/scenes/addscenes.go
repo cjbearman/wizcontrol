@@ -22,7 +22,7 @@ func AddAdditionalScene(scene string, until time.Time) error {
 	clearExpiredScenes()
 	for _, existing := range additionalScenes {
 		if existing.Scene == scene {
-			return fmt.Errorf("Scene %q is already added", scene)
+			return fmt.Errorf("scene %q is already added", scene)
 		}
 	}
 
@@ -49,7 +49,7 @@ func DeleteAdditionalScene(scene string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("Scene %q not found", scene)
+		return fmt.Errorf("scene %q not found", scene)
 	}
 	additionalScenes = revised
 	return nil
@@ -69,11 +69,7 @@ func GetAdditionalScenesWithUntils() []SceneUntil {
 	additionalScenesLock.RLock()
 	defer additionalScenesLock.RUnlock()
 	clearExpiredScenes()
-	result := []SceneUntil{}
-	for _, existing := range additionalScenes {
-		result = append(result, existing)
-	}
-	return result
+	return append([]SceneUntil{}, additionalScenes...)
 }
 
 func GetAdditionalScenes() []string {
@@ -91,11 +87,7 @@ func GetAdditionalScenesAndTimes() []SceneUntil {
 	additionalScenesLock.RLock()
 	defer additionalScenesLock.RUnlock()
 	clearExpiredScenes()
-	result := []SceneUntil{}
-	for _, existing := range additionalScenes {
-		result = append(result, existing)
-	}
-	return result
+	return append([]SceneUntil{}, additionalScenes...)
 }
 
 func ClearAdditionalScenes() {

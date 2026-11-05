@@ -49,7 +49,7 @@ func NewMqtt() *Mqtt {
 		BaseRunner:      common.NewRunner("mqtt"),
 		outboundMessage: make(chan messageAndTopic, BufferSize),
 	}
-	mqtt.BaseRunner.Exec = mqtt.run
+	mqtt.Exec = mqtt.run
 
 	senders.DaemonStatus = mqtt.SendDaemonStatus
 	senders.LightStatus = mqtt.SendLightStatus
@@ -126,7 +126,7 @@ func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
 
 func (m *Mqtt) run() {
 	logger := common.Logger.GetLogger("mqtt")
-	defer close(m.BaseRunner.Closed)
+	defer close(m.Closed)
 
 	logger.Info("mqtt started")
 
@@ -153,7 +153,7 @@ func (m *Mqtt) run() {
 
 	for {
 		select {
-		case <-m.BaseRunner.StopSignalled:
+		case <-m.StopSignalled:
 			logger.Info("stop signalled")
 			client.Disconnect(250)
 			logger.Info("mqtt stopped")

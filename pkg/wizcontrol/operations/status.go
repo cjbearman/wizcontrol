@@ -55,5 +55,5 @@ func handleStatusUpdate(statusUpdate wiz.DeviceResultAndError[*wiz.PilotResult])
 	logger.Debugf("State: color=%s, on=%v", color, on)
 
 	// MQTT update
-	senders.SendLightStatus(light)
+	_ = senders.SendLightStatus(light)
 }

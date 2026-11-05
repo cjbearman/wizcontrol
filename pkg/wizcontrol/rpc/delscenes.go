@@ -30,7 +30,7 @@ func HandleDelScenesRequest(req []byte) ([]byte, *RpcError) {
 
 	for _, scene := range request.Scenes {
 		logger.Infof("Additional scene %q removed", scene)
-		scenes.DeleteAdditionalScene(scene)
+		_ = scenes.DeleteAdditionalScene(scene)
 	}
 	daemon.Instance.Kick()
 	return NewGeneralResponse(true, ""), nil

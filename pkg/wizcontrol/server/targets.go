@@ -12,5 +12,5 @@ func (s *Server) targetsHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("targets request received")
 	resp := rpc.HandleTargetsRequest()
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }

@@ -17,10 +17,10 @@ func (s *Server) lockHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorf("Failed to handle lock request: %v", err)
 		w.WriteHeader(err.Status())
-		w.Write(resp)
+		w.Write(resp) // nolint:errcheck
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }

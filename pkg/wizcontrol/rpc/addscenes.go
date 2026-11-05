@@ -41,7 +41,7 @@ func HandleAddScenesRequest(req []byte) ([]byte, *RpcError) {
 
 	for _, scene := range request.Scenes {
 		logger.Infof("Additional scene %q added until %v", scene, until)
-		scenes.AddAdditionalScene(scene, until)
+		_ = scenes.AddAdditionalScene(scene, until)
 	}
 	daemon.Instance.Kick()
 	return NewGeneralResponse(true, ""), nil

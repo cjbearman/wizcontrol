@@ -64,19 +64,20 @@ func WriteState() error {
 
 	fp, err := os.Create(filename_tmp)
 	if err != nil {
-		return fmt.Errorf("Failed to create temporary state file %q: %v", filename_tmp, err)
+		return fmt.Errorf("failed to create temporary state file %q: %v", filename_tmp, err)
 	}
 
 	err = json.NewEncoder(fp).Encode(state)
-	fp.Close()
+
+	_ = fp.Close()
 	if err != nil {
-		os.Remove(filename_tmp)
-		return fmt.Errorf("Failed to rename temporary state file %q to %q: %v", filename_tmp, StateRecoveryFile, err)
+		_ = os.Remove(filename_tmp)
+		return fmt.Errorf("failed to rename temporary state file %q to %q: %v", filename_tmp, StateRecoveryFile, err)
 	}
 
 	if err := os.Rename(filename_tmp, StateRecoveryFile); err != nil {
-		os.Remove(filename_tmp)
-		return fmt.Errorf("Failed to rename temporary state file %q to %q: %v", filename_tmp, StateRecoveryFile, err)
+		_ = os.Remove(filename_tmp)
+		return fmt.Errorf("failed to rename temporary state file %q to %q: %v", filename_tmp, StateRecoveryFile, err)
 	}
 
 	return nil
@@ -91,13 +92,13 @@ func RecoverState() error {
 	}
 	fp, err := os.Open(StateRecoveryFile)
 	if err != nil {
-		return fmt.Errorf("Failed to open state file %q: %v", StateRecoveryFile, err)
+		return fmt.Errorf("failed to open state file %q: %v", StateRecoveryFile, err)
 	}
-	defer fp.Close()
+	defer fp.Close() // nolint:errcheck
 
 	state := State{}
 	if err := json.NewDecoder(fp).Decode(&state); err != nil {
-		return fmt.Errorf("Failed to decode state file %q: %v", StateRecoveryFile, err)
+		return fmt.Errorf("failed to decode state file %q: %v", StateRecoveryFile, err)
 	}
 
 	// Apply the recovered state
@@ -108,7 +109,7 @@ func RecoverState() error {
 				// Not a defined color, maybe a custom color
 				if _, err := wiz.SettingsFromString(lock.Color); err != nil {
 					// Nope
-					logger.Warnf("Skipping unknown color %q for light %q", lock.Color, lock.LightName)
+					logger.Warnf("skipping unknown color %q for light %q", lock.Color, lock.LightName)
 					continue
 				}
 			}
@@ -118,7 +119,9 @@ func RecoverState() error {
 	}
 
 	for _, scene := range state.SceneLocks {
-		scenes.AddAdditionalScene(scene.Scene, scene.Until)
+		if err := scenes.AddAdditionalScene(scene.Scene, scene.Until); err != nil {
+			logger.Warnf("failed to add additional scene %q: %v", scene.Scene, err)
+		}
 	}
 
 	logger.Info("state recovery completed")

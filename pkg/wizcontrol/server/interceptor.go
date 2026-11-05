@@ -29,8 +29,7 @@ func intercept(next http.HandlerFunc) http.HandlerFunc {
 		if accept := r.Header.Get("Accept"); accept != "" {
 			accept = strings.ToLower(accept)
 
-			if !(strings.Contains(accept, "application/json") ||
-				strings.Contains(accept, "*/*")) {
+			if !strings.Contains(accept, "application/json") && !strings.Contains(accept, "*/*") {
 				WriteError(w, http.StatusNotAcceptable, "Accept header must allow application/json")
 				return
 			}

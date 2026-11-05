@@ -12,5 +12,5 @@ func (s *Server) colorsHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("colors request received")
 	resp := rpc.HandleColorsRequest()
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(resp) // nolint:errcheck
 }
