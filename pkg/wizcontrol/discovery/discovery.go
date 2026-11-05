@@ -38,7 +38,7 @@ func (d *Discovery) run() {
 	defer ticker.Stop()
 
 	for {
-		disc := wiz.Discover(false).BroadcastInterval(DiscoveryInterval).EndAfter(DiscoveryPeriod).WithCallback(d.callback)
+		disc := wiz.Discover().BroadcastInterval(DiscoveryInterval).EndAfter(DiscoveryPeriod).WithCallback(d.callback)
 		if DiscoveryBroadcastAddr != "" {
 			disc.BroadcastAddress(DiscoveryBroadcastAddr)
 		}
@@ -66,27 +66,27 @@ func (d *Discovery) run() {
 
 func (d *Discovery) callback(dev *wiz.Device) {
 	logger := common.Logger.GetLogger("discovery")
-	logger.Debugf("Device discovery inbound for MAC %s IP %s", dev.GetMac(), dev.IP())
+	logger.Debugf("Device discovery inbound for MAC %s IP %s", dev.MAC(), dev.IP())
 
 	for _, l := range lights.Lights {
 		_, mac := l.GetAddress()
 		if mac != "" {
 			// Device has a MAC and is enabled for discovery
 
-			if strings.EqualFold(mac, dev.GetMac()) {
+			if strings.EqualFold(mac, dev.MAC()) {
 				updateDevice := false
 				// There is a device that is set to use this MAC address
 				existingDevice := l.GetDevice()
 
 				if existingDevice == nil {
-					logger.Infof("First discovery of configured device with MAC %s at IP %s", dev.GetMac(), dev.IP())
+					logger.Infof("First discovery of configured device with MAC %s at IP %s", dev.MAC(), dev.IP())
 					updateDevice = true
 				} else {
 					if existingDevice.IP() != dev.IP() {
-						logger.Infof("Device with MAC %s has new IP %s (was %s)", dev.GetMac(), dev.IP(), existingDevice.IP())
+						logger.Infof("Device with MAC %s has new IP %s (was %s)", dev.MAC(), dev.IP(), existingDevice.IP())
 						updateDevice = true
 					} else {
-						logger.Debugf("Rediscovered device with MAC %s at unchanged IP %s", dev.GetMac(), dev.IP())
+						logger.Debugf("Rediscovered device with MAC %s at unchanged IP %s", dev.MAC(), dev.IP())
 					}
 				}
 				if updateDevice {

@@ -33,7 +33,7 @@ func main() {
 
 func findWizLights(broadcastAddr string) int {
 
-	disc := wiz.Discover(false).
+	disc := wiz.Discover().
 		WithCallback(discoveryCallback).
 		EndAfter(5 * time.Second).
 		BroadcastInterval(1 * time.Second)
@@ -62,7 +62,7 @@ func findWizLights(broadcastAddr string) int {
 }
 
 func discoveryCallback(dev *wiz.Device) {
-	fmt.Printf("Discovered device, MAC: %s, IP: %s\n", dev.GetMac(), dev.IP())
+	fmt.Printf("Discovered device, MAC: %s, IP: %s\n", dev.MAC(), dev.IP())
 }
 
 func setWizLight(ip string, color string) int {

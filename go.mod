@@ -3,7 +3,7 @@ module github.com/cjbearman/wizcontrol
 go 1.26.0
 
 require (
-	github.com/cjbearman/wiz v0.0.0-20261105163618-7092de76d3d7
+	github.com/cjbearman/wiz v0.0.0-20261105193025-981a9e652da8
 	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/google/uuid v1.6.0
 	github.com/rickar/cal/v2 v2.1.32
