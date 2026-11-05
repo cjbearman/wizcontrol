@@ -207,6 +207,9 @@ scenes:
       color: pastel_pink
   office_warm:
     - targets: [ office_lights ]
+      color: warm_white
+  office_warmish:
+    - targets: [ office_lights ]
       color: warmish_white
   office_bright:
     - targets: [ office_lights ]
@@ -360,3 +363,14 @@ calendar:
     from: nov 3
     to: nov 5
     scenes: [ go_democrats ]
+  - name: office_warmish
+    from: jan 1
+    to: dec 31
+    scenes: [ office_warmish ]
+    after: 7:00 pm
+    before: 8:30 pm
+  - name: office_warm
+    from: jan 1
+    to: dec 31
+    scenes: [ office_warm ]
+    after: 8:30 pm
