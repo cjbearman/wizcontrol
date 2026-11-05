@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/cjbearman/framework/pkg/logger"
+	"github.com/cjbearman/logger"
 )
 
 type Runner interface {

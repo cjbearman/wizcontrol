@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cjbearman/framework/pkg/logger"
+	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )

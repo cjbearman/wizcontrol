@@ -1,5 +1,9 @@
 github.com/cjbearman/framework v1.0.3 h1:N0csGSgd8u7jji5EmgHerIQe39XPMILWl/ohmWMzFmo=
 github.com/cjbearman/framework v1.0.3/go.mod h1:eFkbKyQInx3O4xN6MlRWUlnxQs6CebIE7nIh/TUx1K8=
+github.com/cjbearman/logger v0.0.0-20261105180336-fd42bd5d76ad h1:mTRVGfbo/frrwmhki3A08m7tWBN6glkLhVZLjBRcT2M=
+github.com/cjbearman/logger v0.0.0-20261105180336-fd42bd5d76ad/go.mod h1:uquYjCiqlZyzC4HYcZ8SGTac/6Q14eIeRxGqO/jvhF8=
+github.com/cjbearman/logger v0.0.0-20261105180923-ca92117cd857 h1:FhagkL3ypvWmT8zyjp14QRJz95gcUZ6nujUOi487dD0=
+github.com/cjbearman/logger v0.0.0-20261105180923-ca92117cd857/go.mod h1:uquYjCiqlZyzC4HYcZ8SGTac/6Q14eIeRxGqO/jvhF8=
 github.com/cjbearman/wiz v0.0.0-20261105144011-eb5fd01c285f h1:zMoDo6gy7xwcZdDBiBzur+ghSpktLKQnDYvY52NzvGM=
 github.com/cjbearman/wiz v0.0.0-20261105144011-eb5fd01c285f/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
 github.com/cjbearman/wiz v0.0.0-20261105163618-7092de76d3d7 h1:SIji6JiQQAplYnOkk/92gvLDA4iWDS4WhjDJGAAQaEE=

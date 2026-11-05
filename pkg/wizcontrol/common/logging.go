@@ -1,5 +1,5 @@
 package common
 
-import "github.com/cjbearman/framework/pkg/logger"
+import "github.com/cjbearman/logger"
 
 var Logger logger.Logger

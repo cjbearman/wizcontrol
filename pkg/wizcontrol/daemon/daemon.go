@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cjbearman/framework/pkg/logger"
+	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
