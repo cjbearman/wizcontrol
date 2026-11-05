@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cjbearman/framework/pkg/logger"
+	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
