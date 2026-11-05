@@ -7,28 +7,49 @@ evaluation_period: 15s
 # Specify the period for rechecking currently set light colors
 recheck_period: 5m
 
-state_recovery_file: "state.json"
+# To keep state on added scenes and light locks, we can optionally
+# specify a file in which the state is saved. 
+# This must be located on a persistent file system (volume in case of docker)
+# state_recovery_file: "/config/state.json"
 
+# If we have configured any light using it's MAC address instead of an IP
+# discovery will run, these settings can tweak discovery behavior
 discovery:
+  # The broadcast address to use for discovery, typically required on multi-interface
+  # machines, particuarly where the default interface is not connected to the wiz bulb network
   broadcast_address: 192.168.21.255
+  # The interval at which discovery runs are initiated
   interval: 30s
+  # The period to wait for responses after sending discovery packets
   period: 5s
 
+# Include an mqtt block to configure an mqtt broker integration
 mqtt:
+  # broker URL
   url: "mqtt://192.168.10.189:1883"
+  # broker username
   username: "wizcontrol_mqtt"
+  # broker password
   password: "asdkljiodsjf23489h!"
+  # base topic
   topic: "wizcontrol"
 
+# http contains additional configuration for the HTTP API
 http:
+  # port on which the HTTP API will listen
   port: 12120
+
+  # To enable HTTPS (TLS) include both cert_chain and key files
   # cert_chain: test_certs/wizcontrol.crt
   # key: test_certs/wizcontrol.key
+
+  # To establish HTTP basic authentication, uncomment and configure the auth block below
   #auth:
   #  username: "chris"
   #  password: "changeme"
 
-# Specify the lights and their IP addresses
+# Specify the lights and their IP addresses or MAC addresses
+# If using MAC addresses for any light, discovery will be used (which is not entirely reliable and introduce delays)
 lights:
   front_flood_ll: 192.168.20.202
   front_flood_lr: 192.168.20.56
@@ -56,6 +77,7 @@ lights:
   #office_ceiling_2: 98:77:d5:a6:b7:3a
   #office_ceiling_3: 98:77:d5:30:1a:fc
 
+# Define the colors you want to reference elsewhere in this document
 # Valid color specs:
 # Where RR,GG,BB are RGB hex values
 # Where CC, WW are cold and white hex values
@@ -111,8 +133,7 @@ colors:
   summer_dynamic: summer/100/200
   sunset_dynamic: sunset/100/200
   
-
-# Group lights, N.B. group all is automatically provided
+# Lights can be grouped into logical collections for easier control using light_groups
 light_groups:
   all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
   outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
@@ -127,6 +148,7 @@ light_groups:
   office_ceiling: [ office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
   office_stand_light: [ office_stand_light_upper, office_stand_light_lower ]
 
+# Scenes define pre-configured lighting scenes that can map one or more colors to one or more light groups
 scenes:
   default:
     - targets:
@@ -268,7 +290,18 @@ scenes:
   patio_sunset_dynamic:
     - targets: [ patio_lights ]
       color: sunset_dynamic
-      
+
+# Calendars define which scene or scenes should be active for a given time period
+# Each calendar entry is evaluated in the order provided here, and the scenes defined by it that meet it's timing criteria
+# are applied in that order.
+# If multiple calendar entries match time criteria, they are all applied, scenes from the later entries override lights previously
+# set by scenes from earlier entries
+# Each entry MUST have a from and to date specified
+# Each entry MAY have a before and/or after time specified
+# Each entry can specify multiple scenes, which by default are all applied
+# If mode: random, then only one scene is applied at random
+# If mode: sequential, then only one scene is applied, but that scene will rotate through the list of scenes in order each time it is applied
+# The frequency key defines how often the scene should change when using random or sequential mode
 calendar:
   - name: default
     from: jan 1
@@ -328,5 +361,5 @@ calendar:
     frequency: 30m
   - name: go_democrats
     from: nov 3
-    to: nov 8
+    to: nov 5
     scenes: [ go_democrats ]
