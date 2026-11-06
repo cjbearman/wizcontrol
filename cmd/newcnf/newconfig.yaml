@@ -28,13 +28,13 @@ http:
   port: 12120
 
   # To enable HTTPS (TLS) include both cert_chain and key files
-  cert_chain: test_certs/wizcontrol.crt
-  key: test_certs/wizcontrol.key
+  #cert_chain: test_certs/wizcontrol.crt
+  #key: test_certs/wizcontrol.key
 
   # To establish HTTP basic authentication, uncomment and configure the auth block below
-  auth:
-    username: "chris"
-    password: "changeme"
+  #auth:
+   # username: "chris"
+    #password: "changeme"
 
 
 # Specify the lights and their IP addresses or MAC addresses

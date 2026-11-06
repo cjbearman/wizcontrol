@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cjbearman/logger"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
@@ -60,7 +58,6 @@ func Load(path string) (*ConfigYAML, error) {
 }
 
 func Build(cfg *ConfigYAML) (*Config, error) {
-	common.Logger = logger.NewLoggerFactory(logger.Debug, logger.NewColorStringFormatter(), logger.NewSyncWriter(os.Stdout)).GetLogger("root")
 
 	conf := &Config{}
 	var err error

@@ -23,9 +23,13 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 		if _, found := colors[c.Name]; found {
 			return nil, fmt.Errorf("color %q is defined more than once", c.Name)
 		}
-		if other := colors.GetByColor(c.Color); other != nil {
-			return nil, fmt.Errorf("color %q has same value as color %q", c.Name, other.name)
+
+		for name, oc := range colors {
+			if c.Color == oc.Value() {
+				return nil, fmt.Errorf("color %q has same value as existing color %q", c.Name, name)
+			}
 		}
+
 		colors[c.Name] = &Color{
 			name:  c.Name,
 			color: c.Color,

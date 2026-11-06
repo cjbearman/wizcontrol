@@ -44,6 +44,7 @@ func NewServer(cnf *config.Config) *Server {
 				},
 			},
 		},
+		cnf: cnf,
 	}
 	srv.Exec = srv.run
 
@@ -64,7 +65,11 @@ func (s *Server) run() {
 	logger := common.Logger.GetLogger("server")
 	var err error
 
-	cert, key := s.cnf.HTTP.TLS().CertChainAndKey()
+	cert, key := "", ""
+	if s.cnf.HTTP.TLS() != nil {
+		cert, key = s.cnf.HTTP.TLS().CertChainAndKey()
+	}
+
 	if cert != "" && key != "" {
 		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", s.cnf.HTTP.Port())
 		err = s.server.ListenAndServeTLS(cert, key)

@@ -59,6 +59,7 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 		var d *wiz.Device
 		if l.IP != "" {
 			d = wiz.MustDevice(l.IP)
+			d.SetName(l.Name) // Important that our devices are named for our lights, so we can correlate async results back
 		}
 
 		lights[l.Name] = &Light{
@@ -198,6 +199,7 @@ func (l *Light) SetDevice(device *wiz.Device) {
 	l.deviceLock.Lock()
 	defer l.deviceLock.Unlock()
 	l.device = device
+	l.device.SetName(l.name)
 }
 
 func (l *Light) UseDiscovery() bool {

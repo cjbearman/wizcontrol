@@ -118,8 +118,8 @@ func runAsDaemon(cnf *config.Config) {
 
 	case <-serverStopCh:
 		logger.Warn("Web server has stopped, stopping other tasks")
-		stop(server.Instance)
 		stop(mqtt.Instance)
+		stop(daemon.Instance)
 		stop(discovery.Instance)
 
 	case <-discoveryStopCh:
