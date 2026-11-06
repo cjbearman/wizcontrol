@@ -14,7 +14,7 @@ func (s *Server) delScenesHandler(w http.ResponseWriter, r *http.Request) {
 
 	rawBody, _ := io.ReadAll(r.Body)
 
-	resp, err := rpc.HandleDelScenesRequest(rawBody)
+	resp, err := rpc.HandleDelScenesRequest(s.cnf, rawBody)
 	if err != nil {
 		w.WriteHeader(err.Status())
 	} else {

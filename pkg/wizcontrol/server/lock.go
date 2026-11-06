@@ -13,7 +13,7 @@ func (s *Server) lockHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("lock request received")
 	rawBody, _ := io.ReadAll(r.Body)
 
-	resp, err := rpc.HandleLockRequest(rawBody)
+	resp, err := rpc.HandleLockRequest(s.cnf, rawBody)
 	if err != nil {
 		logger.Errorf("Failed to handle lock request: %v", err)
 		w.WriteHeader(err.Status())

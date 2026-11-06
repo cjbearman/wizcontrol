@@ -10,7 +10,7 @@ import (
 func (s *Server) targetsHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("targets request received")
-	resp := rpc.HandleTargetsRequest()
+	resp := rpc.HandleTargetsRequest(s.cnf)
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp) // nolint:errcheck
 }

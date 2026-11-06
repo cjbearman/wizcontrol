@@ -52,44 +52,44 @@ func main() {
 	runAsDaemon(finalConfig)
 }
 
-func runAsDaemon(f *config.Config) {
+func runAsDaemon(cnf *config.Config) {
 	logger := common.Logger.GetLogger("runner")
 	logger.Info("Runner starting")
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM)
 
 	// Load any state recovery file
-	if err := state.RecoverState(); err != nil {
+	if err := state.RecoverState(cnf); err != nil {
 		common.Logger.Warnf("Failed to recover state: %v", err)
 	}
 
 	// Start the main daemon
 	logger.Info("Starting daemon")
-	daemon.Instance = daemon.NewDaemon(f.System.EvaluationPeriod(), f.System.RecheckPeriod())
+	daemon.Instance = daemon.NewDaemon(cnf)
 	daemon.Instance.Start()
 
 	// Start the web server, if configured
-	if f.HTTP != nil {
+	if cnf.HTTP != nil {
 		logger.Info("Starting HTTP")
-		server.Instance = server.NewServer(f.HTTP)
+		server.Instance = server.NewServer(cnf)
 		server.Instance.Start()
 	} else {
 		logger.Info("HTTP not configured")
 	}
 
 	// And MQTT, if configured
-	if f.MQTT != nil {
+	if cnf.MQTT != nil {
 		logger.Info("Starting MQTT")
-		mqtt.Instance = mqtt.NewMqtt(f.MQTT)
+		mqtt.Instance = mqtt.NewMqtt(cnf)
 		mqtt.Instance.Start()
 	} else {
 		logger.Info("MQTT not configured")
 	}
 
 	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
-	if f.Lights.DiscoveryRequired() {
+	if cnf.Lights.DiscoveryRequired() {
 		logger.Info("One or more lights require discovery, discovery service will be started")
-		discovery.Instance = discovery.NewDiscovery(&f.Discovery)
+		discovery.Instance = discovery.NewDiscovery(cnf)
 		discovery.Instance.Start()
 	} else {
 		logger.Info("No devices are configured with MAC address, so discovery is not needed and discovery service will not run")

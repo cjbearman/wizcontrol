@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	hc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/http"
-
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 const (
@@ -22,16 +21,16 @@ type Server struct {
 	*common.BaseRunner
 	mux    *http.ServeMux
 	server *http.Server
-	cnf    *hc.Http
+	cnf    *config.Config
 }
 
-func NewServer(cnf *hc.Http) *Server {
+func NewServer(cnf *config.Config) *Server {
 	mux := http.NewServeMux()
 	srv := &Server{
 		BaseRunner: common.NewRunner("server"),
 		mux:        mux,
 		server: &http.Server{
-			Addr:         fmt.Sprintf(":%d", cnf.Port()),
+			Addr:         fmt.Sprintf(":%d", cnf.HTTP.Port()),
 			Handler:      mux,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
@@ -65,12 +64,12 @@ func (s *Server) run() {
 	logger := common.Logger.GetLogger("server")
 	var err error
 
-	cert, key := s.cnf.TLS().CertChainAndKey()
+	cert, key := s.cnf.HTTP.TLS().CertChainAndKey()
 	if cert != "" && key != "" {
-		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", s.cnf.Port())
+		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", s.cnf.HTTP.Port())
 		err = s.server.ListenAndServeTLS(cert, key)
 	} else {
-		common.Logger.GetLogger("server").Infof("Starting server without TLS on port %d", s.cnf.Port())
+		common.Logger.GetLogger("server").Infof("Starting server without TLS on port %d", s.cnf.HTTP.Port())
 		err = s.server.ListenAndServe()
 	}
 	if err != nil && err != http.ErrServerClosed {

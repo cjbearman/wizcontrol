@@ -6,9 +6,7 @@ import (
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 )
 
 type StatusResponse struct {
@@ -23,13 +21,13 @@ func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 		Server: responses.BuildDaemonResponse(
 			daemon.Instance.GetActiveSceneNames(),
 			daemon.Instance.GetCalendarScenes(),
-			scenes.GetAdditionalScenesAndTimes(),
+			s.cnf.AdditionalScenes.GetAdditionalScenesAndTimes(),
 			string(daemon.Instance.GetMode()),
 		),
 	}
 
-	for _, light := range lights.GetLights() {
-		status.Lights[light.GetName()] = responses.BuildLightStatus(light)
+	for _, light := range s.cnf.Lights {
+		status.Lights[light.Name()] = responses.BuildLightStatus(light)
 	}
 
 	_ = json.NewEncoder(w).Encode(status)

@@ -5,14 +5,15 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 type UnlockRequest struct {
 	Targets []string `json:"targets"`
 }
 
-func HandleUnlockRequest(req []byte) ([]byte, *RpcError) {
+func HandleUnlockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 
 	logger := common.Logger.GetLogger("rpc-unlock")
 
@@ -26,11 +27,12 @@ func HandleUnlockRequest(req []byte) ([]byte, *RpcError) {
 		return NewGeneralResponse(false, "no targets specified"), NewRpcError(400, "no targets specified")
 	}
 
-	affectedLights := []*lights.Light{}
+	affectedLights := []*light.Light{}
 
 	for _, item := range request.Targets {
-		lights, err := lights.GetLightOrGroup(item)
-		if err != nil {
+		lights := light.GetLightOrGroup(item, cnf.Lights, cnf.LightGroups)
+
+		if len(lights) == 0 {
 			logger.Errorf("Light or group %q not found", item)
 			return NewGeneralResponse(false, fmt.Sprintf("Light or group %q not found", item)), NewRpcError(400, "Light or group not found")
 		}
@@ -38,7 +40,7 @@ func HandleUnlockRequest(req []byte) ([]byte, *RpcError) {
 	}
 
 	for _, light := range affectedLights {
-		light.Locker.UnlockNow(false)
+		light.Locker().UnlockNow(false)
 	}
 
 	return NewGeneralResponse(true, "Unlocked successfully"), nil

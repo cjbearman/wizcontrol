@@ -10,7 +10,7 @@ import (
 func (s *Server) scenesHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("scenes request received")
-	resp := rpc.HandleScenesRequest()
+	resp := rpc.HandleScenesRequest(s.cnf)
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp) // nolint:errcheck
 }

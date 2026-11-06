@@ -70,3 +70,32 @@ func (s Scenes) GetByName(name string) *Scene {
 func (s *Scene) String() string {
 	return fmt.Sprintf("Scene{name: %s, group: %s, elements: %d	}", s.name, s.group, len(s.elements))
 }
+
+func (s Scenes) GetSceneElementsBySceneName(name string) ([]*Element, bool) {
+	scene, found := s[name]
+	if !found {
+		return nil, false
+	}
+	return scene.elements, true
+}
+
+func (e *Element) GetTargets() []string {
+	return e.targets
+}
+
+func (e *Element) GetColor() string {
+	return e.color
+}
+
+func (s Scenes) GetByGroup(group string) ([]*Scene, bool) {
+	result := []*Scene{}
+	for _, scene := range s {
+		if scene.group == group {
+			result = append(result, scene)
+		}
+	}
+	if len(result) == 0 {
+		return nil, false
+	}
+	return result, true
+}

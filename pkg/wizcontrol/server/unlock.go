@@ -15,7 +15,7 @@ func (s *Server) unlockHandler(w http.ResponseWriter, r *http.Request) {
 
 	rawBody, _ := io.ReadAll(r.Body)
 
-	resp, err := rpc.HandleUnlockRequest(rawBody)
+	resp, err := rpc.HandleUnlockRequest(s.cnf, rawBody)
 	if err != nil {
 		w.WriteHeader(err.Status())
 	} else {

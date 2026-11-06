@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"slices"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 type TargetsResponse struct {
@@ -12,13 +12,13 @@ type TargetsResponse struct {
 	Lights      []string `json:"lights"`
 }
 
-func HandleTargetsRequest() []byte {
+func HandleTargetsRequest(cnf *config.Config) []byte {
 	resp := &TargetsResponse{}
 
-	for name := range lights.GetLightGroups() {
+	for name := range cnf.LightGroups {
 		resp.LightGroups = append(resp.LightGroups, name)
 	}
-	for name := range lights.GetLights() {
+	for name := range cnf.Lights {
 		resp.Lights = append(resp.Lights, name)
 	}
 	slices.Sort(resp.LightGroups)

@@ -29,15 +29,16 @@ type ConfigYAML struct {
 }
 
 type Config struct {
-	Lights      light.Lights
-	LightGroups light.LightGroups
-	Colors      color.Colors
-	Scenes      scene.Scenes
-	Calendars   calendar.Calendars
-	MQTT        *mqtt.Mqtt
-	HTTP        *http.Http
-	Discovery   discovery.Discovery
-	System      system.System
+	Lights           light.Lights
+	LightGroups      light.LightGroups
+	Colors           color.Colors
+	Scenes           scene.Scenes
+	Calendars        calendar.Calendars
+	MQTT             *mqtt.Mqtt
+	HTTP             *http.Http
+	Discovery        discovery.Discovery
+	System           system.System
+	AdditionalScenes scene.AdditionalScenes
 }
 
 func Load(path string) (*ConfigYAML, error) {

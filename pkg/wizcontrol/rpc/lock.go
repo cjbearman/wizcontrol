@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
 type LockRequest struct {
@@ -21,7 +21,7 @@ type LockRequest struct {
 type LockResponse struct {
 }
 
-func HandleLockRequest(req []byte) ([]byte, *RpcError) {
+func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	logger := common.Logger.GetLogger("rpc-lock")
 	request := &LockRequest{}
 
@@ -36,9 +36,9 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	}
 
 	var color string
-	if col, found := colors.GetColors()[request.Color]; found {
-		color = col
-
+	col := cnf.Colors.GetByName(color)
+	if col != nil {
+		color = col.Value()
 	} else {
 		// So it wasn't a named color, check if it's a raw color spec
 		if _, err := wiz.SettingsFromString(request.Color); err == nil {
@@ -64,10 +64,11 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 		return NewGeneralResponse(false, "at least one target is required"), NewRpcError(400, "at least one target is required")
 	}
 
-	var targetLights []*lights.Light
+	var targetLights []*light.Light
 
 	for _, target := range request.Targets {
-		if lightsInTarget, err := lights.GetLightOrGroup(target); err != nil {
+		lightsInTarget := light.GetLightOrGroup(target, cnf.Lights, cnf.LightGroups)
+		if len(lightsInTarget) == 0 {
 			return NewGeneralResponse(false, fmt.Sprintf("'%q' is not a valid target (not a light or light group)'", target)), NewRpcError(400, "invalid target: %s", target)
 		} else {
 			targetLights = append(targetLights, lightsInTarget...)
@@ -76,8 +77,8 @@ func HandleLockRequest(req []byte) ([]byte, *RpcError) {
 	}
 	// Lock the targets
 	for _, target := range targetLights {
-		target.Locker.LockUntil(lockedUntil, color)
-		logger.Infof("Locked %q until %v with color %s", target.GetName(), lockedUntil, color)
+		target.Locker().LockUntil(lockedUntil, color)
+		logger.Infof("Locked %q until %v with color %s", target.Name(), lockedUntil, color)
 	}
 
 	daemon.Instance.Kick()

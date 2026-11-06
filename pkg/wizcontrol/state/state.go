@@ -6,11 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 var StateRecoveryFile string
@@ -31,7 +28,7 @@ type State struct {
 	SceneLocks []SceneState `json:"scene_locks"`
 }
 
-func WriteState() error {
+func WriteState(cnf *config.Config) error {
 	if StateRecoveryFile == "" {
 		// Don't write state if no filename is provided
 		return nil
@@ -42,8 +39,8 @@ func WriteState() error {
 		LightLocks: []LockState{},
 		SceneLocks: []SceneState{},
 	}
-	for name, light := range lights.GetLights() {
-		locked, color, until := light.Locker.IsLocked()
+	for name, light := range cnf.Lights {
+		locked, color, until := light.Locker().IsLocked()
 		if locked {
 			state.LightLocks = append(state.LightLocks, LockState{
 				LightName: name,
@@ -53,7 +50,7 @@ func WriteState() error {
 		}
 	}
 
-	for _, scene := range scenes.GetAdditionalScenesWithUntils() {
+	for _, scene := range cnf.AdditionalScenes.GetAdditionalScenesWithUntils() {
 		state.SceneLocks = append(state.SceneLocks, SceneState{
 			Scene: scene.Scene,
 			Until: scene.Until,
@@ -83,7 +80,7 @@ func WriteState() error {
 	return nil
 }
 
-func RecoverState() error {
+func RecoverState(cnf *config.Config) error {
 	logger := common.Logger.GetLogger("state-recovery")
 	if StateRecoveryFile == "" {
 		logger.Info("state_recovery_file not set, state is not recovered")
@@ -103,23 +100,13 @@ func RecoverState() error {
 
 	// Apply the recovered state
 	for _, lock := range state.LightLocks {
-		if light, ok := lights.GetLights()[lock.LightName]; ok {
-
-			if _, found := colors.GetColors()[lock.Color]; !found {
-				// Not a defined color, maybe a custom color
-				if _, err := wiz.SettingsFromString(lock.Color); err != nil {
-					// Nope
-					logger.Warnf("skipping unknown color %q for light %q", lock.Color, lock.LightName)
-					continue
-				}
-			}
-
-			light.Locker.LockUntil(lock.Until, lock.Color)
+		if light, ok := cnf.Lights[lock.LightName]; ok {
+			light.Locker().LockUntil(lock.Until, lock.Color)
 		}
 	}
 
 	for _, scene := range state.SceneLocks {
-		if err := scenes.AddAdditionalScene(scene.Scene, scene.Until); err != nil {
+		if err := cnf.AdditionalScenes.AddAdditionalScene(scene.Scene, scene.Until); err != nil {
 			logger.Warnf("failed to add additional scene %q: %v", scene.Scene, err)
 		}
 	}

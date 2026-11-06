@@ -3,14 +3,14 @@ package responses
 import (
 	"time"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 )
 
 type DaemonAttributes struct {
-	Scenes                string              `json:"scenes"`
-	CalendarScenes        []string            `json:"calendar_scenes"`
-	AdditionalScenes      []scenes.SceneUntil `json:"additional_scenes"`
-	AdditionalScenesUntil *time.Time          `json:"additional_scenes_until,omitempty"`
+	Scenes                string             `json:"scenes"`
+	CalendarScenes        []string           `json:"calendar_scenes"`
+	AdditionalScenes      []scene.SceneUntil `json:"additional_scenes"`
+	AdditionalScenesUntil *time.Time         `json:"additional_scenes_until,omitempty"`
 }
 
 type DaemonStatus struct {
@@ -21,7 +21,7 @@ type DaemonStatus struct {
 func BuildDaemonResponse(
 	scenes string,
 	calendarScenes []string,
-	additionalScenes []scenes.SceneUntil,
+	additionalScenes []scene.SceneUntil,
 	mode string,
 ) DaemonStatus {
 	return DaemonStatus{

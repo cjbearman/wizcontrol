@@ -73,7 +73,7 @@ func NewMqtt(cnf *config.Config) *Mqtt {
 func (m *Mqtt) handleLockRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received day RPC message")
-	_, err := rpc.HandleLockRequest(msg.Payload())
+	_, err := rpc.HandleLockRequest(m.cnf, msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle day request: %v", err)
 	}
@@ -82,7 +82,7 @@ func (m *Mqtt) handleLockRPC(client mqtt.Client, msg mqtt.Message) {
 func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received unlock RPC message")
-	_, err := rpc.HandleUnlockRequest(msg.Payload())
+	_, err := rpc.HandleUnlockRequest(m.cnf, msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle unlock request: %v", err)
 	}
@@ -91,7 +91,7 @@ func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
 func (m *Mqtt) handleAddSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received add scene RPC message")
-	_, err := rpc.HandleAddScenesRequest(msg.Payload())
+	_, err := rpc.HandleAddScenesRequest(m.cnf, msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle add scene request: %v", err)
 	}
@@ -99,7 +99,7 @@ func (m *Mqtt) handleAddSceneRPC(client mqtt.Client, msg mqtt.Message) {
 func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received delete scene RPC message")
-	_, err := rpc.HandleDelScenesRequest(msg.Payload())
+	_, err := rpc.HandleDelScenesRequest(m.cnf, msg.Payload())
 	if err != nil {
 		logger.Errorf("Failed to handle delete scene request: %v", err)
 	}
@@ -108,7 +108,7 @@ func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
 func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received reset RPC message")
-	_ = rpc.HandleResetRequest()
+	_ = rpc.HandleResetRequest(m.cnf)
 }
 
 func (m *Mqtt) connectHandler(client mqtt.Client) {
@@ -125,9 +125,9 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	}
 
 	// Publish initial scenes and colors, retained
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest()).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest()).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest(m.cnf)).Wait()
 
 }
 
@@ -188,15 +188,15 @@ func (m *Mqtt) SendLightStatus(light *light.Light) error {
 	}
 
 	hash := m.hashMessage(responseJson)
-	if m.lastLightStatusHash[light.GetName()] == hash {
-		logger.Debugf("No need to send light status for %s, no change", light.GetName())
+	if m.lastLightStatusHash[light.Name()] == hash {
+		logger.Debugf("No need to send light status for %s, no change", light.Name())
 		return nil
 	}
-	logger.Debugf("Sending light status for %s, has changed", light.GetName())
-	m.lastLightStatusHash[light.GetName()] = hash
+	logger.Debugf("Sending light status for %s, has changed", light.Name())
+	m.lastLightStatusHash[light.Name()] = hash
 
 	mqttMessage := messageAndTopic{
-		topic:   m.MqttTopic + "/light/" + light.GetName(),
+		topic:   m.MqttTopic + "/light/" + light.Name(),
 		message: responseJson,
 	}
 	select {

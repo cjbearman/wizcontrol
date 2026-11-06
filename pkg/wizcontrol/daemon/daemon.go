@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/cjbearman/logger"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
@@ -157,8 +155,8 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 		return
 	}
 
-	calendarScenes := calendar.GetCalendarScenes()
-	additionalScenes := scenes.GetAdditionalScenes()
+	calendarScenes := d.cnf.Calendars.GetCalendarScenes(d.cnf.Scenes)
+	additionalScenes := d.cnf.AdditionalScenes.GetAdditionalScenes()
 	activeScenes := append(calendarScenes, additionalScenes...)
 	activeSceneNames := strings.Join(activeScenes, ",")
 
@@ -181,7 +179,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	logger.Debugf("Apply scenes")
 	operations.ApplyScenes(d.cnf, activeScenes, false, true)
 	_ = d.SendDaemonStatus()
-	_ = state.WriteState()
+	_ = state.WriteState(d.cnf)
 	logger.Info("daemon iteration completed")
 }
 
@@ -189,7 +187,7 @@ func (d *Daemon) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
 		d.GetActiveSceneNames(),
 		d.GetCalendarScenes(),
-		scenes.GetAdditionalScenesAndTimes(),
+		d.cnf.AdditionalScenes.GetAdditionalScenesAndTimes(),
 		string(d.GetMode()),
 	)
 

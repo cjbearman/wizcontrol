@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"slices"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 type ColorsResponse struct {
 	Colors []string `json:"colors"`
 }
 
-func HandleColorsRequest() []byte {
+func HandleColorsRequest(cnf *config.Config) []byte {
 	resp := &ColorsResponse{}
 
-	for name := range colors.GetColors() {
+	for name := range cnf.Colors.All() {
 		resp.Colors = append(resp.Colors, name)
 	}
 	slices.Sort(resp.Colors)

@@ -14,7 +14,7 @@ func (s *Server) addScenesHandler(w http.ResponseWriter, r *http.Request) {
 
 	rawBody, _ := io.ReadAll(r.Body)
 
-	resp, err := rpc.HandleAddScenesRequest(rawBody)
+	resp, err := rpc.HandleAddScenesRequest(s.cnf, rawBody)
 	if err != nil {
 		w.WriteHeader(err.Status())
 	} else {

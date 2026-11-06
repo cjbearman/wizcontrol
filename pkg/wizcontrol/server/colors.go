@@ -10,7 +10,7 @@ import (
 func (s *Server) colorsHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("colors request received")
-	resp := rpc.HandleColorsRequest()
+	resp := rpc.HandleColorsRequest(s.cnf)
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp) // nolint:errcheck
 }

@@ -3,8 +3,7 @@ package responses
 import (
 	"time"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
 
 type LightAttributes struct {
@@ -24,18 +23,16 @@ type LightStatus struct {
 	Attributes LightAttributes `json:"attributes"`
 }
 
-func BuildLightStatus(light *lights.Light) LightStatus {
-	programmedColorName, programmedColor := light.GetLastProgrammedColor()
-	actualColor := light.LastColor()
-	actualColorName := colors.UnknownColorName
-	if actualColor == "" {
-		actualColor = colors.UnknownColorName
-	} else {
-		actualColorName = colors.NameForColor(actualColor)
-	}
+func BuildLightStatus(light *light.Light) LightStatus {
+	lpc := light.LastProgrammedColor()
+	programmedColorName := lpc.Name()
+	programmedColor := lpc.Value()
+	lac := light.LastActualColor()
+	actualColor := lac.Value()
+	actualColorName := lac.Name()
 	activeScene := light.ActiveScene()
 	var lockedUntil *time.Time
-	locked, _, until := light.Locker.IsLocked()
+	locked, _, until := light.Locker().IsLocked()
 	if locked {
 		// Kind of a special case, light is locked to an explicit color
 		// so although it has a programmed color, it's not *really* being driven by a scene

@@ -5,7 +5,6 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 
 	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
@@ -32,24 +31,24 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 
 	for _, sceneName := range sceneNames {
 
-		targets, found := scenes.GetScenes()[sceneName]
+		elements, found := cnf.Scenes.GetSceneElementsBySceneName(sceneName)
 		if !found {
 			logger.Warnf("Scene not found: %s", sceneName)
 			continue
 		}
 		logger := logger.WithField("scene", sceneName)
 
-		for _, tc := range targets {
-
-			color := cnf.Colors.GetByName(tc.ColorName)
+		for _, targets := range elements {
+			colorName := targets.GetColor()
+			color := cnf.Colors.GetByName(colorName)
 			if color == nil {
-				logger.Warnf("Color not found: %s", tc.ColorName)
+				logger.Warnf("Color not found: %s", colorName)
 				continue
 			}
 
-			logger := logger.WithField("colorName", tc.ColorName).WithField("color", color)
+			logger := logger.WithField("colorName", colorName).WithField("color", color)
 
-			for _, target := range tc.Targets {
+			for _, target := range targets.GetTargets() {
 				lights := l.GetLightOrGroup(target, cnf.Lights, cnf.LightGroups)
 				if len(lights) == 0 {
 					logger.Warnf("Light or group not found: %s", target)

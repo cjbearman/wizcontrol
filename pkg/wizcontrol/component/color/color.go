@@ -78,3 +78,7 @@ func (c Colors) prefillWizColors() {
 		}
 	}
 }
+
+func (c Colors) All() map[string]*Color {
+	return c
+}

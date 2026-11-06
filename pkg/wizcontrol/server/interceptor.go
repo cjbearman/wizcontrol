@@ -13,7 +13,7 @@ func (s *Server) intercept(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Expires", "0")
 
 		// If auth is configured, authenticate the request
-		auth := s.cnf.Auth()
+		auth := s.cnf.HTTP.Auth()
 		if auth != nil {
 			username, password, ok := r.BasicAuth()
 			if !ok || username != auth.Username() || password != auth.Password() {
