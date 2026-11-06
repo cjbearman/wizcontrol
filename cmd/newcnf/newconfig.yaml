@@ -1,0 +1,155 @@
+# Specify the lights and their IP addresses or MAC addresses
+# If using MAC addresses for any light, discovery will be used (which is not entirely reliable and introduce delays)
+lights:
+  - name: front_flood_ll
+    ip: 192.168.20.202
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: front_flood_lr
+    ip: 192.168.20.56
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: front_flood_cl
+    ip: 192.168.20.12
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: front_flood_cr
+    ip: 192.168.20.2
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: front_flood_rl
+    ip: 192.168.20.64
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: front_flood_rr
+    ip: 192.168.20.138
+    groups: [ "outdoor", "front_of_house", "front_flood" ]
+  - name: porch_l
+    ip: 192.168.20.196
+    groups: [ "outdoor", "front_of_house", "porch" ]
+  - name: porch_c
+    ip: 192.168.20.223
+    groups: [ "outdoor", "front_of_house", "porch" ]
+  - name: porch_r
+    ip: 192.168.20.195
+    groups: [ "outdoor", "front_of_house", "porch" ]
+  - name: patio_ceiling_1
+    ip: 192.168.20.165
+    groups: [ "outdoor", "patio" ]
+  - name: patio_ceiling_2
+    ip: 192.168.20.111
+    groups: [ "outdoor", "patio" ]
+  - name: patio_wall
+    ip: 192.168.20.168
+    groups: [ "outdoor", "patio" ]
+  - name: patio_string
+    ip: 192.168.20.239
+    groups: [ "outdoor", "patio" ]
+  - name: office_stand_light_upper
+    ip: 192.168.20.13
+    groups: [ "indoor", "office" , "office_lamps" ]
+  - name: office_stand_light_lower
+    ip: 192.168.20.244
+    groups: [ "indoor", "office" , "office_lamps" ]
+  - name: office_minecraft_lamp
+    ip: 192.168.20.163
+    groups: [ "indoor", "office", "office_lamps" ]
+  - name: office_ceiling_1
+    ip: 192.168.20.192
+    groups: [ "indoor", "office" , "office_ceiling"]
+  - name: office_ceiling_2
+    ip: 192.168.20.251
+    groups: [ "indoor", "office" , "office_ceiling"]
+  - name: office_ceiling_3
+    ip: 192.168.20.84
+    groups: [ "indoor", "office" , "office_ceiling"]
+  #office_stand_light_upper: cc:40:85:c5:a8:de
+  #office_stand_light_lower: 98:77:d5:30:8a:14
+  #office_minecraft_lamp: 98:77:d5:46:9b:d8
+  #office_ceiling_1: 98:77:d5:46:6e:d4
+  #office_ceiling_2: 98:77:d5:a6:b7:3a
+  #office_ceiling_3: 98:77:d5:30:1a:fc
+
+
+colors:
+  - name: red
+    color: "#FF0000"
+  - name: green
+    color: "#00FF00"
+  - name: blue
+    color: "#0000FF"
+  - name: orange
+    color: "#FF8000"
+  - name: purple
+    color: "#5800FF"
+  - name: warmest_white
+    color: W2200
+  - name: warm_white
+    color: W2700
+  - name: warm_white_50
+    color: W2700/50
+  - name: warm_white_30
+    color: W2700/30
+  - name: warmish_white
+    color: W3300
+  - name: daylight
+    color: W5800
+  - name: daylight40
+    color: W5800/40
+  - name: cool_white
+    color: W6500
+  - name: pastel_purple
+    color: "#B497E7"
+  - name: pastel_blue
+    color: "#00FF87"
+  - name: pastel_yellow
+    color: "#FFC400"
+  - name: pastel_seafoam
+    color: "#00FF13"
+  - name: pastel_green
+    color: "#12FF12"
+  - name: pastel_pink
+    color: "#FF001A"
+  - name: light_blue
+    color: "#1887FF"
+  - name: yellow
+    color: "#FFFF00"
+  - name: cyan
+    color: "#02FFDD"
+  - name: pinkish
+    color: "#FFD8D9"
+  - name: magenta
+    color: "#DC00FF"
+  - name: greenish
+    color: "#30FF00"
+  - name: democratic_blue
+    color: "#0000FF0005"
+  - name: xmas_dynamic
+    color: christmas/100/75
+  - name: diwali_dynamic
+    color: diwali/100/50
+  - name: fall_dynamic
+    color: fall/100/75
+  - name: fireplace_dynamic
+    color: fireplace/100/75
+  - name: forest_dynamic
+    color: forest/100/150
+  - name: jungle_dynamic
+    color: jungle/100/150
+  - name: mojito_dynamic
+    color: mojito/100/150
+  - name: ocean_dynamic
+    color: ocean/100/150
+  - name: party_dynamic
+    color: party/100/75
+  - name: pastel_dynamic
+    color: pastelcolors/100/200
+  - name: pulse_dynamic
+    color: pulse/100/100
+  - name: relax_dynamic
+    color: relax/100/200
+  - name: romance_dynamic
+    color: romance/100/200
+  - name: spring_dynamic
+    color: spring/100/200
+  - name: steampunk_dynamic
+    color: steampunk/100/75
+  - name: summer_dynamic
+    color: summer/100/200
+  - name: sunset_dynamic
+    color: sunset/100/200
