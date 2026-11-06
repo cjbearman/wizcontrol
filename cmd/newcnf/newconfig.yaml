@@ -1,3 +1,27 @@
+mqtt:
+  # broker URL
+  url: "mqtt://192.168.10.189:1883"
+  # broker username
+  username: "wizcontrol_mqtt"
+  # broker password
+  password: "asdkljiodsjf23489h!"
+  # base topic
+  topic: "wizcontrol"
+
+http:
+  # port on which the HTTP API will listen
+  port: 12120
+
+  # To enable HTTPS (TLS) include both cert_chain and key files
+  cert_chain: test_certs/wizcontrol.crt
+  key: test_certs/wizcontrol.key
+
+  # To establish HTTP basic authentication, uncomment and configure the auth block below
+  auth:
+    username: "chris"
+    password: "changeme"
+
+
 # Specify the lights and their IP addresses or MAC addresses
 # If using MAC addresses for any light, discovery will be used (which is not entirely reliable and introduce delays)
 lights:

@@ -7,7 +7,9 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/http"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 	"gopkg.in/yaml.v3"
 )
@@ -17,6 +19,8 @@ type NewConfigYAML struct {
 	Colors    []color.ConfigYAML    `yaml:"colors"`
 	Scenes    []scene.ConfigYAML    `yaml:"scenes"`
 	Calendars []calendar.ConfigYAML `yaml:"calendar"`
+	MQTT      *mqtt.ConfigYAML      `yaml:"mqtt"`
+	HTTP      *http.ConfigYAML      `yaml:"http"`
 }
 
 func LoadNew(path string) (*NewConfigYAML, error) {
@@ -76,6 +80,12 @@ func Build(cfg *NewConfigYAML) error {
 	for _, calendar := range calendars {
 		logger.Infof("Built calendar: %v", calendar)
 	}
+
+	mqtt := mqtt.Build(cfg.MQTT)
+	logger.Infof("Built MQTT: %v", mqtt)
+
+	http := http.Build(cfg.HTTP)
+	logger.Infof("Built HTTP: %v", http)
 
 	return nil
 }
