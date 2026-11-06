@@ -5,6 +5,7 @@ import (
 
 	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
@@ -12,9 +13,10 @@ import (
 )
 
 type NewConfigYAML struct {
-	Lights []light.ConfigYAML `yaml:"lights"`
-	Colors []color.ConfigYAML `yaml:"colors"`
-	Scenes []scene.ConfigYAML `yaml:"scenes"`
+	Lights    []light.ConfigYAML    `yaml:"lights"`
+	Colors    []color.ConfigYAML    `yaml:"colors"`
+	Scenes    []scene.ConfigYAML    `yaml:"scenes"`
+	Calendars []calendar.ConfigYAML `yaml:"calendar"`
 }
 
 func LoadNew(path string) (*NewConfigYAML, error) {
@@ -64,6 +66,15 @@ func Build(cfg *NewConfigYAML) error {
 	}
 	for _, scene := range scenes {
 		logger.Infof("Built scene: %v", scene)
+	}
+
+	calendars, err := calendar.Build(cfg.Calendars, scenes)
+	if err != nil {
+		logger.Errorf("Error parsing calendars: %v", err)
+		return err
+	}
+	for _, calendar := range calendars {
+		logger.Infof("Built calendar: %v", calendar)
 	}
 
 	return nil

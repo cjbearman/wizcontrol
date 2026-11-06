@@ -288,3 +288,137 @@ scenes:
       - targets: [ patio_lights, porch_c ]
         color: ocean_dynamic
     group: outside_lights
+  - name: patio_diwali_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: diwali_dynamic
+  - name: patio_fall_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: fall_dynamic
+  - name: patio_fireplace_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: fireplace_dynamic
+  - name: patio_forest_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: forest_dynamic
+  - name: patio_jungle_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: jungle_dynamic
+  - name: patio_mojito_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: mojito_dynamic
+  - name: patio_ocean_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: ocean_dynamic
+  - name: patio_party_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: party_dynamic
+  - name: patio_pastel_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: pastel_dynamic
+  - name: patio_relax_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: relax_dynamic
+  - name: patio_romance_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: romance_dynamic
+  - name: patio_spring_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: spring_dynamic
+  - name: patio_steampunk_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: steampunk_dynamic
+  - name: patio_summer_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: summer_dynamic
+  - name: patio_sunset_dynamic
+    elements:
+      - targets: [ patio_lights ]
+        color: sunset_dynamic
+
+
+calendar:
+  - name: default
+    from: jan 1
+    to: dec 31
+    scenes: [ default ]
+  - name: halloween
+    from: halloween - 10
+    to: halloween
+    scenes: [ halloween ]
+  - name: easter
+    from: good_friday - 5
+    to: easter_sunday + 2
+    scenes: [ pastel ]
+  - name: independence_day
+    from: independence_day - 2
+    to: independence_day + 2
+    scenes: [ patriotic ]
+  - name: memorial_day
+    from: memorial_day
+    to: memorial_day
+    scenes: [ patriotic ]
+  - name: presidents_day
+    from: presidents_day
+    to: presidents_day
+    scenes: [ patriotic ]
+  - name: xmas
+    from: dec 1
+    to: dec 31
+    scenes: [ xmas ]
+  - name: st_patricks_day
+    from: st_patricks_day
+    to: st_patricks_day
+    scenes: [ paddy ]
+  - name: thanksgiving
+    from: thanksgiving_day - 3
+    to: thanksgiving_day + 1
+    scenes: [ thanksgiving ]  
+  - name: patio_changeup
+    from: jan 1
+    to: dec 31
+    scenes:
+      - patio_diwali_dynamic
+      - patio_fall_dynamic
+      - patio_fireplace_dynamic
+      - patio_forest_dynamic
+      - patio_jungle_dynamic
+      - patio_mojito_dynamic
+      - patio_ocean_dynamic
+      - patio_party_dynamic
+      - patio_pastel_dynamic
+      - patio_relax_dynamic
+      - patio_spring_dynamic
+      - patio_steampunk_dynamic
+      - patio_summer_dynamic
+      - patio_sunset_dynamic
+    mode: random
+    frequency: 30m
+  - name: go_democrats
+    from: nov 3
+    to: nov 5
+    scenes: [ go_democrats ]
+  - name: office_warmish
+    from: jan 1
+    to: dec 31
+    scenes: [ office_warmish ]
+    after: 7:00 pm
+    before: 8:30 pm
+  - name: office_warm
+    from: jan 1
+    to: dec 31
+    scenes: [ office_warm ]
+    after: 8:30 pm
