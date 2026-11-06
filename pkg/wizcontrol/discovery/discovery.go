@@ -6,22 +6,25 @@ import (
 
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	dc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
-
-var DiscoveryBroadcastAddr string
-var DiscoveryInterval = time.Duration(30 * time.Second)
-var DiscoveryPeriod = time.Duration(2 * time.Second)
 
 var Instance *Discovery
 
 type Discovery struct {
 	*common.BaseRunner
+	discoveryBroadcastAddr string
+	discoveryInterval      time.Duration
+	discoveryPeriod        time.Duration
 }
 
-func NewDiscovery() *Discovery {
+func NewDiscovery(cnf *dc.Discovery) *Discovery {
 	d := &Discovery{
-		BaseRunner: common.NewRunner("discovery"),
+		BaseRunner:             common.NewRunner("discovery"),
+		discoveryBroadcastAddr: cnf.BroadcastAddress(),
+		discoveryInterval:      cnf.Interval(),
+		discoveryPeriod:        cnf.Period(),
 	}
 
 	d.Exec = d.run
@@ -29,18 +32,18 @@ func NewDiscovery() *Discovery {
 }
 
 func (d *Discovery) run() {
-	logger := common.Logger.GetLogger("discovery").WithField("interval", DiscoveryInterval).
-		WithField("period", DiscoveryPeriod).WithField("broadcast", DiscoveryBroadcastAddr)
+	logger := common.Logger.GetLogger("discovery").WithField("interval", d.discoveryInterval).
+		WithField("period", d.discoveryPeriod).WithField("broadcast", d.discoveryBroadcastAddr)
 	defer close(d.Closed)
 	logger.Info("discovery started")
 
-	ticker := time.NewTicker(DiscoveryInterval)
+	ticker := time.NewTicker(d.discoveryInterval)
 	defer ticker.Stop()
 
 	for {
-		disc := wiz.Discover().BroadcastInterval(DiscoveryInterval).EndAfter(DiscoveryPeriod).WithCallback(d.callback)
-		if DiscoveryBroadcastAddr != "" {
-			disc.BroadcastAddress(DiscoveryBroadcastAddr)
+		disc := wiz.Discover().BroadcastInterval(d.discoveryInterval).EndAfter(d.discoveryPeriod).WithCallback(d.callback)
+		if d.discoveryBroadcastAddr != "" {
+			disc.BroadcastAddress(d.discoveryBroadcastAddr)
 		}
 
 		// Do a discovery cycle, d.callback will receive information of all discovered devices
@@ -53,7 +56,7 @@ func (d *Discovery) run() {
 		}
 
 		// Reset the ticker to ensure the next discovery happens after the configured interval
-		ticker.Reset(DiscoveryInterval)
+		ticker.Reset(d.discoveryInterval)
 
 		select {
 		case <-ticker.C:

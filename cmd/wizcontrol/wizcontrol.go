@@ -6,21 +6,15 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
-	"slices"
 	"syscall"
 	"time"
 
 	"github.com/cjbearman/logger"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/discovery"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/mqtt"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/server"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
@@ -28,28 +22,8 @@ import (
 func main() {
 	logLevel := flag.String("log", "info", "Set the logging level")
 	cfg := flag.String("config", "config.yaml", "Path to the configuration file")
-	apply := flag.String("apply", "", "Apply scene")
-	f := flag.Bool("f", false, "Force apply scene")
-	d := flag.Bool("d", false, "Run as daemon")
-	cd := flag.Bool("cd", false, "Enable calendar debug")
-	presets := flag.Bool("presets", false, "List available preset colors")
 
 	flag.Parse()
-
-	if *presets {
-		// List presets before anything else, because if we load config, we'll get other non-preset colors defined
-		presetsList := []string{}
-		for preset := range colors.GetColors() {
-			presetsList = append(presetsList, preset)
-		}
-
-		slices.Sort(presetsList)
-
-		for _, preset := range presetsList {
-			fmt.Println(preset)
-		}
-		os.Exit(0)
-	}
 
 	level, err := logger.LevelFromString(*logLevel)
 	if err != nil {
@@ -59,35 +33,26 @@ func main() {
 
 	common.Logger = logger.NewLoggerFactory(level, logger.NewColorStringFormatter(), logger.NewSyncWriter(os.Stdout)).GetLogger("root")
 
-	if _, err := config.Load(*cfg); err != nil {
+	parsed, err := config.Load(*cfg)
+	if err != nil {
 		common.Logger.Errorf("Failed to load config: %v", err)
 		os.Exit(1)
 	}
-	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
 
+	finalConfig, err := config.Build(parsed)
+	if err != nil {
+		common.Logger.Errorf("Failed to build config: %v", err)
+		os.Exit(1)
+	}
+
+	common.Location = finalConfig.System.Timezone()
+	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
 	common.Logger.Infof("Operating in location: %v", common.Location)
 
-	if *apply != "" {
-
-		_, found := scenes.GetScenes()[*apply]
-		if !found {
-			common.Logger.Errorf("Scene %q not found", *apply)
-			os.Exit(1)
-		}
-		operations.UpdateAvailability()
-		operations.ApplyScenes([]string{*apply}, *f, false)
-		os.Exit(0)
-	}
-
-	if *d {
-		runAsDaemon()
-	}
-	if *cd {
-		calendar.CalendarDebug = true
-	}
+	runAsDaemon(finalConfig)
 }
 
-func runAsDaemon() {
+func runAsDaemon(f *config.Config) {
 	logger := common.Logger.GetLogger("runner")
 	logger.Info("Runner starting")
 	sigch := make(chan os.Signal, 1)
@@ -98,29 +63,35 @@ func runAsDaemon() {
 		common.Logger.Warnf("Failed to recover state: %v", err)
 	}
 
-	// Start the main daemon and web server
-	daemon.Instance = daemon.NewDaemon()
+	// Start the main daemon
+	logger.Info("Starting daemon")
+	daemon.Instance = daemon.NewDaemon(f.System.EvaluationPeriod(), f.System.RecheckPeriod())
 	daemon.Instance.Start()
-	server.Instance = server.NewServer()
-	server.Instance.Start()
 
-	// And MQTT if configured
-	mqtt.Instance = mqtt.NewMqtt()
-	if mqtt.MqttURL != "" {
+	// Start the web server, if configured
+	if f.HTTP != nil {
+		logger.Info("Starting HTTP")
+		server.Instance = server.NewServer(f.HTTP)
+		server.Instance.Start()
+	} else {
+		logger.Info("HTTP not configured")
+	}
+
+	// And MQTT, if configured
+	if f.MQTT != nil {
+		logger.Info("Starting MQTT")
+		mqtt.Instance = mqtt.NewMqtt(f.MQTT)
 		mqtt.Instance.Start()
+	} else {
+		logger.Info("MQTT not configured")
 	}
 
 	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
-	for _, light := range lights.GetLights() {
-		if light.RequiresDiscovery() {
-			logger.Info("One or more lights require discovery, discovery service will be started")
-			discovery.Instance = discovery.NewDiscovery()
-			discovery.Instance.Start()
-			break
-		}
-	}
-
-	if discovery.Instance == nil {
+	if f.Lights.DiscoveryRequired() {
+		logger.Info("One or more lights require discovery, discovery service will be started")
+		discovery.Instance = discovery.NewDiscovery(&f.Discovery)
+		discovery.Instance.Start()
+	} else {
 		logger.Info("No devices are configured with MAC address, so discovery is not needed and discovery service will not run")
 	}
 

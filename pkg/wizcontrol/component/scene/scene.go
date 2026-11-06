@@ -33,7 +33,6 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 		}
 
 		for _, e := range s.Elements {
-
 			if colors.GetByName(e.Color) == nil {
 				return nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
 			}

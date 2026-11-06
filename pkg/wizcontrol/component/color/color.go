@@ -1,6 +1,11 @@
 package color
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/cjbearman/wiz/pkg/wiz"
+)
 
 type Colors map[string]*Color
 
@@ -10,6 +15,7 @@ type Color struct {
 
 func Build(cfg *[]ConfigYAML) (Colors, error) {
 	colors := make(Colors)
+	colors.prefillWizColors()
 	for _, c := range *cfg {
 		if _, found := colors[c.Name]; found {
 			return nil, fmt.Errorf("color %q is defined more than once", c.Name)
@@ -43,4 +49,14 @@ func (c Colors) GetByColor(color string) *Color {
 
 func (c *Color) String() string {
 	return fmt.Sprintf("%s: %s", c.name, c.color)
+}
+
+func (c Colors) prefillWizColors() {
+	for _, wizScene := range wiz.AllSceneNames() {
+		name := fmt.Sprintf("wiz_%s", strings.ToLower(wizScene))
+		c[name] = &Color{
+			name:  name,
+			color: wizScene,
+		}
+	}
 }

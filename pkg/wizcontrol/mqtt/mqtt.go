@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	mc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
@@ -39,20 +40,24 @@ type Mqtt struct {
 	outboundMessage      chan messageAndTopic
 	lastDaemonStatusHash string
 	lastLightStatusHash  map[string]string
+	MqttURL              string
+	MqttUsername         string
+	MqttPassword         string
+	MqttTopic            string
+	ControlEnabled       bool
 }
 
-var MqttURL string
-var MqttUsername string
-var MqttPassword string
-var MqttTopic string
-var ControlEnabled bool = true
-
-func NewMqtt() *Mqtt {
+func NewMqtt(cfg *mc.Mqtt) *Mqtt {
 	mqtt := Mqtt{
 		BaseRunner:           common.NewRunner("mqtt"),
 		outboundMessage:      make(chan messageAndTopic, BufferSize),
 		lastLightStatusHash:  make(map[string]string),
 		lastDaemonStatusHash: "",
+		MqttURL:              cfg.GetURL(),
+		MqttUsername:         cfg.GetUsername(),
+		MqttPassword:         cfg.GetPassword(),
+		MqttTopic:            cfg.GetTopic(),
+		ControlEnabled:       cfg.IsControlEnabled(),
 	}
 	mqtt.Exec = mqtt.run
 
@@ -109,18 +114,18 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger.Info("MQTT connected")
 
 	// Subscribe to control topics
-	if ControlEnabled {
-		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicLock), 1, m.handleLockRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicUnlock), 1, m.handleUnlockRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicAddScene), 1, m.handleAddSceneRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicDelScene), 1, m.handleDelSceneRPC)
-		client.Subscribe(fmt.Sprintf("%s/control/%s", MqttTopic, topicReset), 1, m.handleResetRPC)
+	if m.ControlEnabled {
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicLock), 1, m.handleLockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicUnlock), 1, m.handleUnlockRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicAddScene), 1, m.handleAddSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicDelScene), 1, m.handleDelSceneRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicReset), 1, m.handleResetRPC)
 	}
 
 	// Publish initial scenes and colors, retained
-	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest()).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest()).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest()).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest()).Wait()
 
 }
 
@@ -141,10 +146,10 @@ func (m *Mqtt) run() {
 	}
 
 	opts := mqtt.NewClientOptions().
-		AddBroker(MqttURL).
+		AddBroker(m.MqttURL).
 		SetClientID(clientId.String()).
-		SetUsername(MqttUsername).
-		SetPassword(MqttPassword).
+		SetUsername(m.MqttUsername).
+		SetPassword(m.MqttPassword).
 		SetAutoReconnect(true).
 		SetCleanSession(true)
 
@@ -189,7 +194,7 @@ func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 	m.lastLightStatusHash[light.GetName()] = hash
 
 	mqttMessage := messageAndTopic{
-		topic:   MqttTopic + "/light/" + light.GetName(),
+		topic:   m.MqttTopic + "/light/" + light.GetName(),
 		message: responseJson,
 	}
 	select {
@@ -221,7 +226,7 @@ func (m *Mqtt) SendDaemonStatus(status responses.DaemonStatus) error {
 	m.lastDaemonStatusHash = hash
 
 	mqttMessage := messageAndTopic{
-		topic:   MqttTopic + "/server",
+		topic:   m.MqttTopic + "/server",
 		message: responseJson,
 	}
 	select {

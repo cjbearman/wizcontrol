@@ -195,3 +195,12 @@ func (l *Light) SetDevice(device *wiz.Device) {
 func (l *Light) UseDiscovery() bool {
 	return l.mac != ""
 }
+
+func (l Lights) DiscoveryRequired() bool {
+	for _, light := range l {
+		if light.UseDiscovery() {
+			return true
+		}
+	}
+	return false
+}

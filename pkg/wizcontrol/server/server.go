@@ -7,14 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	hc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/http"
+
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
-
-var ServerPort int
-var CertChain string
-var Key string
-var AuthUsername string
-var AuthPassword string
 
 const (
 	FieldRemoteAddr = "remote_addr"
@@ -26,15 +22,16 @@ type Server struct {
 	*common.BaseRunner
 	mux    *http.ServeMux
 	server *http.Server
+	cnf    *hc.Http
 }
 
-func NewServer() *Server {
+func NewServer(cnf *hc.Http) *Server {
 	mux := http.NewServeMux()
 	srv := &Server{
 		BaseRunner: common.NewRunner("server"),
 		mux:        mux,
 		server: &http.Server{
-			Addr:         fmt.Sprintf(":%d", ServerPort),
+			Addr:         fmt.Sprintf(":%d", cnf.Port()),
 			Handler:      mux,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
@@ -51,15 +48,15 @@ func NewServer() *Server {
 	}
 	srv.Exec = srv.run
 
-	mux.HandleFunc("GET /", intercept(srv.statusHandler))
-	mux.HandleFunc("GET /scenes", intercept(srv.scenesHandler))
-	mux.HandleFunc("GET /colors", intercept(srv.colorsHandler))
-	mux.HandleFunc("GET /targets", intercept(srv.targetsHandler))
-	mux.HandleFunc("POST /lock", intercept(srv.lockHandler))
-	mux.HandleFunc("POST /addscenes", intercept(srv.addScenesHandler))
-	mux.HandleFunc("POST /delscenes", intercept(srv.delScenesHandler))
-	mux.HandleFunc("POST /unlock", intercept(srv.unlockHandler))
-	mux.HandleFunc("POST /reset", intercept(srv.resetHandler))
+	mux.HandleFunc("GET /", srv.intercept(srv.statusHandler))
+	mux.HandleFunc("GET /scenes", srv.intercept(srv.scenesHandler))
+	mux.HandleFunc("GET /colors", srv.intercept(srv.colorsHandler))
+	mux.HandleFunc("GET /targets", srv.intercept(srv.targetsHandler))
+	mux.HandleFunc("POST /lock", srv.intercept(srv.lockHandler))
+	mux.HandleFunc("POST /addscenes", srv.intercept(srv.addScenesHandler))
+	mux.HandleFunc("POST /delscenes", srv.intercept(srv.delScenesHandler))
+	mux.HandleFunc("POST /unlock", srv.intercept(srv.unlockHandler))
+	mux.HandleFunc("POST /reset", srv.intercept(srv.resetHandler))
 
 	return srv
 
@@ -67,11 +64,13 @@ func NewServer() *Server {
 func (s *Server) run() {
 	logger := common.Logger.GetLogger("server")
 	var err error
-	if CertChain != "" && Key != "" {
-		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", ServerPort)
-		err = s.server.ListenAndServeTLS(CertChain, Key)
+
+	cert, key := s.cnf.TLS().CertChainAndKey()
+	if cert != "" && key != "" {
+		common.Logger.GetLogger("server").Infof("Starting server with TLS on port %d", s.cnf.Port())
+		err = s.server.ListenAndServeTLS(cert, key)
 	} else {
-		common.Logger.GetLogger("server").Infof("Starting server without TLS on port %d", ServerPort)
+		common.Logger.GetLogger("server").Infof("Starting server without TLS on port %d", s.cnf.Port())
 		err = s.server.ListenAndServe()
 	}
 	if err != nil && err != http.ErrServerClosed {

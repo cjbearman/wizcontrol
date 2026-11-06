@@ -3,10 +3,11 @@ package mqtt
 const DefaultMQTTTopic = "wizcontrol"
 
 type Mqtt struct {
-	URL      string
-	Username string
-	Password string
-	Topic    string
+	url            string
+	username       string
+	password       string
+	topic          string
+	controlEnabled bool
 }
 
 func Build(config *ConfigYAML) *Mqtt {
@@ -21,29 +22,34 @@ func Build(config *ConfigYAML) *Mqtt {
 	}
 
 	return &Mqtt{
-		URL:      config.URL,
-		Username: config.Username,
-		Password: config.Password,
-		Topic:    topic,
+		url:            config.URL,
+		username:       config.Username,
+		password:       config.Password,
+		topic:          topic,
+		controlEnabled: *config.ControlEnabled,
 	}
 }
 
 func (m *Mqtt) GetTopic() string {
-	if m.Topic == "" {
+	if m.topic == "" {
 		return DefaultMQTTTopic
 	}
-	return m.Topic
+	return m.topic
 }
 func (m *Mqtt) GetURL() string {
-	return m.URL
+	return m.url
 }
 
 func (m *Mqtt) GetUsername() string {
-	return m.Username
+	return m.username
 }
 
 func (m *Mqtt) GetPassword() string {
-	return m.Password
+	return m.password
+}
+
+func (m *Mqtt) IsControlEnabled() bool {
+	return m.controlEnabled
 }
 
 func (m *Mqtt) String() string {

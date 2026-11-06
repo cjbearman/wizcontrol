@@ -24,11 +24,6 @@ const (
 	DaemonModeAuto = "auto"
 )
 
-var (
-	EvaluationPeriod time.Duration
-	RecheckPeriod    time.Duration
-)
-
 var Instance *Daemon
 
 // Daemon is the runner that handles automatic light setting based on configured calendar
@@ -41,16 +36,20 @@ type Daemon struct {
 	lock             sync.Mutex
 	calendarScenes   []string
 	additionalUntil  time.Time
+	evaluationPeriod time.Duration
+	recheckPeriod    time.Duration
 }
 
 // NewDaemon returns a new daemon, not running
-func NewDaemon() *Daemon {
+func NewDaemon(evaluationPeriod, recheckPeriod time.Duration) *Daemon {
 	d := &Daemon{
-		BaseRunner:      common.NewRunner("daemon"),
-		kicker:          make(chan struct{}, 1),
-		lastRecheck:     time.Time{},
-		additionalUntil: time.Time{},
-		mode:            DaemonModeAuto,
+		BaseRunner:       common.NewRunner("daemon"),
+		kicker:           make(chan struct{}, 1),
+		lastRecheck:      time.Time{},
+		additionalUntil:  time.Time{},
+		mode:             DaemonModeAuto,
+		evaluationPeriod: evaluationPeriod,
+		recheckPeriod:    recheckPeriod,
 	}
 	d.Exec = d.run
 	lights.KickFunc = d.Kick
@@ -95,16 +94,16 @@ func (d *Daemon) run() {
 	// Make sure we mark the runner as closed when we exit
 	defer close(d.Closed)
 
-	if EvaluationPeriod <= 0 {
+	if d.evaluationPeriod <= 0 {
 		panic("Invalid evaluation period")
 	}
-	if RecheckPeriod <= 0 {
+	if d.recheckPeriod <= 0 {
 		panic("Invalid recheck period")
 	}
 
 	logger := common.Logger.GetLogger("daemon").
-		WithField("ev", fmt.Sprintf("%v", EvaluationPeriod)).
-		WithField("re", fmt.Sprintf("%v", RecheckPeriod))
+		WithField("ev", fmt.Sprintf("%v", d.evaluationPeriod)).
+		WithField("re", fmt.Sprintf("%v", d.recheckPeriod))
 
 	logger.Info("starting")
 
@@ -112,7 +111,7 @@ func (d *Daemon) run() {
 	d.Kick()
 
 	// Ticker will trigger subsequent runs
-	ticker := time.NewTicker(EvaluationPeriod)
+	ticker := time.NewTicker(d.evaluationPeriod)
 	defer ticker.Stop()
 
 	for {
@@ -123,7 +122,7 @@ func (d *Daemon) run() {
 			logger.Debug("Kicked")
 
 			// We're going to do now, so we can reset our evaluation period for the next interval
-			ticker.Reset(EvaluationPeriod)
+			ticker.Reset(d.evaluationPeriod)
 
 			d.runIteration(logger)
 		case <-ticker.C:
@@ -140,7 +139,7 @@ func (d *Daemon) run() {
 
 func (d *Daemon) runIteration(logger logger.Logger) {
 	recheck := false
-	if d.lastRecheck.Add(RecheckPeriod).Before(time.Now()) {
+	if d.lastRecheck.Add(d.recheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
 		recheck = true
 	}

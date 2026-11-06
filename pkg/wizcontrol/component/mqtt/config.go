@@ -15,10 +15,11 @@ type ElementYAML struct {
 }
 
 type ConfigYAML struct {
-	URL      string `yaml:"url"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Topic    string `yaml:"topic"`
+	URL            string `yaml:"url"`
+	Username       string `yaml:"username"`
+	Password       string `yaml:"password"`
+	Topic          string `yaml:"topic"`
+	ControlEnabled *bool  `yaml:"controlEnabled"`
 }
 
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
@@ -40,6 +41,12 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	c.Username = strings.TrimSpace(alias.Username)
 	c.Password = strings.TrimSpace(alias.Password)
 	c.Topic = strings.TrimSpace(alias.Topic)
+
+	ce := true
+	if alias.ControlEnabled != nil {
+		ce = *alias.ControlEnabled
+	}
+	c.ControlEnabled = &ce
 
 	return nil
 }
