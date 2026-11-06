@@ -7,6 +7,11 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
 )
 
+type Scene struct {
+	SceneItems []CnfScene `yaml:"elements"`
+	Group      string     `yaml:"group"`
+}
+
 // CnfScene describes a named lighting scene.
 type CnfScene struct {
 	Targets   []string `yaml:"targets"`
@@ -27,7 +32,7 @@ func GetScenes() map[string][]TargetsAndColor {
 	return scenes
 }
 
-func AddScene(name string, targets []CnfScene) error {
+func AddScene(name string, group string, cnf []CnfScene) error {
 	// Scene must be distinct
 	if _, existing := scenes[name]; existing {
 		return fmt.Errorf("scene %q already exists", name)
@@ -35,7 +40,7 @@ func AddScene(name string, targets []CnfScene) error {
 
 	sc := []TargetsAndColor{}
 
-	for _, targetGroup := range targets {
+	for _, targetGroup := range cnf {
 		t := TargetsAndColor{
 			ColorName: targetGroup.ColorName,
 		}
@@ -55,7 +60,12 @@ func AddScene(name string, targets []CnfScene) error {
 			Targets:   t.Targets,
 			ColorName: t.ColorName,
 		})
+
+		if group != "" {
+			sceneGroups[group] = append(sceneGroups[group], name)
+		}
 	}
+
 	scenes[name] = sc
 
 	return nil

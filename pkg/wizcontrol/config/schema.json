@@ -2,25 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/cjbearman/wizcontrol/config.schema.json",
   "title": "wizcontrol config.yaml",
-  "description": "Schema for the YAML configuration used by wizcontrol. Matches the structure defined in pkg/wizcontrol/config/config.go.",
+  "description": "Schema for the YAML configuration used by wizcontrol.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "timezone": {
       "type": "string",
-      "description": "IANA timezone name, for example America/Chicago."
+      "description": "IANA timezone name such as America/Chicago."
     },
     "evaluation_period": {
-      "$ref": "#/$defs/duration",
-      "description": "How often calendar entries are evaluated."
+      "$ref": "#/$defs/duration"
     },
     "recheck_period": {
-      "$ref": "#/$defs/duration",
-      "description": "How often current light state is rechecked."
+      "$ref": "#/$defs/duration"
     },
     "state_recovery_file": {
       "type": "string",
-      "description": "Optional path to a file used to persist state across restarts."
+      "description": "Optional file path used to persist state across restarts."
     },
     "discovery": {
       "$ref": "#/$defs/discovery"
@@ -33,22 +31,21 @@
     },
     "colors": {
       "type": "object",
-      "description": "Named colors referenced by scenes and calendar entries.",
+      "description": "Named colors keyed by friendly name.",
       "additionalProperties": {
-        "type": "string",
-        "description": "A valid Wiz color definition such as #FF0000, W2700, or a dynamic scene string."
+        "type": "string"
       }
     },
     "lights": {
       "type": "object",
-      "description": "Named lights keyed by friendly name. Values are IP addresses or MAC addresses.",
+      "description": "Named lights keyed by friendly name. Values are IP or MAC addresses.",
       "additionalProperties": {
         "type": "string"
       }
     },
     "light_groups": {
       "type": "object",
-      "description": "Named groups of light names used in scene definitions.",
+      "description": "Named groups of lights or light names.",
       "additionalProperties": {
         "type": "array",
         "items": {
@@ -58,17 +55,23 @@
     },
     "scenes": {
       "type": "object",
-      "description": "Named scenes containing one or more light targets and a color mapping.",
+      "description": "Named scenes. Each scene has an optional group and a list of scene elements.",
+      "additionalProperties": {
+        "$ref": "#/$defs/scene"
+      }
+    },
+    "scene_groups": {
+      "type": "object",
+      "description": "Optional named groups of scenes.",
       "additionalProperties": {
         "type": "array",
         "items": {
-          "$ref": "#/$defs/scene"
+          "type": "string"
         }
       }
     },
     "calendar": {
       "type": "array",
-      "description": "Calendar entries that apply scenes conditionally by date and time.",
       "items": {
         "$ref": "#/$defs/calendarEntry"
       }
@@ -84,17 +87,11 @@
   ],
   "$defs": {
     "duration": {
-      "description": "A Go time.Duration encoded as a YAML duration string or numeric nanoseconds.",
+      "description": "Go time.Duration value represented as a YAML duration string or numeric value.",
       "oneOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "integer"
-        },
-        {
-          "type": "number"
-        }
+        { "type": "string" },
+        { "type": "integer" },
+        { "type": "number" }
       ]
     },
     "discovery": {
@@ -102,8 +99,7 @@
       "additionalProperties": false,
       "properties": {
         "broadcast_address": {
-          "type": "string",
-          "description": "Broadcast IP used for Wiz discovery on multi-NIC systems."
+          "type": "string"
         },
         "interval": {
           "$ref": "#/$defs/duration"
@@ -118,8 +114,7 @@
       "additionalProperties": false,
       "properties": {
         "url": {
-          "type": "string",
-          "description": "MQTT broker URL, for example mqtt://host:1883."
+          "type": "string"
         },
         "username": {
           "type": "string"
@@ -131,8 +126,7 @@
           "type": "string"
         },
         "allow_control": {
-          "type": "boolean",
-          "description": "Whether MQTT clients may send control commands."
+          "type": "boolean"
         }
       },
       "required": ["url", "username", "password", "topic"]
@@ -158,68 +152,74 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 65535,
-          "default": 12120,
-          "description": "Port for the HTTP API."
+          "default": 12120
         },
         "cert_chain": {
-          "type": "string",
-          "description": "Path to the certificate chain for HTTPS."
+          "type": "string"
         },
         "key": {
-          "type": "string",
-          "description": "Path to the private key for HTTPS."
+          "type": "string"
         },
         "auth": {
           "$ref": "#/$defs/httpAuth"
         }
       }
     },
-    "scene": {
+    "sceneItem": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "targets": {
           "type": "array",
-          "description": "Names of lights or light groups that receive the scene color.",
           "items": {
             "type": "string"
           },
           "minItems": 1
         },
         "color": {
-          "type": "string",
-          "description": "Name of a color defined in colors."
+          "type": "string"
         }
       },
       "required": ["targets", "color"]
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sceneItem"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["elements"]
     },
     "calendarEntry": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "name": {
-          "type": "string",
-          "description": "Human-readable calendar entry name."
+          "type": "string"
         },
         "from": {
-          "type": "string",
-          "description": "Start date, such as jan 1 or halloween - 10."
+          "type": "string"
         },
         "to": {
-          "type": "string",
-          "description": "End date, such as dec 31 or easter_sunday + 2."
+          "type": "string"
         },
         "before": {
-          "type": "string",
-          "description": "Optional time cutoff before which the entry is active."
+          "type": "string"
         },
         "after": {
-          "type": "string",
-          "description": "Optional time cutoff after which the entry is active."
+          "type": "string"
         },
         "scenes": {
           "type": "array",
-          "description": "Scene names that the calendar entry applies.",
           "items": {
             "type": "string"
           },
@@ -227,12 +227,10 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["all", "random", "rotate"],
-          "description": "How a list of scenes is selected."
+          "enum": ["all", "random", "rotate"]
         },
         "frequency": {
-          "$ref": "#/$defs/duration",
-          "description": "When mode is random or rotate, how often scenes should change."
+          "$ref": "#/$defs/duration"
         }
       },
       "required": ["name", "from", "to", "scenes"]

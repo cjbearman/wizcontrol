@@ -58,18 +58,19 @@ type Discovery struct {
 
 // Config describes the structure in config.yaml.
 type Config struct {
-	Timezone          string                       `yaml:"timezone"`
-	EvaluationPeriod  time.Duration                `yaml:"evaluation_period"`
-	RecheckPeriod     time.Duration                `yaml:"recheck_period"`
-	Server            Server                       `yaml:"http"`
-	Mqtt              *MqttConfig                  `yaml:"mqtt"`
-	StateRecoveryFile string                       `yaml:"state_recovery_file"`
-	Discovery         Discovery                    `yaml:"discovery"`
-	Colors            map[string]Color             `yaml:"colors"`
-	Lights            map[string]Light             `yaml:"lights"`
-	LightGroups       map[string][]Light           `yaml:"light_groups"`
-	Scenes            map[string][]scenes.CnfScene `yaml:"scenes"`
-	Calendar          []CalendarEntry              `yaml:"calendar"`
+	Timezone          string                  `yaml:"timezone"`
+	EvaluationPeriod  time.Duration           `yaml:"evaluation_period"`
+	RecheckPeriod     time.Duration           `yaml:"recheck_period"`
+	Server            Server                  `yaml:"http"`
+	Mqtt              *MqttConfig             `yaml:"mqtt"`
+	StateRecoveryFile string                  `yaml:"state_recovery_file"`
+	Discovery         Discovery               `yaml:"discovery"`
+	Colors            map[string]Color        `yaml:"colors"`
+	Lights            map[string]Light        `yaml:"lights"`
+	LightGroups       map[string][]Light      `yaml:"light_groups"`
+	Scenes            map[string]scenes.Scene `yaml:"scenes"`
+	SceneGroups       map[string][]string     `yaml:"scene_groups"`
+	Calendar          []CalendarEntry         `yaml:"calendar"`
 }
 
 // CalendarEntry describes when a scene should apply.
@@ -238,7 +239,7 @@ func (c *Config) Parse() error {
 
 	// Scenes
 	for name, scene := range c.Scenes {
-		if err := scenes.AddScene(name, scene); err != nil {
+		if err := scenes.AddScene(name, scene.Group, scene.SceneItems); err != nil {
 			return fmt.Errorf("failed to add scene %q: %v", name, err)
 		}
 		logger.Debugf("Added scene %q", name)

@@ -11,6 +11,7 @@ import (
 
 type DelScenesRequest struct {
 	Scenes []string `json:"scenes"`
+	Groups []string `json:"groups"`
 }
 
 func HandleDelScenesRequest(req []byte) ([]byte, *RpcError) {
@@ -26,12 +27,20 @@ func HandleDelScenesRequest(req []byte) ([]byte, *RpcError) {
 		if _, found := scenes.GetScenes()[scene]; !found {
 			return NewGeneralResponse(false, fmt.Sprintf("scene %q not found", scene)), NewRpcError(404, "scene %q not found", scene)
 		}
-	}
-
-	for _, scene := range request.Scenes {
-		logger.Infof("Additional scene %q removed", scene)
 		_ = scenes.DeleteAdditionalScene(scene)
 	}
+
+	for _, group := range request.Groups {
+		if members, found := scenes.GetSceneGroup(group); !found {
+			return NewGeneralResponse(false, fmt.Sprintf("scene group %q not found", group)), NewRpcError(404, "scene group %q not found", group)
+		} else {
+			for _, scene := range members {
+				logger.Infof("Additional scene %q removed", scene)
+				_ = scenes.DeleteAdditionalScene(scene)
+			}
+		}
+	}
+
 	daemon.Instance.Kick()
 	return NewGeneralResponse(true, ""), nil
 }
