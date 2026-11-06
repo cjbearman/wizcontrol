@@ -74,7 +74,7 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 	}
 
 	// Lights that are locked get added / overriden here
-	for _, light := range cnf.Lights.All() {
+	for _, light := range cnf.Lights {
 		if locked, color, _ := light.Locker().IsLocked(); locked {
 			operationsToDo[light] = cnf.Colors.GetByColor(color)
 			logger.Debugf("Locked light %q will be set to color %q", light.Name(), operationsToDo[light].Value())
@@ -129,7 +129,7 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 			logger.Debugf("Set pilot succeeded")
 
 			// Find the light
-			light, found := cnf.Lights.All()[result.Device.Name()]
+			light, found := cnf.Lights[result.Device.Name()]
 			if !found {
 				logger.Errorf("Light not found")
 				continue
@@ -153,7 +153,7 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 
 	// Dispatch MQTT status for all lights
 	if sendMqtt {
-		for _, light := range cnf.Lights.All() {
+		for _, light := range cnf.Lights {
 			_ = senders.SendLightStatus(light)
 		}
 	}

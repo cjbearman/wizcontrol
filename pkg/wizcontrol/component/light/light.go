@@ -223,10 +223,6 @@ func (l *Light) Name() string {
 	return l.name
 }
 
-func (l Lights) All() Lights {
-	return l
-}
-
 func GetLightOrGroup(lightOrGroup string, l Lights, g LightGroups) []*Light {
 	for _, item := range l {
 		if item.Name() == lightOrGroup {

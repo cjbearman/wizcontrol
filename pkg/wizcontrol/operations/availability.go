@@ -12,9 +12,9 @@ func UpdateAvailability(cnf *config.Config) {
 
 	updateStatusOps := wiz.AsyncOperations[*wiz.PilotResult]{}
 
-	for _, result := range cnf.Lights.All().GetAllLightsDeviceGroup().Reachable().AwaitAll() {
+	for _, result := range cnf.Lights.GetAllLightsDeviceGroup().Reachable().AwaitAll() {
 		logger := logger.WithField("device", result.Device.Name())
-		if light, exists := cnf.Lights.All()[result.Device.Name()]; exists {
+		if light, exists := cnf.Lights[result.Device.Name()]; exists {
 			lastState := light.Available()
 			if result.Result && !lastState {
 				logger.Infof("Device became reachable, updating status")

@@ -11,9 +11,9 @@ func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
 
 	targetLights := wiz.NewDeviceGroup()
 	if force {
-		targetLights = cnf.Lights.All().GetAllLightsDeviceGroup()
+		targetLights = cnf.Lights.GetAllLightsDeviceGroup()
 	} else {
-		for _, light := range cnf.Lights.All() {
+		for _, light := range cnf.Lights {
 			if light.Available() {
 				dev := light.Device()
 				if dev == nil {
@@ -32,7 +32,7 @@ func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
 func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndError[*wiz.PilotResult]) {
 	logger := common.Logger.GetLogger("status-update").WithField("device", statusUpdate.Device.Name())
 	// Find the light
-	light, exists := cnf.Lights.All()[statusUpdate.Device.Name()]
+	light, exists := cnf.Lights[statusUpdate.Device.Name()]
 	if !exists {
 		logger.Errorf("Light not found")
 		return

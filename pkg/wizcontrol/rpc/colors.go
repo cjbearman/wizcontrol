@@ -14,7 +14,7 @@ type ColorsResponse struct {
 func HandleColorsRequest(cnf *config.Config) []byte {
 	resp := &ColorsResponse{}
 
-	for name := range cnf.Colors.All() {
+	for name := range cnf.Colors {
 		resp.Colors = append(resp.Colors, name)
 	}
 	slices.Sort(resp.Colors)

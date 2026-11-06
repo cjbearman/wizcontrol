@@ -1,29 +1,15 @@
-# Specify timezone as IANA style timezone. Required
-timezone: America/Chicago
+system:
+  # IANA timezone in which the system will operation.
+  # You may get away without setting this, depending on your locale, but best to set it correctly
+  timezone: America/Chicago
 
-# Specify the period for evaluation of the calendar entries
-evaluation_period: 15s
+  # Specify the period for evaluation of the calendar entries
+  evaluation_period: 15s
 
-# Specify the period for rechecking currently set light colors
-recheck_period: 5m
+  # Specify the period for rechecking currently set light colors
+  recheck_period: 5m
 
-# To keep state on added scenes and light locks, we can optionally
-# specify a file in which the state is saved. 
-# This must be located on a persistent file system (volume in case of docker)
-# state_recovery_file: "/config/state.json"
-
-# If we have configured any light using it's MAC address instead of an IP
-# discovery will run, these settings can tweak discovery behavior
-discovery:
-  # The broadcast address to use for discovery, typically required on multi-interface
-  # machines, particuarly where the default interface is not connected to the wiz bulb network
-  broadcast_address: 192.168.21.255
-  # The interval at which discovery runs are initiated
-  interval: 30s
-  # The period to wait for responses after sending discovery packets
-  period: 5s
-
-# Include an mqtt block to configure an mqtt broker integration
+# Include mqtt section if you want to utilize MQTT broker
 mqtt:
   # broker URL
   url: "mqtt://192.168.10.189:1883"
@@ -34,42 +20,88 @@ mqtt:
   # base topic
   topic: "wizcontrol"
 
-# http contains additional configuration for the HTTP API
+# If any of your lights have MAC addresses configured instead of IPs, they will need discovery
+# These parameters control the discovery process for lights with MAC addresses
+discovery:
+  broadcast_address: "255.255.255.255"
+  interval: "30s"
+  period: "5s"
+
+# Include http section if you want HTTP API available
 http:
   # port on which the HTTP API will listen
   port: 12120
 
   # To enable HTTPS (TLS) include both cert_chain and key files
-  # cert_chain: test_certs/wizcontrol.crt
-  # key: test_certs/wizcontrol.key
+  #cert_chain: test_certs/wizcontrol.crt
+  #key: test_certs/wizcontrol.key
 
   # To establish HTTP basic authentication, uncomment and configure the auth block below
   #auth:
-  #  username: "chris"
-  #  password: "changeme"
+   # username: "chris"
+    #password: "changeme"
+
 
 # Specify the lights and their IP addresses or MAC addresses
 # If using MAC addresses for any light, discovery will be used (which is not entirely reliable and introduce delays)
 lights:
-  front_flood_ll: 192.168.20.202
-  front_flood_lr: 192.168.20.56
-  front_flood_cl: 192.168.20.12
-  front_flood_cr: 192.168.20.2
-  front_flood_rl: 192.168.20.64
-  front_flood_rr: 192.168.20.138
-  porch_l: 192.168.20.196
-  porch_c: 192.168.20.223
-  porch_r: 192.168.20.195
-  patio_ceiling_1: 192.168.20.165
-  patio_ceiling_2: 192.168.20.111
-  patio_wall: 192.168.20.168
-  patio_string: 192.168.20.239
-  office_stand_light_upper: 192.168.20.13
-  office_stand_light_lower: 192.168.20.244
-  office_minecraft_lamp: 192.168.20.163
-  office_ceiling_1: 192.168.20.192
-  office_ceiling_2: 192.168.20.251
-  office_ceiling_3: 192.168.20.84
+  - name: front_flood_ll
+    ip: 192.168.20.202
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_left" ]
+  - name: front_flood_lr
+    ip: 192.168.20.56
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
+  - name: front_flood_cl
+    ip: 192.168.20.12
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_center" ]
+  - name: front_flood_cr
+    ip: 192.168.20.2
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_center" ]
+  - name: front_flood_rl
+    ip: 192.168.20.64
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
+  - name: front_flood_rr
+    ip: 192.168.20.138
+    groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
+  - name: porch_l
+    ip: 192.168.20.196
+    groups: [ "outside_lights", "front_of_house", "porch" , "porch_carriage_lights" ]
+  - name: porch_c
+    ip: 192.168.20.223
+    groups: [ "outside_lights", "front_of_house", "porch" ]
+  - name: porch_r
+    ip: 192.168.20.195
+    groups: [ "outside_lights", "front_of_house", "porch" , "porch_carriage_lights" ]
+  - name: patio_ceiling_1
+    ip: 192.168.20.165
+    groups: [ "outside_lights", "patio_lights" ]
+  - name: patio_ceiling_2
+    ip: 192.168.20.111
+    groups: [ "outside_lights", "patio_lights" ]
+  - name: patio_wall
+    ip: 192.168.20.168
+    groups: [ "outside_lights", "patio_lights" ]
+  - name: patio_string
+    ip: 192.168.20.239
+    groups: [ "outside_lights", "patio_lights" ]
+  - name: office_stand_light_upper
+    ip: 192.168.20.13
+    groups: [ "indoor", "office_lights" , "office_lamps" ]
+  - name: office_stand_light_lower
+    ip: 192.168.20.244
+    groups: [ "indoor", "office_lights" , "office_lamps" ]
+  - name: office_minecraft_lamp
+    ip: 192.168.20.163
+    groups: [ "indoor", "office_lights", "office_lamps" ]
+  - name: office_ceiling_1
+    ip: 192.168.20.192
+    groups: [ "indoor", "office_lights" , "office_ceiling"]
+  - name: office_ceiling_2
+    ip: 192.168.20.251
+    groups: [ "indoor", "office_lights" , "office_ceiling"]
+  - name: office_ceiling_3
+    ip: 192.168.20.84
+    groups: [ "indoor", "office_lights" , "office_ceiling"]
   #office_stand_light_upper: cc:40:85:c5:a8:de
   #office_stand_light_lower: 98:77:d5:30:8a:14
   #office_minecraft_lamp: 98:77:d5:46:9b:d8
@@ -77,80 +109,99 @@ lights:
   #office_ceiling_2: 98:77:d5:a6:b7:3a
   #office_ceiling_3: 98:77:d5:30:1a:fc
 
-# Define the colors you want to reference elsewhere in this document
-# Valid color specs:
-# Where RR,GG,BB are RGB hex values
-# Where CC, WW are cold and white hex values
-# Where brightness = 10-100
-# Where speed = 20-200
-# #RRGGBB(/brightness)
-# #RRGGBBCCWW(/brightness)
-# #CCWW(/brightness)
-# W<temperature>(/brightness)
-# scene(/brightness(/speed))
-colors:
-  red: "#FF0000"
-  green: "#00FF00"
-  blue: "#0000FF"
-  orange: "#FF8000"
-  purple: "#5800FF"
-  warmest_white: W2200
-  warm_white: W2700
-  warm_white_50: W2700/50
-  warm_white_30: W2700/30
-  warmish_white: W3300
-  daylight: W5800
-  daylight40: W5800/40
-  cool_white: W6500
-  pastel_purple: "#B497E7"
-  pastel_blue: "#00FF87"
-  pastel_yellow: "#FFC400"
-  pastel_seafoam: "#00FF13"
-  pastel_green: "#12FF12"
-  pastel_pink: "#FF001A"
-  light_blue: "#1887FF"
-  yellow: "#FFFF00"
-  cyan: "#02FFDD"
-  pinkish: "#FFD8D9"
-  magenta: "#DC00FF"
-  greenish: "#30FF00"
-  democratic_blue: "#0000FF0005"
-  xmas_dynamic: christmas/100/75
-  diwali_dynamic: diwali/100/50
-  fall_dynamic: fall/100/75
-  fireplace_dynamic: fireplace/100/75
-  forest_dynamic: forest/100/150
-  jungle_dynamic: jungle/100/150
-  mojito_dynamic: mojito/100/150
-  ocean_dynamic: ocean/100/150
-  party_dynamic: party/100/75
-  pastel_dynamic: pastelcolors/100/200
-  pulse_dynamic: pulse/100/100
-  relax_dynamic: relax/100/200
-  romance_dynamic: romance/100/200
-  spring_dynamic: spring/100/200
-  steampunk_dynamic: steampunk/100/75
-  summer_dynamic: summer/100/200
-  sunset_dynamic: sunset/100/200
-  
-# Lights can be grouped into logical collections for easier control using light_groups
-light_groups:
-  all: [ front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string, office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
-  outside_lights: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr, porch_l, porch_c, porch_r, patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
-  floods: [front_flood_ll, front_flood_lr, front_flood_cl, front_flood_cr, front_flood_rl, front_flood_rr ]
-  flood_left: [front_flood_ll, front_flood_lr]
-  flood_center: [front_flood_cl, front_flood_cr]
-  flood_right: [front_flood_rl, front_flood_rr]
-  porch: [porch_l, porch_c, porch_r]
-  patio_lights: [patio_ceiling_1, patio_ceiling_2, patio_wall, patio_string]
-  porch_carriage_lights: [ porch_l, porch_r ]
-  office_lights: [ office_stand_light_upper, office_stand_light_lower, office_minecraft_lamp, office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
-  office_ceiling: [ office_ceiling_1, office_ceiling_2, office_ceiling_3 ]
-  office_stand_light: [ office_stand_light_upper, office_stand_light_lower ]
 
-# Scenes define pre-configured lighting scenes that can map one or more colors to one or more light groups
+colors:
+  - name: red
+    color: "#FF0000"
+  - name: green
+    color: "#00FF00"
+  - name: blue
+    color: "#0000FF"
+  - name: orange
+    color: "#FF8000"
+  - name: purple
+    color: "#5800FF"
+  - name: warmest_white
+    color: W2200
+  - name: warm_white
+    color: W2700
+  - name: warm_white_50
+    color: W2700/50
+  - name: warm_white_30
+    color: W2700/30
+  - name: warmish_white
+    color: W3300
+  - name: daylight
+    color: W5800
+  - name: daylight40
+    color: W5800/40
+  - name: cool_white
+    color: W6500
+  - name: pastel_purple
+    color: "#B497E7"
+  - name: pastel_blue
+    color: "#00FF87"
+  - name: pastel_yellow
+    color: "#FFC400"
+  - name: pastel_seafoam
+    color: "#00FF13"
+  - name: pastel_green
+    color: "#12FF12"
+  - name: pastel_pink
+    color: "#FF001A"
+  - name: light_blue
+    color: "#1887FF"
+  - name: yellow
+    color: "#FFFF00"
+  - name: cyan
+    color: "#02FFDD"
+  - name: pinkish
+    color: "#FFD8D9"
+  - name: magenta
+    color: "#DC00FF"
+  - name: greenish
+    color: "#30FF00"
+  - name: democratic_blue
+    color: "#0000FF0005"
+  - name: xmas_dynamic
+    color: christmas/100/75
+  - name: diwali_dynamic
+    color: diwali/100/50
+  - name: fall_dynamic
+    color: fall/100/75
+  - name: fireplace_dynamic
+    color: fireplace/100/75
+  - name: forest_dynamic
+    color: forest/100/150
+  - name: jungle_dynamic
+    color: jungle/100/150
+  - name: mojito_dynamic
+    color: mojito/100/150
+  - name: ocean_dynamic
+    color: ocean/100/150
+  - name: party_dynamic
+    color: party/100/75
+  - name: pastel_dynamic
+    color: pastelcolors/100/200
+  - name: pulse_dynamic
+    color: pulse/100/100
+  - name: relax_dynamic
+    color: relax/100/200
+  - name: romance_dynamic
+    color: romance/100/200
+  - name: spring_dynamic
+    color: spring/100/200
+  - name: steampunk_dynamic
+    color: steampunk/100/75
+  - name: summer_dynamic
+    color: summer/100/200
+  - name: sunset_dynamic
+    color: sunset/100/200
+  - name: halloween_dynamic
+    color: halloween/100/75
+
 scenes:
-  default:
+  - name: default
     elements:
       - targets:
         - outside_lights
@@ -159,7 +210,7 @@ scenes:
         color: warm_white_50
       - targets: [ office_lights ]
         color: daylight
-  overnight:
+  - name: overname
     elements:
       - targets:
         - porch_c
@@ -167,28 +218,28 @@ scenes:
       - targets:
         - porch_carriage_lights
         color: warm_white_30
-  halloween:
+  - name: halloween
     elements:
       - targets: [ outside_lights ]
         color: purple
       - targets: [ porch_c, patio_wall ]
         color: orange
       - targets: [ patio_string ]
-        color: wiz_halloween
-    group: outdoor
-  paddy:
+        color: halloween_dynamic
+    group: outside_lights
+  - name: paddy
     elements:
       - targets: [ outside_lights ]
         color: green
-    group: outdoor
-  xmas:
+    group: outside_lights
+  - name: xmas
     elements:
       - targets: [ outside_lights ]
         color: red
       - targets: [ flood_left, flood_center, porch_carriage_lights, patio_wall ]
         color: green
-    group: outdoor
-  patriotic:
+    group: outside_lights
+  - name: patriotic
     elements:
       - targets: [ outside_lights ]
         color: warm_white
@@ -198,13 +249,13 @@ scenes:
         color: red
       - targets: [ porch_c ]
         color: daylight
-    group: outdoor
-  thanksgiving:
+    group: outside_lights
+  - name: thanksgiving
     elements:
       - targets: [ outside_lights ]
         color: orange
-    group: outdoor
-  pastel:
+    group: outside_lights
+  - name: pastel
     elements:
       - targets: [ front_flood_ll ]
         color: pastel_purple
@@ -218,143 +269,131 @@ scenes:
         color: pastel_green
       - targets: [ front_flood_rr, porch_l, patio_ceiling_2 ]
         color: pastel_pink
-    group: outdoor
-  office_warm:
+    group: outside_lights
+  - name: office_warm
     elements:
       - targets: [ office_lights ]
         color: warm_white
     group: office
-  office_warmish:
+  - name: office_warmish
     elements:
       - targets: [ office_lights ]
         color: warmish_white
     group: office
-  office_bright:
+  - name: office_bright
     elements:
       - targets: [ office_lights ]
         color: cool_white
     group: office
-  office_daylight:
+  - name: office_daylight
     elements:
       - targets: [ office_lights ]
         color: daylight
     group: office
-  office_warmest:
+  - name: office_warmest
     elements:
       - targets: [ office_lights ]
         color: warmest_white
     group: office
-  office_dim:
+  - name: office_dim
     elements:
       - targets: [ office_lights]
         color: daylight40
     group: office
-  office_yellow:
+  - name: office_yellow
     elements:
       - targets: [ office_lights ]
         color: yellow
     group: office
-  office_blueish:
+  - name: office_blueish
     elements:
       - targets: [ office_lights ]
         color: light_blue
     group: office
-  office_pinkish:
+  - name: office_pinkish
     elements:
       - targets: [ office_lights ]
         color: pinkish
     group: office
-  office_cyan:
+  - name: office_cyan
     elements:
       - targets: [ office_lights ]
         color: cyan
     group: office
-  office_greenish:
+  - name: office_greenish
     elements:
       - targets: [ office_lights ]
         color: greenish
     group: office
-  go_democrats:
+  - name: go_democrats
     elements:
       - targets: [ outside_lights ]
         color: democratic_blue
       - targets: [ patio_lights, porch_c ]
         color: ocean_dynamic
-    group: outdoor
-
-# Dynamic scenes for the patio
-  patio_diwali_dynamic:
+    group: outside_lights
+  - name: patio_diwali_dynamic
     elements:
       - targets: [ patio_lights ]
         color: diwali_dynamic
-  patio_fall_dynamic:
+  - name: patio_fall_dynamic
     elements:
       - targets: [ patio_lights ]
         color: fall_dynamic
-  patio_fireplace_dynamic:
+  - name: patio_fireplace_dynamic
     elements:
       - targets: [ patio_lights ]
         color: fireplace_dynamic
-  patio_forest_dynamic:
+  - name: patio_forest_dynamic
     elements:
       - targets: [ patio_lights ]
         color: forest_dynamic
-  patio_jungle_dynamic:
+  - name: patio_jungle_dynamic
     elements:
       - targets: [ patio_lights ]
         color: jungle_dynamic
-  patio_mojito_dynamic:
+  - name: patio_mojito_dynamic
     elements:
       - targets: [ patio_lights ]
         color: mojito_dynamic
-  patio_ocean_dynamic:
+  - name: patio_ocean_dynamic
     elements:
       - targets: [ patio_lights ]
         color: ocean_dynamic
-  patio_party_dynamic:
+  - name: patio_party_dynamic
     elements:
       - targets: [ patio_lights ]
         color: party_dynamic
-  patio_pastel_dynamic:
+  - name: patio_pastel_dynamic
     elements:
       - targets: [ patio_lights ]
         color: pastel_dynamic
-  patio_relax_dynamic:
+  - name: patio_relax_dynamic
     elements:
       - targets: [ patio_lights ]
         color: relax_dynamic
-  patio_romance_dynamic:
+  - name: patio_romance_dynamic
     elements:
       - targets: [ patio_lights ]
         color: romance_dynamic
-  patio_spring_dynamic:
+  - name: patio_spring_dynamic
     elements:
       - targets: [ patio_lights ]
         color: spring_dynamic
-  patio_steampunk_dynamic:
+  - name: patio_steampunk_dynamic
     elements:
       - targets: [ patio_lights ]
         color: steampunk_dynamic
-  patio_summer_dynamic:
+  - name: patio_summer_dynamic
     elements:
       - targets: [ patio_lights ]
         color: summer_dynamic
-  patio_sunset_dynamic:
+  - name: patio_sunset_dynamic
     elements:
       - targets: [ patio_lights ]
         color: sunset_dynamic
 
-# Calendars define which scene or scenes should be active for a given time period
-# Each calendar entry is evaluated in the order provided here, and the scenes defined by it that meet it's timing criteria
-# are applied in that order.
-# If multiple calendar entries match time criteria, they are all applied, scenes from the later entries override lights previously
-# set by scenes from earlier entries
-# Each entry MUST have a from and to date specified
-# Each entry MAY have a before and/or after time specified
-# Each entry can specify multiple scenes, which by default are all applied
-# If mode: random, then only one scene is applied at random
-# If mode: sequential, then only one scene is applied, but that scene will rotate through the list of scenes in order each time it is applied
-# The frequency key defines how often the scene should change when using random or sequential mode
+
 calendar:
   - name: default
     from: jan 1
