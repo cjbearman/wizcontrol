@@ -2,8 +2,17 @@ package calendar
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
+)
+
+const (
+	SceneModeAll    = "all"
+	SceneModeRandom = "random"
+	SceneModeRotate = "rotate"
 )
 
 type Calendars map[string]*Calendar
@@ -13,6 +22,7 @@ type Calendar struct {
 	from, to      int
 	before, after *CalendarTime
 	scenes        []string
+	selector      SceneSelector
 }
 
 func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
@@ -38,6 +48,19 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 			before: func() *CalendarTime { t, _ := OptionalCalendarTime(c.Before); return t }(),
 			after:  func() *CalendarTime { t, _ := OptionalCalendarTime(c.After); return t }(),
 			scenes: sceneNames,
+			selector: func() SceneSelector {
+				switch c.SceneMode {
+				case SceneModeAll:
+					return &AllSceneSelector{scenes: sceneNames}
+				case SceneModeRandom:
+					return &RandomSceneSelector{scenes: sceneNames, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
+				case SceneModeRotate:
+					return &RotateSceneSelector{scenes: sceneNames, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
+				default:
+					// Should not be possible due to validation in UnmarshalYAML
+					panic(fmt.Sprintf("invalid scene mode: %v", c.SceneMode))
+				}
+			}(),
 		}
 	}
 
@@ -74,4 +97,43 @@ func (c *Calendar) Scenes() []string {
 
 func (c Calendars) GetByName(name string) *Calendar {
 	return c[name]
+}
+
+func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []string {
+	logger := common.Logger.GetLogger("calendar")
+	result := []string{}
+
+	dayNo, now := GetTodayNumber()
+
+	for _, entry := range c {
+		if dayNo >= entry.from && dayNo <= entry.to {
+			// Scene matches the current day, but how about any time period
+
+			nowHour := now.In(common.Location).Hour()
+			nowMinute := now.In(common.Location).Minute()
+
+			compareWith := time.Date(1, 1, 1, nowHour, nowMinute, now.Second(), now.Nanosecond(), common.Location)
+
+			if entry.before != nil {
+				compareTo := time.Date(1, 1, 1, entry.before.Hour, entry.before.Minute, 0, 0, common.Location)
+				if compareWith.After(compareTo) {
+					continue
+				}
+			}
+			if entry.after != nil {
+				compareTo := time.Date(1, 1, 1, entry.after.Hour, entry.after.Minute, 0, 0, common.Location)
+				if compareWith.Before(compareTo) {
+					continue
+				}
+			}
+
+			sc := entry.selector.GetScene(dayNo)
+			result = append(result, sc...)
+		} else {
+		}
+	}
+
+	logger.Infof("Calendar scenes selected: %s", strings.Join(result, ","))
+
+	return result
 }

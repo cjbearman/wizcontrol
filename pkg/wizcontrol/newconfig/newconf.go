@@ -28,13 +28,17 @@ type NewConfigYAML struct {
 }
 
 func LoadNew(path string) (*NewConfigYAML, error) {
-	data, err := os.ReadFile(path)
+	fp, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	defer fp.Close() // nolint:errcheck
+
+	decoder := yaml.NewDecoder(fp)
+	decoder.KnownFields(true) // Reject unknown fields
 
 	cfg := &NewConfigYAML{}
-	if err := yaml.Unmarshal(data, cfg); err != nil {
+	if err := decoder.Decode(cfg); err != nil {
 		return nil, err
 	}
 
