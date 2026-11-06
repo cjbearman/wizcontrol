@@ -1,6 +1,7 @@
 package mqtt
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,7 +36,9 @@ var Instance *Mqtt
 
 type Mqtt struct {
 	*common.BaseRunner
-	outboundMessage chan messageAndTopic
+	outboundMessage      chan messageAndTopic
+	lastDaemonStatusHash string
+	lastLightStatusHash  map[string]string
 }
 
 var MqttURL string
@@ -46,8 +49,10 @@ var ControlEnabled bool = true
 
 func NewMqtt() *Mqtt {
 	mqtt := Mqtt{
-		BaseRunner:      common.NewRunner("mqtt"),
-		outboundMessage: make(chan messageAndTopic, BufferSize),
+		BaseRunner:           common.NewRunner("mqtt"),
+		outboundMessage:      make(chan messageAndTopic, BufferSize),
+		lastLightStatusHash:  make(map[string]string),
+		lastDaemonStatusHash: "",
 	}
 	mqtt.Exec = mqtt.run
 
@@ -167,7 +172,6 @@ func (m *Mqtt) run() {
 
 func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 	logger := common.Logger.GetLogger("mqtt")
-	logger.Debugf("Sending light status for %s", light.GetName())
 	response := responses.BuildLightStatus(light)
 
 	responseJson, err := json.Marshal(response)
@@ -175,6 +179,15 @@ func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 		common.Logger.GetLogger("mqtt").Errorf("failed to marshal light status: %v", err)
 		return err
 	}
+
+	hash := m.hashMessage(responseJson)
+	if m.lastLightStatusHash[light.GetName()] == hash {
+		logger.Debugf("No need to send light status for %s, no change", light.GetName())
+		return nil
+	}
+	logger.Debugf("Sending light status for %s, has changed", light.GetName())
+	m.lastLightStatusHash[light.GetName()] = hash
+
 	mqttMessage := messageAndTopic{
 		topic:   MqttTopic + "/light/" + light.GetName(),
 		message: responseJson,
@@ -193,11 +206,20 @@ func (m *Mqtt) SendLightStatus(light *lights.Light) error {
 func (m *Mqtt) SendDaemonStatus(status responses.DaemonStatus) error {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Debugf("Sending daemon status")
+
 	responseJson, err := json.Marshal(status)
 	if err != nil {
 		common.Logger.GetLogger("mqtt").Errorf("failed to marshal daemon status: %v", err)
 		return err
 	}
+	hash := m.hashMessage(responseJson)
+	if m.lastDaemonStatusHash == hash {
+		logger.Debugf("No need to send daemon status, no change")
+		return nil
+	}
+	logger.Debugf("Sending daemon status, has changed")
+	m.lastDaemonStatusHash = hash
+
 	mqttMessage := messageAndTopic{
 		topic:   MqttTopic + "/server",
 		message: responseJson,
@@ -211,4 +233,8 @@ func (m *Mqtt) SendDaemonStatus(status responses.DaemonStatus) error {
 	}
 
 	return nil
+}
+
+func (m *Mqtt) hashMessage(message []byte) string {
+	return fmt.Sprintf("%x", sha256.Sum256(message))
 }

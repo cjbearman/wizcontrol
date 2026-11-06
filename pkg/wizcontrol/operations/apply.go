@@ -13,23 +13,19 @@ type colorAndName struct {
 	name, color string
 }
 
-func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool) {
+type lightSettings struct {
+	scene                                string
+	programmedColorName, programmedColor string
+}
+
+func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
-	sendStatusFor := []*lights.Light{}
 
-	if mqttAll {
-		// If we are being asked to send MQTT status for all lights, just prefill a list of all lights
-		// into the list of lights to send
-		logger.Debug("This is the first daemon run, status for all lights will be sent")
-		for _, light := range lights.GetLights() {
-			sendStatusFor = append(sendStatusFor, light)
-		}
-	}
-
-	// Prefill a map of light to target scenes with all lights and initially empty values
-	lightSceneSettings := make(map[*lights.Light]string)
+	// Prefill a map of all lights with empty scene settings, we will update this as
+	// we figure out what is going to be set
+	lightSceneSettings := make(map[*lights.Light]lightSettings)
 	for _, light := range lights.GetLights() {
-		lightSceneSettings[light] = ""
+		lightSceneSettings[light] = lightSettings{}
 	}
 
 	// Map lights to their target colors
@@ -63,17 +59,21 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 				for _, light := range lights {
 					operationsToDo[light] = colorAndName{name: tc.ColorName, color: color}
 					logger.WithField("device", light.GetName()).Debugf("Targetted color asserted")
-					lightSceneSettings[light] = sceneName
+					lightSceneSettings[light] = lightSettings{
+						scene:               sceneName,
+						programmedColorName: tc.ColorName,
+						programmedColor:     color,
+					}
 				}
 			}
 		}
 	}
 
-	// Update target scenes for all lights,
-	// this will clear the scene name from any lights that are not in any of our scenes
-	// and also set the target scene for lights that are part of our scenes
-	for light, sceneName := range lightSceneSettings {
-		light.SetActiveScene(sceneName)
+	// Update programming information for all lights
+	// those that were not included in a scene will have empty values
+	for light, settings := range lightSceneSettings {
+		light.SetActiveScene(settings.scene)
+		light.SetLastProgrammedColor(settings.programmedColorName, settings.programmedColor)
 	}
 
 	// Lights that are locked get added / overriden here
@@ -92,8 +92,6 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 	for light, colorSpec := range operationsToDo {
 		color := colorSpec.color
 		logger := logger.WithField("device", light.GetName())
-
-		light.SetLastProgrammedColor(colorSpec.name, color)
 
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
@@ -141,9 +139,6 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 				continue
 			}
 
-			// We will be sending a status for this light, if mqtt dispatch is enabled
-			sendStatusFor = append(sendStatusFor, light)
-
 			light.SetOn(operationsToDo[light].color != colors.ColorOff)
 
 			// Retrieve the intended color for this light from the operationsToDo map
@@ -159,8 +154,9 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt, mqttAll bool
 		}
 	}
 
+	// Dispatch MQTT status for all lights
 	if sendMqtt {
-		for _, light := range sendStatusFor {
+		for _, light := range lights.GetLights() {
 			_ = senders.SendLightStatus(light)
 		}
 	}

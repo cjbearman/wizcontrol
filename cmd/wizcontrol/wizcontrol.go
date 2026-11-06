@@ -75,7 +75,7 @@ func main() {
 			os.Exit(1)
 		}
 		operations.UpdateAvailability()
-		operations.ApplyScenes([]string{*apply}, *f, false, false)
+		operations.ApplyScenes([]string{*apply}, *f, false)
 		os.Exit(0)
 	}
 

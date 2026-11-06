@@ -1,3 +1,9 @@
 # Things to do
 
-* Define patriotic scene to use for the next few days
+* Actual color name unknown
+. For floods in warm_white, why?
+
+* Programmed color not updating when light is off
+
+
+

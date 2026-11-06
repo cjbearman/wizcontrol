@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 const UnknownColorName = "unknown"
@@ -28,10 +29,12 @@ func init() {
 }
 
 func NameForColor(color string) string {
+	logger := common.Logger.GetLogger("colors")
 	for name, value := range colors {
 		if strings.EqualFold(value, color) {
 			return name
 		}
 	}
+	logger.Warnf("No color name found for %q", color)
 	return UnknownColorName
 }

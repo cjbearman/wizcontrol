@@ -115,7 +115,6 @@ func (d *Daemon) run() {
 	ticker := time.NewTicker(EvaluationPeriod)
 	defer ticker.Stop()
 
-	firstRun := true
 	for {
 		select {
 		case <-d.kicker:
@@ -126,21 +125,20 @@ func (d *Daemon) run() {
 			// We're going to do now, so we can reset our evaluation period for the next interval
 			ticker.Reset(EvaluationPeriod)
 
-			d.runIteration(logger, firstRun)
+			d.runIteration(logger)
 		case <-ticker.C:
 			// Triggered on our regular tick interval
 			logger.Debug("Tick")
-			d.runIteration(logger, firstRun)
+			d.runIteration(logger)
 		case <-d.StopSignalled:
 			// Triggered when the runner wants us to stop
 			logger.Info("Stopped")
 			return
 		}
-		firstRun = false
 	}
 }
 
-func (d *Daemon) runIteration(logger logger.Logger, firstRun bool) {
+func (d *Daemon) runIteration(logger logger.Logger) {
 	recheck := false
 	if d.lastRecheck.Add(RecheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
@@ -176,8 +174,8 @@ func (d *Daemon) runIteration(logger logger.Logger, firstRun bool) {
 		operations.UpdateStatusForAllAvailableLights(false)
 	}
 
-	logger.Debugf("Apply scenes, first run: %v", firstRun)
-	operations.ApplyScenes(activeScenes, false, true, firstRun)
+	logger.Debugf("Apply scenes")
+	operations.ApplyScenes(activeScenes, false, true)
 	_ = d.SendDaemonStatus()
 	_ = state.WriteState()
 	logger.Info("daemon iteration completed")
