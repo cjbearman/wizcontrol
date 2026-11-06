@@ -6,8 +6,7 @@ import (
 
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	dc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 var Instance *Discovery
@@ -17,14 +16,16 @@ type Discovery struct {
 	discoveryBroadcastAddr string
 	discoveryInterval      time.Duration
 	discoveryPeriod        time.Duration
+	cnf                    *config.Config
 }
 
-func NewDiscovery(cnf *dc.Discovery) *Discovery {
+func NewDiscovery(cnf *config.Config) *Discovery {
 	d := &Discovery{
 		BaseRunner:             common.NewRunner("discovery"),
-		discoveryBroadcastAddr: cnf.BroadcastAddress(),
-		discoveryInterval:      cnf.Interval(),
-		discoveryPeriod:        cnf.Period(),
+		discoveryBroadcastAddr: cnf.Discovery.BroadcastAddress(),
+		discoveryInterval:      cnf.Discovery.Interval(),
+		discoveryPeriod:        cnf.Discovery.Period(),
+		cnf:                    cnf,
 	}
 
 	d.Exec = d.run
@@ -71,15 +72,15 @@ func (d *Discovery) callback(dev *wiz.Device) {
 	logger := common.Logger.GetLogger("discovery")
 	logger.Debugf("Device discovery inbound for MAC %s IP %s", dev.MAC(), dev.IP())
 
-	for _, l := range lights.GetLights() {
-		_, mac := l.GetAddress()
+	for _, l := range d.cnf.Lights.All() {
+		mac := l.MAC()
 		if mac != "" {
 			// Device has a MAC and is enabled for discovery
 
 			if strings.EqualFold(mac, dev.MAC()) {
 				updateDevice := false
-				// There is a device that is set to use this MAC address
-				existingDevice := l.GetDevice()
+				// There is a light that is set to use this MAC address
+				existingDevice := l.Device()
 
 				if existingDevice == nil {
 					logger.Infof("First discovery of configured device with MAC %s at IP %s", dev.MAC(), dev.IP())

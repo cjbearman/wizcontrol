@@ -18,3 +18,11 @@ func (lg LightGroups) GetByName(name string) *LightGroup {
 	}
 	return nil
 }
+
+func (lg *LightGroup) Name() string {
+	return lg.name
+}
+
+func (lg *LightGroup) Lights() []*Light {
+	return lg.lights
+}

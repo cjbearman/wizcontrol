@@ -1,7 +1,7 @@
 package senders
 
 import (
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 )
 
@@ -9,10 +9,10 @@ import (
 // instead, have mqtt provide some functions here, when it's enabled,
 // so daemon and rpc can import this without triggering import loops
 
-var LightStatus func(light *lights.Light) error
+var LightStatus func(light *light.Light) error
 var DaemonStatus func(status responses.DaemonStatus) error
 
-func SendLightStatus(light *lights.Light) error {
+func SendLightStatus(light *light.Light) error {
 	if LightStatus != nil {
 		return LightStatus(light)
 	}

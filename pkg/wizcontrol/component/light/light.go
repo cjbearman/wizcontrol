@@ -14,6 +14,14 @@ type ColorNameAndColor struct {
 	color string
 }
 
+func (c ColorNameAndColor) Name() string {
+	return c.name
+}
+
+func (c ColorNameAndColor) Value() string {
+	return c.color
+}
+
 type Lights map[string]*Light
 
 type Light struct {
@@ -203,4 +211,43 @@ func (l Lights) DiscoveryRequired() bool {
 		}
 	}
 	return false
+}
+
+func (l *Light) MAC() string {
+	return l.mac
+}
+
+func (l *Light) Name() string {
+	return l.name
+}
+
+func (l Lights) All() Lights {
+	return l
+}
+
+func GetLightOrGroup(lightOrGroup string, l Lights, g LightGroups) []*Light {
+	for _, item := range l {
+		if item.Name() == lightOrGroup {
+			return []*Light{item}
+		}
+	}
+	for _, group := range g {
+		if group.Name() == lightOrGroup {
+			return group.Lights()
+		}
+	}
+	return nil
+}
+
+func (l Lights) GetAllLightsDeviceGroup() *wiz.DeviceGroup {
+	dg := wiz.NewDeviceGroup()
+
+	for _, light := range l {
+		d := light.Device()
+		if d != nil {
+			dg.AddDevice(d)
+		}
+	}
+
+	return dg
 }

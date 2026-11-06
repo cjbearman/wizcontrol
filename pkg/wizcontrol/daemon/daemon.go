@@ -9,7 +9,8 @@ import (
 	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
@@ -38,21 +39,25 @@ type Daemon struct {
 	additionalUntil  time.Time
 	evaluationPeriod time.Duration
 	recheckPeriod    time.Duration
+	cnf              *config.Config
 }
 
 // NewDaemon returns a new daemon, not running
-func NewDaemon(evaluationPeriod, recheckPeriod time.Duration) *Daemon {
+func NewDaemon(cnf *config.Config) *Daemon {
 	d := &Daemon{
 		BaseRunner:       common.NewRunner("daemon"),
 		kicker:           make(chan struct{}, 1),
 		lastRecheck:      time.Time{},
 		additionalUntil:  time.Time{},
 		mode:             DaemonModeAuto,
-		evaluationPeriod: evaluationPeriod,
-		recheckPeriod:    recheckPeriod,
+		evaluationPeriod: cnf.System.EvaluationPeriod(),
+		recheckPeriod:    cnf.System.RecheckPeriod(),
+		cnf:              cnf,
 	}
 	d.Exec = d.run
-	lights.KickFunc = d.Kick
+
+	light.KickFunc = d.Kick
+
 	return d
 }
 
@@ -166,15 +171,15 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	logger.Infof("Will apply the following scenes in order: %s", strings.Join(activeScenes, ","))
 	// Update light availability, and additionall request status update for returning lights
 	logger.Debugf("Update light availability")
-	operations.UpdateAvailability()
+	operations.UpdateAvailability(d.cnf)
 
 	if recheck {
 		logger.Debugf("Recheck period reached, rechecking all light statuses")
-		operations.UpdateStatusForAllAvailableLights(false)
+		operations.UpdateStatusForAllAvailableLights(d.cnf, false)
 	}
 
 	logger.Debugf("Apply scenes")
-	operations.ApplyScenes(activeScenes, false, true)
+	operations.ApplyScenes(d.cnf, activeScenes, false, true)
 	_ = d.SendDaemonStatus()
 	_ = state.WriteState()
 	logger.Info("daemon iteration completed")

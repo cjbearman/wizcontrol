@@ -23,24 +23,24 @@ func newLocker(lightName string) *LightLock {
 	}
 }
 
-func (l *LightLock) LockFor(d time.Duration, color string) {
+func (l *LightLock) LockFor(d time.Duration, colorValue string) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.lockedUntil = time.Now().In(common.Location).Add(d)
-	l.lockToColor = color
+	l.lockToColor = colorValue
 	l.setTimer(d)
-	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, color)
+	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, colorValue)
 }
 
-func (l *LightLock) LockUntil(t time.Time, color string) {
+func (l *LightLock) LockUntil(t time.Time, colorValue string) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.lockedUntil = t
-	l.lockToColor = color
+	l.lockToColor = colorValue
 	l.setTimer(time.Until(t))
-	logger.Debugf("Light locked until: %v, color: %s", l.lockedUntil, color)
+	logger.Debugf("Light locked until: %v, color: %s", l.lockedUntil, colorValue)
 }
 
 func (l *LightLock) UnlockNow(noKick bool) {
@@ -87,7 +87,7 @@ func (l *LightLock) timerExpired() {
 	}
 }
 
-func (l *LightLock) IsLocked() (bool, string, time.Time) {
+func (l *LightLock) IsLocked() (locked bool, colorValue string, t time.Time) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockToColor, l.lockedUntil

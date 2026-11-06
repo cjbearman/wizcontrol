@@ -2,35 +2,33 @@ package operations
 
 import (
 	"github.com/cjbearman/wiz/pkg/wiz"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/colors"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/scenes"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
+
+	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 )
 
-type colorAndName struct {
-	name, color string
-}
-
 type lightSettings struct {
-	scene                                string
-	programmedColorName, programmedColor string
+	scene string
+	color *c.Color
 }
 
-func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
+func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, sendMqtt bool) {
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
 
 	// Prefill a map of all lights with empty scene settings, we will update this as
 	// we figure out what is going to be set
-	lightSceneSettings := make(map[*lights.Light]lightSettings)
-	for _, light := range lights.GetLights() {
+	lightSceneSettings := make(map[*l.Light]lightSettings)
+	for _, light := range cnf.Lights {
 		lightSceneSettings[light] = lightSettings{}
 	}
 
 	// Map lights to their target colors
 	// mappings from later scenes WILL take precedence by overwriting previous determinations
-	operationsToDo := make(map[*lights.Light]colorAndName)
+	operationsToDo := make(map[*l.Light]*c.Color)
 
 	for _, sceneName := range sceneNames {
 
@@ -43,26 +41,26 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 
 		for _, tc := range targets {
 
-			color, found := colors.GetColors()[tc.ColorName]
-			if !found {
+			color := cnf.Colors.GetByName(tc.ColorName)
+			if color == nil {
 				logger.Warnf("Color not found: %s", tc.ColorName)
 				continue
 			}
+
 			logger := logger.WithField("colorName", tc.ColorName).WithField("color", color)
 
 			for _, target := range tc.Targets {
-				lights, err := lights.GetLightOrGroup(target)
-				if err != nil {
+				lights := l.GetLightOrGroup(target, cnf.Lights, cnf.LightGroups)
+				if len(lights) == 0 {
 					logger.Warnf("Light or group not found: %s", target)
 					continue
 				}
 				for _, light := range lights {
-					operationsToDo[light] = colorAndName{name: tc.ColorName, color: color}
-					logger.WithField("device", light.GetName()).Debugf("Targetted color asserted")
+					operationsToDo[light] = color
+					logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
 					lightSceneSettings[light] = lightSettings{
-						scene:               sceneName,
-						programmedColorName: tc.ColorName,
-						programmedColor:     color,
+						scene: sceneName,
+						color: color,
 					}
 				}
 			}
@@ -73,14 +71,14 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 	// those that were not included in a scene will have empty values
 	for light, settings := range lightSceneSettings {
 		light.SetActiveScene(settings.scene)
-		light.SetLastProgrammedColor(settings.programmedColorName, settings.programmedColor)
+		light.SetLastProgrammedColor(settings.color.Name(), settings.color.Value())
 	}
 
 	// Lights that are locked get added / overriden here
-	for _, light := range lights.GetLights() {
-		if locked, color, _ := light.Locker.IsLocked(); locked {
-			operationsToDo[light] = colorAndName{name: colors.NameForColor(color), color: color}
-			logger.Debugf("Locked light %q will be set to color %q", light.GetName(), color)
+	for _, light := range cnf.Lights.All() {
+		if locked, color, _ := light.Locker().IsLocked(); locked {
+			operationsToDo[light] = cnf.Colors.GetByColor(color)
+			logger.Debugf("Locked light %q will be set to color %q", light.Name(), operationsToDo[light].Value())
 			light.SetActiveScene("")
 		}
 	}
@@ -89,9 +87,8 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
-	for light, colorSpec := range operationsToDo {
-		color := colorSpec.color
-		logger := logger.WithField("device", light.GetName())
+	for light, color := range operationsToDo {
+		logger := logger.WithField("device", light.Name())
 
 		if !unconditional {
 			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
@@ -99,24 +96,24 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 				logger.Debugf("Skipping unavailable light")
 				continue
 			}
-			if light.LastColor() == color {
+			if light.LastActualColor().Value() == color.Value() {
 				logger.Debugf("Light has correct color of %q, skipping", color)
 				continue
 			} else {
-				logger.Infof("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastColor(), color, light.On())
+				logger.Infof("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastActualColor().Value(), color, light.On())
 			}
 		}
 
-		settings, err := wiz.SettingsFromString(color)
+		settings, err := wiz.SettingsFromString(color.Value())
 		if err != nil {
 			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
 			continue
 		}
-		if color != colors.ColorOff {
+		if color.Value() != c.Off {
 			settings.On()
 		}
 
-		dev := light.GetDevice()
+		dev := light.Device()
 		if dev == nil {
 			logger.Warnf("No discovered device, skipping")
 			continue
@@ -133,13 +130,13 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 			logger.Debugf("Set pilot succeeded")
 
 			// Find the light
-			light, found := lights.GetLights()[result.Device.Name()]
+			light, found := cnf.Lights.All()[result.Device.Name()]
 			if !found {
 				logger.Errorf("Light not found")
 				continue
 			}
 
-			light.SetOn(operationsToDo[light].color != colors.ColorOff)
+			light.SetOn(operationsToDo[light].Value() != c.Off)
 
 			// Retrieve the intended color for this light from the operationsToDo map
 			colorSpec, found := operationsToDo[light]
@@ -149,14 +146,15 @@ func ApplyScenes(sceneNames []string, unconditional bool, sendMqtt bool) {
 			}
 
 			// Update light now that we definitively know it's setting
-			light.SetLastColor(colorSpec.name)
-			logger.Debugf("Successful application of color %q (%q)", colorSpec.color, colorSpec.name)
+			light.SetLastActualColor(colorSpec.Name(), colorSpec.Value())
+
+			logger.Debugf("Successful application of color %q (%q)", colorSpec.Name(), colorSpec.Value())
 		}
 	}
 
 	// Dispatch MQTT status for all lights
 	if sendMqtt {
-		for _, light := range lights.GetLights() {
+		for _, light := range cnf.Lights.All() {
 			_ = senders.SendLightStatus(light)
 		}
 	}

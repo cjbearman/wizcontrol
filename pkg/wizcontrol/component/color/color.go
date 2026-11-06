@@ -7,6 +7,9 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+const UnknownColor = "unknown"
+const Off = "off"
+
 type Colors map[string]*Color
 
 type Color struct {
@@ -31,6 +34,14 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 	return colors, nil
 }
 
+func (c Color) Name() string {
+	return c.name
+}
+
+func (c Color) Value() string {
+	return c.color
+}
+
 func (c Colors) GetByName(name string) *Color {
 	if col, found := c[name]; found {
 		return col
@@ -44,7 +55,10 @@ func (c Colors) GetByColor(color string) *Color {
 			return col
 		}
 	}
-	return nil
+	return &Color{
+		name:  UnknownColor,
+		color: color,
+	}
 }
 
 func (c *Color) String() string {
@@ -52,6 +66,10 @@ func (c *Color) String() string {
 }
 
 func (c Colors) prefillWizColors() {
+	c[Off] = &Color{
+		name:  Off,
+		color: Off,
+	}
 	for _, wizScene := range wiz.AllSceneNames() {
 		name := fmt.Sprintf("wiz_%s", strings.ToLower(wizScene))
 		c[name] = &Color{

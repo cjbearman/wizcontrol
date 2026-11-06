@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	mc "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/mqtt"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/lights"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
@@ -45,19 +45,21 @@ type Mqtt struct {
 	MqttPassword         string
 	MqttTopic            string
 	ControlEnabled       bool
+	cnf                  *config.Config
 }
 
-func NewMqtt(cfg *mc.Mqtt) *Mqtt {
+func NewMqtt(cnf *config.Config) *Mqtt {
 	mqtt := Mqtt{
 		BaseRunner:           common.NewRunner("mqtt"),
 		outboundMessage:      make(chan messageAndTopic, BufferSize),
 		lastLightStatusHash:  make(map[string]string),
 		lastDaemonStatusHash: "",
-		MqttURL:              cfg.GetURL(),
-		MqttUsername:         cfg.GetUsername(),
-		MqttPassword:         cfg.GetPassword(),
-		MqttTopic:            cfg.GetTopic(),
-		ControlEnabled:       cfg.IsControlEnabled(),
+		MqttURL:              cnf.MQTT.GetURL(),
+		MqttUsername:         cnf.MQTT.GetUsername(),
+		MqttPassword:         cnf.MQTT.GetPassword(),
+		MqttTopic:            cnf.MQTT.GetTopic(),
+		ControlEnabled:       cnf.MQTT.IsControlEnabled(),
+		cnf:                  cnf,
 	}
 	mqtt.Exec = mqtt.run
 
@@ -175,7 +177,7 @@ func (m *Mqtt) run() {
 	}
 }
 
-func (m *Mqtt) SendLightStatus(light *lights.Light) error {
+func (m *Mqtt) SendLightStatus(light *light.Light) error {
 	logger := common.Logger.GetLogger("mqtt")
 	response := responses.BuildLightStatus(light)
 
