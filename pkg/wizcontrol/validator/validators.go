@@ -18,7 +18,7 @@ var macReg3 = regexp.MustCompile(`^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$`)
 func ComponentName(name string) (string, error) {
 	name = strings.TrimSpace(strings.ToLower(name))
 	if name == "" {
-		return "", errors.New("missing")
+		return name, nil
 	}
 	ok := componentNameRegexp.MatchString(name)
 	if !ok {

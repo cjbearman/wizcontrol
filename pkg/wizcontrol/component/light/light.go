@@ -68,6 +68,13 @@ func (l Lights) getLightByMAC(mac string) *Light {
 	return nil
 }
 
+func (l Lights) GetByName(name string) *Light {
+	if light, found := l[name]; found {
+		return light
+	}
+	return nil
+}
+
 func (l *Light) String() string {
 	return fmt.Sprintf("Light{name: %s, ip: %s, mac: %s, groups: %v}", l.name, l.ip, l.mac, l.groups)
 }

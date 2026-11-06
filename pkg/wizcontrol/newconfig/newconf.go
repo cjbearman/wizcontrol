@@ -7,12 +7,14 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 	"gopkg.in/yaml.v3"
 )
 
 type NewConfigYAML struct {
 	Lights []light.ConfigYAML `yaml:"lights"`
 	Colors []color.ConfigYAML `yaml:"colors"`
+	Scenes []scene.ConfigYAML `yaml:"scenes"`
 }
 
 func LoadNew(path string) (*NewConfigYAML, error) {
@@ -53,6 +55,15 @@ func Build(cfg *NewConfigYAML) error {
 	}
 	for _, color := range colors {
 		logger.Infof("Built color: %v", color)
+	}
+
+	scenes, err := scene.Build(&cfg.Scenes, colors, lights, lightgroups)
+	if err != nil {
+		logger.Errorf("Error parsing scenes: %v", err)
+		return err
+	}
+	for _, scene := range scenes {
+		logger.Infof("Built scene: %v", scene)
 	}
 
 	return nil

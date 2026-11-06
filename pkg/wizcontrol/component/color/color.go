@@ -14,7 +14,7 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 		if _, found := colors[c.Name]; found {
 			return nil, fmt.Errorf("color %q is defined more than once", c.Name)
 		}
-		if other := colors.getByColor(c.Color); other != nil {
+		if other := colors.GetByColor(c.Color); other != nil {
 			return nil, fmt.Errorf("color %q has same value as color %q", c.Name, other.name)
 		}
 		colors[c.Name] = &Color{
@@ -25,7 +25,14 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 	return colors, nil
 }
 
-func (c Colors) getByColor(color string) *Color {
+func (c Colors) GetByName(name string) *Color {
+	if col, found := c[name]; found {
+		return col
+	}
+	return nil
+}
+
+func (c Colors) GetByColor(color string) *Color {
 	for _, col := range c {
 		if col.color == color {
 			return col
