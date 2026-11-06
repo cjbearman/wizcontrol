@@ -6,22 +6,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-/*
-http:
-  # port on which the HTTP API will listen
-  port: 12120
-
-  # To enable HTTPS (TLS) include both cert_chain and key files
-  cert_chain: test_certs/wizcontrol.crt
-  key: test_certs/wizcontrol.key
-
-  # To establish HTTP basic authentication, uncomment and configure the auth block below
-  auth:
-    username: "chris"
-    password: "changeme"
-
-*/
-
 const DefaultHTTPPort = 12120
 
 type ConfigYAML struct {

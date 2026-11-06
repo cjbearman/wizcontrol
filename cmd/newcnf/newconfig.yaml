@@ -1,3 +1,13 @@
+system:
+  timezone: America/Chicago
+
+  # Specify the period for evaluation of the calendar entries
+  evaluation_period: 15s
+
+  # Specify the period for rechecking currently set light colors
+  recheck_period: 5m
+
+
 mqtt:
   # broker URL
   url: "mqtt://192.168.10.189:1883"
@@ -7,6 +17,11 @@ mqtt:
   password: "asdkljiodsjf23489h!"
   # base topic
   topic: "wizcontrol"
+
+discovery:
+  broadcast_address: "255.255.255.255"
+  interval: "30s"
+  period: "5s"
 
 http:
   # port on which the HTTP API will listen

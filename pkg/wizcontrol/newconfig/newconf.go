@@ -7,10 +7,12 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/http"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/mqtt"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/system"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,6 +23,8 @@ type NewConfigYAML struct {
 	Calendars []calendar.ConfigYAML `yaml:"calendar"`
 	MQTT      *mqtt.ConfigYAML      `yaml:"mqtt"`
 	HTTP      *http.ConfigYAML      `yaml:"http"`
+	Discovery discovery.ConfigYAML  `yaml:"discovery"`
+	System    system.ConfigYAML     `yaml:"system"`
 }
 
 func LoadNew(path string) (*NewConfigYAML, error) {
@@ -86,6 +90,12 @@ func Build(cfg *NewConfigYAML) error {
 
 	http := http.Build(cfg.HTTP)
 	logger.Infof("Built HTTP: %v", http)
+
+	discovery := discovery.Build(cfg.Discovery)
+	logger.Infof("Build Disc: %v", discovery)
+
+	system := system.Build(cfg.System)
+	logger.Infof("Build system: %v", system)
 
 	return nil
 }

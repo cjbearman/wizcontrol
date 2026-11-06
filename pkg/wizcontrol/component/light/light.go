@@ -1,12 +1,37 @@
 package light
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+
+	"github.com/cjbearman/wiz/pkg/wiz"
+)
+
+const UnknownColor = "unknown"
+
+type ColorNameAndColor struct {
+	name  string
+	color string
+}
 
 type Lights map[string]*Light
 
 type Light struct {
-	name, ip, mac string
-	groups        []string
+	name, ip, mac           string
+	groups                  []string
+	lastProgrammedColor     ColorNameAndColor
+	lastProgrammedColorLock sync.Mutex
+	lastActualColor         ColorNameAndColor
+	lastActualColorLock     sync.Mutex
+	locker                  *LightLock
+	activeScene             string
+	activeSceneLock         sync.Mutex
+	available               bool
+	availableLock           sync.Mutex
+	on                      bool
+	onLock                  sync.Mutex
+	device                  *wiz.Device
+	deviceLock              sync.Mutex
 }
 
 func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
@@ -23,11 +48,23 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			return nil, nil, fmt.Errorf("light %q has same MAC as light %q", l.Name, other.name)
 		}
 
+		var d *wiz.Device
+		if l.IP != "" {
+			d = wiz.MustDevice(l.IP)
+		}
+
 		lights[l.Name] = &Light{
-			name:   l.Name,
-			ip:     l.IP,
-			mac:    l.MAC,
-			groups: l.Groups,
+			name:                l.Name,
+			ip:                  l.IP,
+			mac:                 l.MAC,
+			groups:              l.Groups,
+			lastProgrammedColor: ColorNameAndColor{name: UnknownColor, color: UnknownColor},
+			lastActualColor:     ColorNameAndColor{name: UnknownColor, color: UnknownColor},
+			locker:              newLocker(l.Name),
+			activeScene:         "",
+			available:           false,
+			on:                  false,
+			device:              d,
 		}
 	}
 
@@ -77,4 +114,84 @@ func (l Lights) GetByName(name string) *Light {
 
 func (l *Light) String() string {
 	return fmt.Sprintf("Light{name: %s, ip: %s, mac: %s, groups: %v}", l.name, l.ip, l.mac, l.groups)
+}
+
+func (l *Light) LastProgrammedColor() ColorNameAndColor {
+	l.lastProgrammedColorLock.Lock()
+	defer l.lastProgrammedColorLock.Unlock()
+	return l.lastProgrammedColor
+}
+
+func (l *Light) SetLastProgrammedColor(name, color string) {
+	l.lastProgrammedColorLock.Lock()
+	defer l.lastProgrammedColorLock.Unlock()
+	l.lastProgrammedColor = ColorNameAndColor{name: name, color: color}
+}
+
+func (l *Light) LastActualColor() ColorNameAndColor {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	return l.lastActualColor
+}
+
+func (l *Light) SetLastActualColor(name, color string) {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	l.lastActualColor = ColorNameAndColor{name: name, color: color}
+}
+
+func (l *Light) Locker() *LightLock {
+	return l.locker
+}
+
+func (l *Light) ActiveScene() string {
+	l.activeSceneLock.Lock()
+	defer l.activeSceneLock.Unlock()
+	return l.activeScene
+}
+
+func (l *Light) SetActiveScene(scene string) {
+	l.activeSceneLock.Lock()
+	defer l.activeSceneLock.Unlock()
+	l.activeScene = scene
+}
+
+func (l *Light) Available() bool {
+	l.availableLock.Lock()
+	defer l.availableLock.Unlock()
+	return l.available
+}
+
+func (l *Light) SetAvailable(available bool) {
+	l.availableLock.Lock()
+	defer l.availableLock.Unlock()
+	l.available = available
+}
+
+func (l *Light) On() bool {
+	l.onLock.Lock()
+	defer l.onLock.Unlock()
+	return l.on
+}
+
+func (l *Light) SetOn(on bool) {
+	l.onLock.Lock()
+	defer l.onLock.Unlock()
+	l.on = on
+}
+
+func (l *Light) Device() *wiz.Device {
+	l.deviceLock.Lock()
+	defer l.deviceLock.Unlock()
+	return l.device
+}
+
+func (l *Light) SetDevice(device *wiz.Device) {
+	l.deviceLock.Lock()
+	defer l.deviceLock.Unlock()
+	l.device = device
+}
+
+func (l *Light) UseDiscovery() bool {
+	return l.mac != ""
 }
