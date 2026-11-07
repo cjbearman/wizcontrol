@@ -9,8 +9,9 @@ import (
 
 // Element represents an individual element within a scene, including its targets and color.
 type Element struct {
-	targets []*light.Light
-	color   *color.Color
+	targets    []*light.Light
+	targetsRaw []string
+	color      *color.Color
 }
 
 // Scene represents a scene, including its name, elements, and group.
@@ -57,8 +58,9 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 			}
 
 			element := &Element{
-				targets: targets,
-				color:   color,
+				targets:    targets,
+				color:      color,
+				targetsRaw: e.Targets,
 			}
 			scene.elements = append(scene.elements, element)
 		}
@@ -89,6 +91,11 @@ func (s *Scene) String() string {
 // GetTargets returns the targets of the element.
 func (e *Element) GetTargets() []*light.Light {
 	return e.targets
+}
+
+// GetRawTargets gets the names of the lights and lights groups referenced by the element.
+func (e *Element) GetRawTargets() []string {
+	return e.targetsRaw
 }
 
 // GetColor returns the color of the element.
