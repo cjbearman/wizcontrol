@@ -67,7 +67,7 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	var targetLights []*light.Light
 
 	for _, target := range request.Targets {
-		lightsInTarget := light.GetLightOrGroup(target, cnf.Lights, cnf.LightGroups)
+		lightsInTarget := cnf.GetLightOrGroup(target)
 		if len(lightsInTarget) == 0 {
 			return NewGeneralResponse(false, fmt.Sprintf("'%q' is not a valid target (not a light or light group)'", target)), NewRpcError(400, "invalid target: %s", target)
 		} else {

@@ -11,8 +11,6 @@ import (
 
 const UnknownColor = "unknown"
 
-type Lights map[string]*Light
-
 type Light struct {
 	name, ip, discoveryMAC  string
 	mac                     string
@@ -81,37 +79,6 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 	}
 
 	return lights, groups, nil
-}
-
-func (l Lights) getLightByIP(ip string) *Light {
-	if ip == "" {
-		return nil
-	}
-	for _, light := range l {
-		if light.ip == ip {
-			return light
-		}
-	}
-	return nil
-}
-
-func (l Lights) getLightsByDiscoveryMac(mac string) *Light {
-	for _, light := range l {
-		if light.discoveryMAC == "" {
-			continue
-		}
-		if light.discoveryMAC == mac {
-			return light
-		}
-	}
-	return nil
-}
-
-func (l Lights) GetByName(name string) *Light {
-	if light, found := l[name]; found {
-		return light
-	}
-	return nil
 }
 
 func (l *Light) String() string {
@@ -199,48 +166,12 @@ func (l *Light) UseDiscovery() bool {
 	return l.discoveryMAC != ""
 }
 
-func (l Lights) DiscoveryRequired() bool {
-	for _, light := range l {
-		if light.UseDiscovery() {
-			return true
-		}
-	}
-	return false
-}
-
 func (l *Light) DiscoveryMAC() string {
 	return l.discoveryMAC
 }
 
 func (l *Light) Name() string {
 	return l.name
-}
-
-func GetLightOrGroup(lightOrGroup string, l Lights, g LightGroups) []*Light {
-	for _, item := range l {
-		if item.Name() == lightOrGroup {
-			return []*Light{item}
-		}
-	}
-	for _, group := range g {
-		if group.Name() == lightOrGroup {
-			return group.Lights()
-		}
-	}
-	return nil
-}
-
-func (l Lights) GetAllLightsDeviceGroup() *wiz.DeviceGroup {
-	dg := wiz.NewDeviceGroup()
-
-	for _, light := range l {
-		d := light.Device()
-		if d != nil {
-			dg.AddDevice(d)
-		}
-	}
-
-	return dg
 }
 
 // MAC returns the MAC address (if known) for this light, else empty

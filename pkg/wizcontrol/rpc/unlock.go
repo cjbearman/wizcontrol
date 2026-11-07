@@ -30,7 +30,7 @@ func HandleUnlockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	affectedLights := []*light.Light{}
 
 	for _, item := range request.Targets {
-		lights := light.GetLightOrGroup(item, cnf.Lights, cnf.LightGroups)
+		lights := cnf.GetLightOrGroup(item)
 
 		if len(lights) == 0 {
 			logger.Errorf("Light or group %q not found", item)

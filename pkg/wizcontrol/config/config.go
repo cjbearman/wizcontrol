@@ -94,3 +94,13 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 
 	return conf, nil
 }
+
+func (c *Config) GetLightOrGroup(lightOrGroup string) []*light.Light {
+	if l := c.Lights.GetByName(lightOrGroup); l != nil {
+		return []*light.Light{l}
+	}
+	if g, found := c.LightGroups[lightOrGroup]; found {
+		return g.Lights()
+	}
+	return nil
+}
