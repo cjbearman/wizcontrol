@@ -18,11 +18,12 @@ func (c Calendars) GetByName(name string) *Calendar {
 	return nil
 }
 
-func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []*scene.Scene {
+func (c Calendars) GetCalendarScenes(scenes scene.Scenes) ([]*scene.Scene, []string) {
 	logger := common.Logger.GetLogger("calendar")
 	result := []*scene.Scene{}
 
 	dayNo, now := GetTodayNumber()
+	selectedCalendars := []string{}
 
 	for _, entry := range c {
 		if dayNo >= entry.from && dayNo <= entry.to {
@@ -48,6 +49,7 @@ func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []*scene.Scene {
 
 			sc := entry.selector.GetScene(dayNo)
 			result = append(result, sc...)
+			selectedCalendars = append(selectedCalendars, entry.name)
 		} else {
 		}
 	}
@@ -59,5 +61,5 @@ func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []*scene.Scene {
 
 	logger.Infof("Calendar scenes selected: %v", selectedSceneName)
 
-	return result
+	return result, selectedCalendars
 }

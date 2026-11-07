@@ -11,6 +11,7 @@ import (
 // DaemonAttributes represents the attributes of the daemon, including scenes and their schedules.
 type DaemonAttributes struct {
 	Scenes                string     `json:"scenes"`
+	ActiveCalendars       []string   `json:"active_calendars"`
 	CalendarScenes        []string   `json:"calendar_scenes"`
 	AdditionalScenes      []string   `json:"additional_scenes"`
 	AdditionalScenesUntil *time.Time `json:"additional_scenes_until,omitempty"`
@@ -28,6 +29,7 @@ type DaemonStatus struct {
 func BuildDaemonResponse(
 	scenes string,
 	calendarScenes []string,
+	activeCalendars []string,
 	additionalScenes []scene.SceneUntil,
 	mode string,
 ) DaemonStatus {
@@ -46,6 +48,7 @@ func BuildDaemonResponse(
 			Scenes:           scenes,
 			CalendarScenes:   calendarScenes,
 			AdditionalScenes: addScenes,
+			ActiveCalendars:  activeCalendars,
 		},
 		Mode: mode,
 	}

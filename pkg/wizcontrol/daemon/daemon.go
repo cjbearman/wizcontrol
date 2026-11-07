@@ -38,6 +38,7 @@ type Daemon struct {
 	lastRecheck      time.Time
 	mode             DaemonMode
 	activeSceneNames string
+	activeCalendars  []string
 	lock             sync.Mutex
 	calendarScenes   []string
 	additionalUntil  time.Time
@@ -86,6 +87,12 @@ func (d *Daemon) GetCalendarScenes() []string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.calendarScenes
+}
+
+func (d *Daemon) GetActiveCalendars() []string {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.activeCalendars
 }
 
 // Kick will send a kick on the kick channel, unless there is already one pending, in which case there's not much point
@@ -181,7 +188,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 
 	// calendarScenes are whichever scenes the calendar currently dictates should be active
 	// there may be multiple and are ordered
-	calendarScenes := d.cnf.Calendars.GetCalendarScenes(d.cnf.Scenes)
+	calendarScenes, calendarNames := d.cnf.Calendars.GetCalendarScenes(d.cnf.Scenes)
 
 	// additionalScenes may have been provided by API, and are also ordered
 	additionalScenes := d.cnf.AdditionalScenes.GetAdditionalScenes()
@@ -208,6 +215,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	d.lock.Lock()
 	d.calendarScenes = calendarSceneNamesList
 	d.activeSceneNames = activeSceneNames
+	d.activeCalendars = calendarNames
 	d.lock.Unlock()
 
 	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalSceneNamesList, ","))
@@ -240,6 +248,7 @@ func (d *Daemon) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
 		d.GetActiveSceneNames(),
 		d.GetCalendarScenes(),
+		d.GetActiveCalendars(),
 		d.cnf.AdditionalScenes.GetAdditionalScenesAndTimes(),
 		string(d.GetMode()),
 	)

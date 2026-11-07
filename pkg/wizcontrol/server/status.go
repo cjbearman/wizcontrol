@@ -23,6 +23,7 @@ func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 		Server: responses.BuildDaemonResponse(
 			daemon.Instance.GetActiveSceneNames(),
 			daemon.Instance.GetCalendarScenes(),
+			daemon.Instance.GetActiveCalendars(),
 			s.cnf.AdditionalScenes.GetAdditionalScenesAndTimes(),
 			string(daemon.Instance.GetMode()),
 		),
