@@ -84,6 +84,9 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 }
 
 func (l Lights) getLightByIP(ip string) *Light {
+	if ip == "" {
+		return nil
+	}
 	for _, light := range l {
 		if light.ip == ip {
 			return light

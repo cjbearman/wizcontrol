@@ -24,7 +24,7 @@ mqtt:
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses
 discovery:
-  broadcast_address: "255.255.255.255"
+  broadcast_address: "192.168.21.255"
   interval: "30s"
   period: "5s"
 
@@ -87,28 +87,28 @@ lights:
     groups: [ "outside_lights", "patio_lights" ]
   - name: office_stand_light_upper
     ip: 192.168.20.13
+    #mac: cc:40:85:c5:a8:de
     groups: [ "indoor", "office_lights" , "office_lamps" ]
   - name: office_stand_light_lower
     ip: 192.168.20.244
+    #mac: 98:77:d5:30:8a:14
     groups: [ "indoor", "office_lights" , "office_lamps" ]
   - name: office_minecraft_lamp
     ip: 192.168.20.163
+    #mac: 98:77:d5:46:9b:d8
     groups: [ "indoor", "office_lights", "office_lamps" ]
   - name: office_ceiling_1
     ip: 192.168.20.192
+    #mac: 98:77:d5:46:6e:d4
     groups: [ "indoor", "office_lights" , "office_ceiling"]
   - name: office_ceiling_2
     ip: 192.168.20.251
+    #mac: 98:77:d5:a6:b7:3a
     groups: [ "indoor", "office_lights" , "office_ceiling"]
   - name: office_ceiling_3
     ip: 192.168.20.84
+    #mac: 98:77:d5:30:1a:fc
     groups: [ "indoor", "office_lights" , "office_ceiling"]
-  #office_stand_light_upper: cc:40:85:c5:a8:de
-  #office_stand_light_lower: 98:77:d5:30:8a:14
-  #office_minecraft_lamp: 98:77:d5:46:9b:d8
-  #office_ceiling_1: 98:77:d5:46:6e:d4
-  #office_ceiling_2: 98:77:d5:a6:b7:3a
-  #office_ceiling_3: 98:77:d5:30:1a:fc
 
 
 colors:
