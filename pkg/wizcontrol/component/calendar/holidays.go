@@ -29,6 +29,7 @@ var HolidayNames = map[string]func() int{
 	"independence_day":          func() int { return GetDayNumberByDayAndMonth(4, time.July) },
 	"halloween":                 func() int { return GetDayNumberByDayAndMonth(31, time.October) },
 	"st_patricks_day":           func() int { return GetDayNumberByDayAndMonth(17, time.March) },
+	"juneteenth":                func() int { return GetDayNumberByDayAndMonth(19, time.June) },
 }
 
 func easterSunday() int {
