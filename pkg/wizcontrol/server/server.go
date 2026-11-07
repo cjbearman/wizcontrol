@@ -65,6 +65,7 @@ func NewServer(cnf *config.Config) *Server {
 	mux.HandleFunc("POST /unpause", srv.intercept(srv.unpauseHandler))
 	mux.HandleFunc("GET /calendars", srv.intercept(srv.calendarsHandler))
 	mux.HandleFunc("GET /holidays", srv.intercept(srv.holidaysHandler))
+	mux.HandleFunc("GET /scenes", srv.intercept(srv.scenesHandler))
 
 	return srv
 
