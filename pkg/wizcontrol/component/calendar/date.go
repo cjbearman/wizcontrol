@@ -10,27 +10,34 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
+// Regular expressions for parsing standard dates, which is 3 letter month followed by numeric day of month
 var standardDateRegexp = regexp.MustCompile(`^([a-z]+)\s+(\d+)$`)
+
+// Regular expressions for parsing holiday dates, which is a holiday name optionally followed by an offset (+/- number of days)
 var holidayDateRegexp = regexp.MustCompile(`^([a-z_]+)\s*(([+-])\s*(\d*))?$`)
 
 // Because our calendar may includes dates of Feb 9, we calculate day numbers using a leap year to ensure correct day-of-year values.
 const leapYear = 2024
 
+// GetDayNumber returns the day number of the given time, using the leap year for calculation.
 func GetDayNumber(t time.Time) int {
 	return time.Date(leapYear, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), common.Location).YearDay()
 }
 
+// GetTodayNumber returns the day number and the current time for today, using the leap year for calculation.
 func GetTodayNumber() (int, time.Time) {
 	now := time.Now().In(common.Location)
 	return GetDayNumber(now), now
 }
 
+// GetDayNumberByDayAndMonth returns the day number for the specified day and month, using the leap year for calculation.
 func GetDayNumberByDayAndMonth(day int, month time.Month) int {
 	return time.Date(leapYear, month, day, 12, 0, 0, 0, common.Location).YearDay()
 }
 
 // DateToDayNumber takes a date string and returns the day number (respective to leap year)
-// or -1 if it is not valid
+// or -1 if it is not valid.
+// The date string can be in the format "MMM DD" (e.g., "Feb 9") or a holiday name with an optional offset (e.g., "christmas+1").
 func DateToDayNumber(date string) int {
 	lc := strings.ToLower(date)
 	matches := standardDateRegexp.FindStringSubmatch(lc)
@@ -87,6 +94,7 @@ func DateToDayNumber(date string) int {
 	return -1
 }
 
+// monthDecode converts a month string (full or abbreviated) to a time.Month value. Returns an error if the month is invalid.
 func monthDecode(month string) (time.Month, error) {
 	switch month {
 	case "january", "jan":
@@ -118,6 +126,7 @@ func monthDecode(month string) (time.Month, error) {
 	}
 }
 
+// dayValid checks if the given day is valid for the specified month.
 func dayValid(day int, month time.Month) bool {
 	if day < 1 {
 		return false
@@ -134,6 +143,7 @@ func dayValid(day int, month time.Month) bool {
 	}
 }
 
+// DayThisYearFromDayNumber returns the month and day string (e.g., "Jan 2") for the given day number in the current year.
 func DayThisYearFromDayNumber(day int) (string, error) {
 	if day < 1 || day > 366 {
 		return "", fmt.Errorf("invalid day number: %d", day)

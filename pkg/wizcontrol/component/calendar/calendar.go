@@ -8,11 +8,17 @@ import (
 )
 
 const (
-	SceneModeAll    = "all"
+	// SceneModeAll indicates that all scenes in a calendar should be used
+	SceneModeAll = "all"
+
+	// SceneModeRandom indicates that a single scene should be selected at random on the specified frequency
 	SceneModeRandom = "random"
+
+	// SceneModeRotate indicates that scenes should be rotated based on the specified frequency
 	SceneModeRotate = "rotate"
 )
 
+// Calendar represents a calendar with a name, date range, optional before and after times, associated scenes, and a scene selector.
 type Calendar struct {
 	name                     string
 	from, to                 int
@@ -22,6 +28,7 @@ type Calendar struct {
 	selector                 SceneSelector
 }
 
+// Build constructs a list of Calendar objects from the provided configuration and available scenes.
 func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 	var calendars Calendars
 
@@ -70,42 +77,52 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 	return calendars, nil
 }
 
+// String returns a string representation of the Calendar object.
 func (c *Calendar) String() string {
 	return fmt.Sprintf("Calendar{name: %q, from: %d, to: %d, before: %v, after: %v, scenes: %v}", c.name, c.from, c.to, c.before, c.after, c.scenes)
 }
 
+// Name returns the name of the Calendar.
 func (c *Calendar) Name() string {
 	return c.name
 }
 
+// From returns the starting day number of the Calendar.
 func (c *Calendar) From() int {
 	return c.from
 }
 
+// To returns the ending day number of the Calendar.
 func (c *Calendar) To() int {
 	return c.to
 }
 
+// Before returns the optional before time of the Calendar.
 func (c *Calendar) Before() *CalendarTime {
 	return c.before
 }
 
+// After returns the optional after time of the Calendar.
 func (c *Calendar) After() *CalendarTime {
 	return c.after
 }
 
+// Scenes returns the list of scenes associated with the Calendar.
 func (c *Calendar) Scenes() []*scene.Scene {
 	return c.scenes
 }
 
+// OriginalFrom returns the original from date string of the Calendar.
 func (c *Calendar) OriginalFrom() string {
 	return c.originalFrom
 }
 
+// OriginalTo returns the original to date string of the Calendar.
 func (c *Calendar) OriginalTo() string {
 	return c.originalTo
 }
 
+// Selector returns the scene selector of the Calendar.
 func (c *Calendar) Selector() SceneSelector {
 	return c.selector
 }

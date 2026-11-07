@@ -7,8 +7,12 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 )
 
+// Calendars represents a collection of Calendar objects.
+// It is important that this is an array, not a map, because calendars are ordered
 type Calendars []*Calendar
 
+// GetByName returns the Calendar with the specified name, or nil if not found.
+// Returns nil if no calendar with the specified name exists.
 func (c Calendars) GetByName(name string) *Calendar {
 	for _, item := range c {
 		if item.name == name {
@@ -18,6 +22,8 @@ func (c Calendars) GetByName(name string) *Calendar {
 	return nil
 }
 
+// GetCalendarScenes returns the scenes for the current day based on the calendar entries.
+// It also returns the names of the calendars that contributed scenes.
 func (c Calendars) GetCalendarScenes(scenes scene.Scenes) ([]*scene.Scene, []string) {
 	logger := common.Logger.GetLogger("calendar")
 	result := []*scene.Scene{}

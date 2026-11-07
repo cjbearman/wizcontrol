@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// CalendarTime represents a specific time of day with hour and minute components.
 type CalendarTime struct {
 	Hour   int
 	Minute int
@@ -14,6 +15,7 @@ type CalendarTime struct {
 
 var timeRegexp = regexp.MustCompile(`^(\d{1,2}):(\d{1,2})\s*(am|pm)?$`)
 
+// ParseTime parses a time string in the format "HH:MM am/pm" and returns a CalendarTime.
 func ParseTime(timeStr string) (CalendarTime, error) {
 	matches := timeRegexp.FindStringSubmatch(strings.TrimSpace(strings.ToLower(timeStr)))
 
@@ -43,6 +45,8 @@ func ParseTime(timeStr string) (CalendarTime, error) {
 	return CalendarTime{Hour: hour, Minute: minute}, nil
 }
 
+// OptionalCalendarTime parses a time string and returns a pointer to CalendarTime.
+// If the time string is empty, it returns nil without an error.
 func OptionalCalendarTime(timeStr string) (*CalendarTime, error) {
 	timeStr = strings.TrimSpace(strings.ToLower(timeStr))
 	if timeStr == "" {

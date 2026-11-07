@@ -9,40 +9,51 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 )
 
+// RandomFrequencyMinutes is the default frequency that we will randomly rotate scenes, unless overridden
 var RandomFrequencyMinutes = 60
+
+// RotationFrequencyMinutes is the default frequency that we will rotate scenes, unless overridden
 var RotationFrequencyMinutes = 60
 
+// SceneSelector defines the interface for selecting scenes based on the day number.
 type SceneSelector interface {
 	GetScene(dayNumber int) []*scene.Scene
 	FrequencyStr() string
 	ModeStr() string
 }
 
+// AllSceneSelector returns all scenes
 type AllSceneSelector struct {
 	scenes []*scene.Scene
 }
 
+// GetScene returns all scenes, regardless of the day number.
 func (f *AllSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	return f.scenes
 }
 
+// ModeStr returns the mode string for the AllSceneSelector. It will always return SceneModeAll.
 func (f *AllSceneSelector) ModeStr() string {
 	return SceneModeAll
 }
 
+// FrequencyStr returns the frequency string for the AllSceneSelector. It will always return an empty string.
 func (f *AllSceneSelector) FrequencyStr() string {
 	return ""
 }
 
+// RandomSceneSelector selects scenes randomly based on a defined frequency.
 type RandomSceneSelector struct {
 	scenes    []*scene.Scene
 	Frequency time.Duration
 }
 
+// ModeStr returns the mode string for the RandomSceneSelector. It will always return SceneModeRandom.
 func (f *RandomSceneSelector) ModeStr() string {
 	return SceneModeRandom
 }
 
+// FrequencyStr returns the frequency string for the RandomSceneSelector.
 func (f *RandomSceneSelector) FrequencyStr() string {
 	return f.Frequency.String()
 }
@@ -70,6 +81,7 @@ func (f *RandomSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	return []*scene.Scene{f.scenes[index]}
 }
 
+// RotateSceneSelector selects scenes in a rotating order based on a defined frequency.
 type RotateSceneSelector struct {
 	scenes    []*scene.Scene
 	Frequency time.Duration
@@ -92,10 +104,12 @@ func (f *RotateSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	return []*scene.Scene{f.scenes[index]}
 }
 
+// ModeStr returns the mode string for the RotateSceneSelector. It will always return SceneModeRotate.
 func (f *RotateSceneSelector) ModeStr() string {
 	return SceneModeRotate
 }
 
+// FrequencyStr returns the frequency string for the RotateSceneSelector.
 func (f *RotateSceneSelector) FrequencyStr() string {
 	return f.Frequency.String()
 }

@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigYAML represents the configuration for a calendar as defined in the YAML file.
 type ConfigYAML struct {
 	Name      string   `yaml:"name"`
 	From      string   `yaml:"from"`
@@ -20,6 +21,7 @@ type ConfigYAML struct {
 	Frequency string   `yaml:"frequency"`
 }
 
+// UnmarshalYAML custom unmarshals the ConfigYAML from the YAML node, performing validation on the fields.
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

@@ -10,6 +10,7 @@ import (
 	"github.com/rickar/cal/v2/us"
 )
 
+// HolidayNames maps holiday names to functions that return the day number for that holiday in the current year.
 var HolidayNames = map[string]func() int{
 	"easter_sunday":             func() int { return easterSunday() },
 	"good_friday":               func() int { return goodFriday() },
