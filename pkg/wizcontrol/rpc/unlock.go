@@ -9,10 +9,12 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
+// UnlockRequest represents the request structure for the unlock request.
 type UnlockRequest struct {
 	Targets []string `json:"targets"`
 }
 
+// HandleUnlockRequest handles the unlock request and returns the JSON-encoded response along with any RPC error.
 func HandleUnlockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 
 	logger := common.Logger.GetLogger("rpc-unlock")

@@ -15,6 +15,8 @@ var macReg1 = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
 var macReg2 = regexp.MustCompile(`^[a-zA-Z0-9]{12}$`)
 var macReg3 = regexp.MustCompile(`^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$`)
 
+// ComponentName validates all component names as lower case strings containing alphanumerics, - and _ only.
+// empty component names are allowed
 func ComponentName(name string) (string, error) {
 	name = strings.TrimSpace(strings.ToLower(name))
 	if name == "" {
@@ -28,6 +30,7 @@ func ComponentName(name string) (string, error) {
 	return name, nil
 }
 
+// RequiredComponentName validates that a component name is provided and follows the same rules as ComponentName.
 func RequiredComponentName(name string) (string, error) {
 	name = strings.TrimSpace(strings.ToLower(name))
 	if name == "" {
@@ -36,6 +39,7 @@ func RequiredComponentName(name string) (string, error) {
 	return ComponentName(name)
 }
 
+// RequiredColorString validates that a color string is provided and is a valid color.
 func RequiredColorString(color string) (string, error) {
 	color = strings.TrimSpace(strings.ToLower(color))
 	if color == "" {
@@ -51,6 +55,7 @@ func RequiredColorString(color string) (string, error) {
 
 }
 
+// IP validates that the provided string is a valid IP address. If required is true, an empty string is considered invalid.
 func IP(ip string, required bool) (string, error) {
 	ip = strings.TrimSpace(ip)
 	if !required && ip == "" {
@@ -62,6 +67,8 @@ func IP(ip string, required bool) (string, error) {
 	return ip, nil
 }
 
+// MAC validates that the provided string is a valid MAC address. If required is true, an empty string is considered invalid.
+// Returns a normalized MAC address in xx:xx:xx:xx:xx:xx format or error.
 func MAC(mac string, required bool) (string, error) {
 	mac = strings.TrimSpace(strings.ToLower(mac))
 	if !required && mac == "" {

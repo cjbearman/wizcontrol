@@ -15,6 +15,7 @@ type ConfigYAML struct {
 	EvaluationPeriod string `yaml:"evaluation_period"`
 	RecheckPeriod    string `yaml:"recheck_period"`
 	WizColorPrefix   string `yaml:"wiz_color_prefix"`
+	StateFile        string `yaml:"state_file"`
 }
 
 // UnmarshalYAML customizes the unmarshalling of the system configuration from YAML.
@@ -48,6 +49,8 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	if c.WizColorPrefix == "" {
 		c.WizColorPrefix = color.DefaultWizColorPrefix
 	}
+
+	c.StateFile = strings.TrimSpace(alias.StateFile)
 
 	return nil
 }

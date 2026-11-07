@@ -15,8 +15,10 @@ const (
 	FieldRemoteAddr = "remote_addr"
 )
 
+// Instance holds the singleton instance of the server.
 var Instance *Server
 
+// Server represents the HTTP server for handling WizControl requests.
 type Server struct {
 	*common.BaseRunner
 	mux    *http.ServeMux
@@ -24,6 +26,7 @@ type Server struct {
 	cnf    *config.Config
 }
 
+// NewServer creates and returns a new instance of the Server with the provided configuration.
 func NewServer(cnf *config.Config) *Server {
 	mux := http.NewServeMux()
 	srv := &Server{
@@ -62,6 +65,8 @@ func NewServer(cnf *config.Config) *Server {
 	return srv
 
 }
+
+// run starts the HTTP server and handles TLS configuration if provided. It blocks until the server stops.
 func (s *Server) run() {
 	logger := common.Logger.GetLogger("server")
 	var err error
@@ -86,6 +91,7 @@ func (s *Server) run() {
 	close(s.Closed)
 }
 
+// Stop gracefully shuts down the HTTP server with a timeout of 5 seconds.
 func (s *Server) Stop() {
 	logger := common.Logger.GetLogger("server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

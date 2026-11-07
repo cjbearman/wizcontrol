@@ -9,11 +9,16 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 )
 
+// DelScenesRequest represents the request payload for deleting scenes, including the scenes and groups.
+// HandleDelScenesRequest processes a DelScenesRequest, updating the configuration by removing the specified scenes and groups.
+// 'cnf' is the current configuration, and 'req' is the raw JSON request payload.
+// Returns a JSON-encoded response and an optional RpcError if the request is invalid.
 type DelScenesRequest struct {
 	Scenes []string `json:"scenes"`
 	Groups []string `json:"groups"`
 }
 
+// HandleDelScenesRequest handles the deletion of scenes specified in the DelScenesRequest.
 func HandleDelScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	logger := common.Logger.GetLogger("rpc-del-scenes")
 	request := &DelScenesRequest{}

@@ -7,11 +7,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
+// TargetsResponse represents the response structure for the targets request.
 type TargetsResponse struct {
 	LightGroups []string `json:"light_groups"`
 	Lights      []string `json:"lights"`
 }
 
+// HandleTargetsRequest handles the targets request and returns the JSON-encoded response.
 func HandleTargetsRequest(cnf *config.Config) []byte {
 	resp := &TargetsResponse{}
 

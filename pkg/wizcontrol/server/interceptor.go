@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// interceptor handles optional authentication and enforcement of content-type and accept headers for all requests.
 func (s *Server) intercept(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// All responses get no-cache headers

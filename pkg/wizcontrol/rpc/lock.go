@@ -11,6 +11,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 )
 
+// LockRequest represents the request payload for a lock operation.
 type LockRequest struct {
 	Targets []string `json:"targets"`
 	For     string   `json:"for"`
@@ -18,9 +19,7 @@ type LockRequest struct {
 	Color   string   `json:"color"`
 }
 
-type LockResponse struct {
-}
-
+// HandleLockRequest processes a lock request, validating the input and locking the specified targets.
 func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	logger := common.Logger.GetLogger("rpc-lock")
 	request := &LockRequest{}

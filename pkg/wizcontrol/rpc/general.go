@@ -9,11 +9,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
+// GeneralResponse represents a standard response for RPC requests, indicating success or failure and an optional error message.
 type GeneralResponse struct {
 	Success bool    `json:"success"`
 	Error   *string `json:"error,omitempty"`
 }
 
+// NewGeneralResponse creates a new GeneralResponse with the given success status and error message.
 func NewGeneralResponse(success bool, errmsg string) []byte {
 	resp := GeneralResponse{
 		Success: success,
@@ -25,19 +27,24 @@ func NewGeneralResponse(success bool, errmsg string) []byte {
 	return data
 }
 
+// RpcError represents an error that occurred during an RPC request, including an error message and an HTTP status code.
 type RpcError struct {
 	error  string
 	status int
 }
 
+// Error returns the error message associated with the RpcError.
 func (e *RpcError) Error() string {
 	return e.error
 }
 
+// Status returns the HTTP status code associated with the RpcError.
 func (e *RpcError) Status() int {
 	return e.status
 }
 
+// NewRpcError creates a new RpcError with the given HTTP status code and formatted error message.
+// 'status' is the HTTP status code, 'format' is a format string, and 'args' are the arguments for the format string.
 func NewRpcError(status int, format string, args ...interface{}) *RpcError {
 	return &RpcError{
 		error:  fmt.Sprintf(format, args...),
@@ -45,6 +52,9 @@ func NewRpcError(status int, format string, args ...interface{}) *RpcError {
 	}
 }
 
+// validateForUntil validates the 'for' and 'until' parameters, ensuring that exactly one is provided and returns the corresponding time.
+// 'forspec' is the 'for' duration string, 'until' is the 'until' time string.
+// Returns the calculated time and an optional RpcError if the input is invalid.
 func validateForUntil(forspec, until string) (time.Time, *RpcError) {
 	if forspec == "" && until == "" {
 		return time.Time{}, NewRpcError(400, "either 'for' or 'until' is required")
@@ -61,6 +71,10 @@ func validateForUntil(forspec, until string) (time.Time, *RpcError) {
 	return time.Time{}, NewRpcError(400, "either 'for' or 'until' is required")
 }
 
+// forParser parses the 'for' duration string and returns the corresponding time.
+// 'forSpec' is the 'for' duration string.
+// Returns the calculated time and an optional RpcError if the input is invalid.
+// Accepts any duration or "day", "week", "month"
 func forParser(forSpec string) (time.Time, *RpcError) {
 	forSpec = strings.TrimSpace(strings.ToLower(forSpec))
 	// Accept a standard Go duration string, e.g., "1h30m"
@@ -98,6 +112,7 @@ func forParser(forSpec string) (time.Time, *RpcError) {
 	return time.Time{}, NewRpcError(400, "invalid 'for' duration: %v", err)
 }
 
+// parseableTimeDateFormats lists the time and date formats that can be parsed by untilParse.
 var parseableTimeDateFormats = []string{
 	time.ANSIC,
 	time.UnixDate,
@@ -117,6 +132,9 @@ var parseableTimeDateFormats = []string{
 	"15:04",
 }
 
+// untilParse parses the 'until' time string and returns the corresponding time.
+// 'until' is the 'until' time string.
+// Returns the calculated time and an optional RpcError if the input is invalid.
 func untilParse(until string) (time.Time, *RpcError) {
 	for _, fmt := range parseableTimeDateFormats {
 		ts, err := time.ParseInLocation(fmt, until, common.Location)

@@ -7,10 +7,12 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
+// HandleScenesRequest processes a request to list available scenes.
 type ScenesResponse struct {
 	Scenes []string `json:"scenes"`
 }
 
+// ScenesResponse represents the response payload for a request to list available scenes.
 func HandleScenesRequest(cnf *config.Config) []byte {
 	resp := &ScenesResponse{}
 

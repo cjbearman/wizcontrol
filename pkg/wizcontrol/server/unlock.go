@@ -8,6 +8,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
+// unlockHandler handles the request to unlock and returns the appropriate HTTP response.
 func (s *Server) unlockHandler(w http.ResponseWriter, r *http.Request) {
 
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)

@@ -7,10 +7,12 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
+// ColorsResponse represents the response payload for a request to list available colors.
 type ColorsResponse struct {
 	Colors []string `json:"colors"`
 }
 
+// HandleColorsRequest processes a request to list available colors.
 func HandleColorsRequest(cnf *config.Config) []byte {
 	resp := &ColorsResponse{}
 

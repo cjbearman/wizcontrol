@@ -10,6 +10,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 )
 
+// AddScenesRequest represents the request payload for adding scenes, including the scenes, groups, and scheduling information.
 type AddScenesRequest struct {
 	Scenes        []string `json:"scenes"`
 	Groups        []string `json:"groups"`
@@ -18,6 +19,9 @@ type AddScenesRequest struct {
 	Until         string   `json:"until"`
 }
 
+// HandleAddScenesRequest processes an AddScenesRequest, updating the configuration with the specified scenes and groups.
+// 'cnf' is the current configuration, and 'req' is the raw JSON request payload.
+// Returns a JSON-encoded response and an optional RpcError if the request is invalid.
 func HandleAddScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	logger := common.Logger.GetLogger("rpc-add-scenes")
 	request := &AddScenesRequest{}

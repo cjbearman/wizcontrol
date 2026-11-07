@@ -7,6 +7,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 )
 
+// resetHandler handles the request to reset and returns the appropriate HTTP response.
 func (s *Server) resetHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	logger.Info("reset request received")

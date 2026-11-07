@@ -6,6 +6,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 )
 
+// HandleResetRequest processes a request to reset all lights and clear daily overrides.
 func HandleResetRequest(cnf *config.Config) []byte {
 	logger := common.Logger.GetLogger("rpc-reset")
 

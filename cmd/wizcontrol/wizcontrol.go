@@ -19,37 +19,42 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
 
+// main is the main runner for wizcontrol
 func main() {
+	// Command line processing
 	logLevel := flag.String("log", "info", "Set the logging level")
 	cfg := flag.String("config", "config.yaml", "Path to the configuration file")
 	wc := flag.Bool("wc", false, "List available pre-defined wiz colors")
-
 	flag.Parse()
 
+	// Set up logging based on the command line flag for log level
 	level, err := logger.LevelFromString(*logLevel)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid log level %q\n", *logLevel)
 		os.Exit(1)
 	}
-
 	common.Logger = logger.NewLoggerFactory(level, logger.NewColorStringFormatter(), logger.NewSyncWriter(os.Stdout)).GetLogger("root")
 
+	// Load the configuration file specified by the command line flag
 	parsed, err := config.Load(*cfg)
 	if err != nil {
 		common.Logger.Errorf("Failed to load config: %v", err)
 		os.Exit(1)
 	}
 
+	// Build the runtime configuration
 	finalConfig, err := config.Build(parsed)
 	if err != nil {
 		common.Logger.Errorf("Failed to build config: %v", err)
 		os.Exit(1)
 	}
 
+	// Set our system wide timezone and add timestamping to the logger in the same timezone
 	common.Location = finalConfig.System.Timezone()
 	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
 	common.Logger.Infof("Operating in location: %v", common.Location)
 
+	// If the user requested to list available pre-defined wiz colors, do that and exit
 	if *wc {
 		for name := range finalConfig.WizColors {
 			fmt.Printf("%s\n", name)
@@ -57,12 +62,16 @@ func main() {
 		return
 	}
 
+	// Run the application as a daemon with the final configuration
 	runAsDaemon(finalConfig)
 }
 
+// runAsDaemon runs the wizcontrol service through completion
 func runAsDaemon(cnf *config.Config) {
 	logger := common.Logger.GetLogger("runner")
 	logger.Info("Runner starting")
+
+	// We need to catch CTRL-C and other termination signals
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM)
 
@@ -94,7 +103,7 @@ func runAsDaemon(cnf *config.Config) {
 		logger.Info("MQTT not configured")
 	}
 
-	// If one or more devices were configured on a Mac basis, then we need to run discovery to find them
+	// If one or more devices were configured on a Mac basis, then we need to start discovery to find them
 	if cnf.Lights.DiscoveryRequired() {
 		logger.Info("One or more lights require discovery, discovery service will be started")
 		discovery.Instance = discovery.NewDiscovery(cnf)
@@ -110,8 +119,9 @@ func runAsDaemon(cnf *config.Config) {
 	daemonStopCh := guaranteeChannel(daemon.Instance)
 	serverStopCh := guaranteeChannel(server.Instance)
 
+	// Everything is now running, wait for something to stop or for a termination signal
+	// and shutdown things as needed
 	select {
-
 	case <-mqttStopCh:
 		logger.Warn("MQTT has stopped, stopping daemon and server")
 		stop(daemon.Instance)
@@ -144,28 +154,37 @@ func runAsDaemon(cnf *config.Config) {
 		stop(discovery.Instance)
 	}
 
+	// Everything should now be stopping, wait for all services to confirm they have stopped
+	// order isn't important
 	waitStopped(daemon.Instance)
 	waitStopped(server.Instance)
 	waitStopped(mqtt.Instance)
 	waitStopped(discovery.Instance)
+
+	// Close out our message bus, ensuring it gets drained for cleanup
 	cnf.Bus.Close()
 	logger.Info("Runner terminated")
+
+	// That's all folks
 	os.Exit(0)
 
 }
 
+// stop will stop any service that is not nil
 func stop(service common.Runner) {
 	if !isNil(service) {
 		service.Stop()
 	}
 }
 
+// waitStopped will wait for a service to stop or return immediately if nil
 func waitStopped(service common.Runner) {
 	if !isNil(service) {
 		<-service.Stopped()
 	}
 }
 
+// guaranteeChannel will return the stopped channel for a service or a dummy channel if nil
 func guaranteeChannel(service common.Runner) <-chan struct{} {
 	if !isNil(service) {
 		return service.Stopped()
@@ -174,6 +193,8 @@ func guaranteeChannel(service common.Runner) <-chan struct{} {
 	return ch
 }
 
+// isNil returns true if the given interface is nil or points to a nil value
+// because checking an interface directly against nil is problematic
 func isNil(i any) bool {
 	if i == nil {
 		return true

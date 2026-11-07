@@ -11,6 +11,7 @@ type System struct {
 	evaluationPeriod time.Duration
 	recheckPeriod    time.Duration
 	wizColorPrefix   string
+	stateFile        string
 }
 
 const (
@@ -46,6 +47,7 @@ func Build(cfg ConfigYAML) System {
 			return d
 		}(),
 		wizColorPrefix: cfg.WizColorPrefix,
+		stateFile:      cfg.StateFile,
 	}
 }
 
@@ -73,4 +75,9 @@ func (s System) RecheckPeriod() time.Duration {
 // WizColorPrefix returns the Wiz color prefix.
 func (s System) WizColorPrefix() string {
 	return s.wizColorPrefix
+}
+
+// StateFile returns the state file path.
+func (s System) StateFile() string {
+	return s.stateFile
 }

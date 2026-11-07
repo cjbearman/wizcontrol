@@ -9,11 +9,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 )
 
+// StatusResponse represents the structure of the response returned by the statusHandler.
 type StatusResponse struct {
 	Server responses.DaemonStatus           `json:"server"`
 	Lights map[string]responses.LightStatus `json:"lights"`
 }
 
+// statusHandler handles the request for the server status and returns the appropriate HTTP response.
 func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 	logger := common.Logger.GetLogger("server").WithField(FieldRemoteAddr, r.RemoteAddr)
 	status := &StatusResponse{

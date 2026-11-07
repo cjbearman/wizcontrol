@@ -10,27 +10,32 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+// main runs wizfind
 func main() {
+	// Command line
 	find := flag.Bool("f", false, "Find wiz lights")
 	broadcastAddr := flag.String("b", "", "Broadcast address for wiz light discovery")
-
 	set := flag.String("s", "", "Set wiz light with IP address specified in this option")
 	color := flag.String("c", "#ff0000", "Color to set the wiz light to")
-
 	flag.Parse()
 
+	// If finding a light, do that
 	if *find {
 		os.Exit(findWizLights(*broadcastAddr))
 	}
+
+	// Or if setting a light, do that
 	if *set != "" {
 		os.Exit(setWizLight(*set, *color))
 	}
 
+	// If neither finding nor setting a light, show usage and exit with error
 	flag.Usage()
 	os.Exit(1)
 
 }
 
+// findWizLights discovers wiz lights on the network using the specified broadcast address
 func findWizLights(broadcastAddr string) int {
 
 	disc := wiz.Discover().
@@ -61,10 +66,12 @@ func findWizLights(broadcastAddr string) int {
 	return 0
 }
 
+// discoveryCallback is called for each discovered wiz device
 func discoveryCallback(dev *wiz.Device) {
 	fmt.Printf("Discovered device, MAC: %s, IP: %s\n", dev.MAC(), dev.IP())
 }
 
+// setWizLight sets the color of a wiz light at the specified IP address
 func setWizLight(ip string, color string) int {
 
 	if ip == "" {
