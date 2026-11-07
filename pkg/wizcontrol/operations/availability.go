@@ -4,7 +4,6 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 )
 
 func UpdateAvailability(cnf *config.Config) {
@@ -25,7 +24,8 @@ func UpdateAvailability(cnf *config.Config) {
 				logger.Warnf("Light %q has become unreachable", result.Device.Name())
 				light.SetAvailable(false)
 				// Light not available, so update MQTT status since we won't be updating it's status
-				_ = senders.SendLightStatus(light)
+
+				sendLightStatus(cnf.Bus, light)
 			} else {
 				if lastState {
 					logger.Debugf("Light %q had no change in availability state, currently available", result.Device.Name())
@@ -40,8 +40,13 @@ func UpdateAvailability(cnf *config.Config) {
 
 	if len(updateStatusOps) > 0 {
 		for _, statusUpdate := range updateStatusOps.AwaitAll() {
-			handleStatusUpdate(cnf, statusUpdate)
-			// Above function will update MQTT status for these lights
+			light, found := cnf.Lights[statusUpdate.Device.Name()]
+			if !found {
+				logger.Errorf("Light %q not found for status update", statusUpdate.Device.Name())
+				continue
+			}
+
+			sendLightStatus(cnf.Bus, light)
 		}
 	}
 }

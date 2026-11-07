@@ -19,7 +19,8 @@ type ConfigYAML struct {
 	Username       string `yaml:"username"`
 	Password       string `yaml:"password"`
 	Topic          string `yaml:"topic"`
-	ControlEnabled *bool  `yaml:"controlEnabled"`
+	ControlEnabled *bool  `yaml:"control_enabled"`
+	RetainMessages *bool  `yaml:"retain_messages"`
 }
 
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
@@ -47,6 +48,12 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		ce = *alias.ControlEnabled
 	}
 	c.ControlEnabled = &ce
+
+	rm := true
+	if alias.RetainMessages != nil {
+		rm = *alias.RetainMessages
+	}
+	c.RetainMessages = &rm
 
 	return nil
 }

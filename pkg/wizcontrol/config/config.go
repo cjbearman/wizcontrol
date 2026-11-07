@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
@@ -37,6 +38,7 @@ type Config struct {
 	Discovery        discovery.Discovery
 	System           system.System
 	AdditionalScenes scene.AdditionalScenes
+	Bus              *bus.Bus
 }
 
 func Load(path string) (*ConfigYAML, error) {
@@ -86,6 +88,8 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 	conf.HTTP = http.Build(cfg.HTTP)
 	conf.Discovery = discovery.Build(cfg.Discovery)
 	conf.System = system.Build(cfg.System)
+
+	conf.Bus = bus.NewBus()
 
 	return conf, nil
 }

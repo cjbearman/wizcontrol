@@ -2,16 +2,12 @@ package mqtt
 
 import (
 	"crypto/sha256"
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 )
@@ -37,7 +33,7 @@ var Instance *Mqtt
 
 type Mqtt struct {
 	*common.BaseRunner
-	outboundMessage      chan messageAndTopic
+	outboundMessage      <-chan bus.Message
 	lastDaemonStatusHash string
 	lastLightStatusHash  map[string]string
 	MqttURL              string
@@ -51,7 +47,7 @@ type Mqtt struct {
 func NewMqtt(cnf *config.Config) *Mqtt {
 	mqtt := Mqtt{
 		BaseRunner:           common.NewRunner("mqtt"),
-		outboundMessage:      make(chan messageAndTopic, BufferSize),
+		outboundMessage:      cnf.Bus.Channel(),
 		lastLightStatusHash:  make(map[string]string),
 		lastDaemonStatusHash: "",
 		MqttURL:              cnf.MQTT.GetURL(),
@@ -62,9 +58,6 @@ func NewMqtt(cnf *config.Config) *Mqtt {
 		cnf:                  cnf,
 	}
 	mqtt.Exec = mqtt.run
-
-	senders.DaemonStatus = mqtt.SendDaemonStatus
-	senders.LightStatus = mqtt.SendLightStatus
 
 	return &mqtt
 
@@ -125,9 +118,9 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	}
 
 	// Publish initial scenes and colors, retained
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, true, rpc.HandleScenesRequest(m.cnf)).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, true, rpc.HandleColorsRequest(m.cnf)).Wait()
-	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, true, rpc.HandleTargetsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleScenesRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleColorsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
 
 }
 
@@ -139,6 +132,8 @@ func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
 func (m *Mqtt) run() {
 	logger := common.Logger.GetLogger("mqtt")
 	defer close(m.Closed)
+
+	messageUniqueness := make(map[string]string)
 
 	logger.Info("mqtt started")
 
@@ -171,75 +166,21 @@ func (m *Mqtt) run() {
 			logger.Info("mqtt stopped")
 			return
 		case msg := <-m.outboundMessage:
-			client.Publish(msg.topic, 1, true, msg.message)
-			logger.Debugf("Send a message to %s", msg.topic)
+			if msg.ID != "" {
+				// Message has an ID, check for uniqueness
+				hash := m.hashMessage(msg.Payload)
+				key := fmt.Sprintf("%s:%s", msg.Type, msg.ID)
+				if prevHash, exists := messageUniqueness[key]; exists && prevHash == hash {
+					logger.Debugf("Duplicate message type %s ID %s skipped", msg.Type, msg.ID)
+					continue
+				}
+				messageUniqueness[key] = hash
+			}
+			topic := fmt.Sprintf("%s/%s", m.MqttTopic, msg.Topic)
+			client.Publish(topic, 1, m.cnf.MQTT.ShouldRetainMessages(), msg.Payload)
+			logger.Debugf("Send a message to %s", topic)
 		}
 	}
-}
-
-func (m *Mqtt) SendLightStatus(light *light.Light) error {
-	logger := common.Logger.GetLogger("mqtt")
-	response := responses.BuildLightStatus(light)
-
-	responseJson, err := json.Marshal(response)
-	if err != nil {
-		common.Logger.GetLogger("mqtt").Errorf("failed to marshal light status: %v", err)
-		return err
-	}
-
-	hash := m.hashMessage(responseJson)
-	if m.lastLightStatusHash[light.Name()] == hash {
-		logger.Debugf("No need to send light status for %s, no change", light.Name())
-		return nil
-	}
-	logger.Debugf("Sending light status for %s, has changed", light.Name())
-	m.lastLightStatusHash[light.Name()] = hash
-
-	mqttMessage := messageAndTopic{
-		topic:   m.MqttTopic + "/light/" + light.Name(),
-		message: responseJson,
-	}
-	select {
-	case m.outboundMessage <- mqttMessage:
-		// Message sent successfully
-	default:
-		common.Logger.GetLogger("mqtt").Errorf("failed to send light status: outbound message channel full")
-		return errors.New("outbound message channel full")
-	}
-
-	return nil
-}
-
-func (m *Mqtt) SendDaemonStatus(status responses.DaemonStatus) error {
-	logger := common.Logger.GetLogger("mqtt")
-	logger.Debugf("Sending daemon status")
-
-	responseJson, err := json.Marshal(status)
-	if err != nil {
-		common.Logger.GetLogger("mqtt").Errorf("failed to marshal daemon status: %v", err)
-		return err
-	}
-	hash := m.hashMessage(responseJson)
-	if m.lastDaemonStatusHash == hash {
-		logger.Debugf("No need to send daemon status, no change")
-		return nil
-	}
-	logger.Debugf("Sending daemon status, has changed")
-	m.lastDaemonStatusHash = hash
-
-	mqttMessage := messageAndTopic{
-		topic:   m.MqttTopic + "/server",
-		message: responseJson,
-	}
-	select {
-	case m.outboundMessage <- mqttMessage:
-		// Message sent successfully
-	default:
-		common.Logger.GetLogger("mqtt").Errorf("failed to send daemon status: outbound message channel full")
-		return errors.New("outbound message channel full")
-	}
-
-	return nil
 }
 
 func (m *Mqtt) hashMessage(message []byte) string {

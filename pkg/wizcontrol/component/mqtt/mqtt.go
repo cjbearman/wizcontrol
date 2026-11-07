@@ -8,6 +8,7 @@ type Mqtt struct {
 	password       string
 	topic          string
 	controlEnabled bool
+	retainMessages bool
 }
 
 func Build(config *ConfigYAML) *Mqtt {
@@ -27,6 +28,7 @@ func Build(config *ConfigYAML) *Mqtt {
 		password:       config.Password,
 		topic:          topic,
 		controlEnabled: *config.ControlEnabled,
+		retainMessages: *config.RetainMessages,
 	}
 }
 
@@ -50,6 +52,10 @@ func (m *Mqtt) GetPassword() string {
 
 func (m *Mqtt) IsControlEnabled() bool {
 	return m.controlEnabled
+}
+
+func (m *Mqtt) ShouldRetainMessages() bool {
+	return m.retainMessages
 }
 
 func (m *Mqtt) String() string {

@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -8,11 +9,11 @@ import (
 
 	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
 
@@ -191,7 +192,16 @@ func (d *Daemon) SendDaemonStatus() error {
 		string(d.GetMode()),
 	)
 
-	_ = senders.SendDaemonStatus(status)
+	statusEncoded, err := json.Marshal(status)
+	if err != nil {
+		return fmt.Errorf("failed to encode daemon status: %v", err)
+	}
+
+	d.cnf.Bus.Publish(bus.Message{
+		Type:    bus.MessageTypeDaemon,
+		Topic:   "server",
+		Payload: statusEncoded,
+	})
 
 	return nil
 }

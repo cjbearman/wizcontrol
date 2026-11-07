@@ -1,10 +1,14 @@
 package operations
 
 import (
+	"encoding/json"
+
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
+	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
 )
 
 func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
@@ -56,5 +60,24 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 	logger.Debugf("State: color=%s, on=%v", color, on)
 
 	// MQTT update
-	_ = senders.SendLightStatus(light)
+	sendLightStatus(cnf.Bus, light)
+}
+
+func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
+	logger := common.Logger.GetLogger("light-status").WithField("device", light.Name())
+	status := responses.BuildLightStatus(light)
+
+	encoded, err := json.Marshal(status)
+	if err != nil {
+		logger.Warnf("Error encoding light status: %v", err)
+		return
+	}
+
+	msg := bus.Message{
+		Type:    bus.MessageTypeLight,
+		Topic:   "light/" + light.Name(),
+		Payload: encoded,
+	}
+
+	msgBus.Publish(msg)
 }

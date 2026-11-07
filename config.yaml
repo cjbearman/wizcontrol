@@ -18,7 +18,8 @@ mqtt:
   # broker password
   password: "asdkljiodsjf23489h!"
   # base topic
-  topic: "wizcontrol"
+  topic: "wizcontrol_dev"
+  retain_messages: false
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses

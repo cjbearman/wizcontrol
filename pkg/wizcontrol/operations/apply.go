@@ -5,7 +5,6 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/senders"
 
 	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 )
@@ -162,7 +161,7 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 	// Dispatch MQTT status for all lights
 	if sendMqtt {
 		for _, light := range cnf.Lights {
-			_ = senders.SendLightStatus(light)
+			sendLightStatus(cnf.Bus, light)
 		}
 	}
 }
