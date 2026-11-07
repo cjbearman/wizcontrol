@@ -20,7 +20,6 @@ var HolidayNames = map[string]func() int{
 	"new_years_day":             func() int { return GetDayNumberByDayAndMonth(1, time.January) },
 	"boxing_day":                func() int { return GetDayNumberByDayAndMonth(26, time.December) },
 	"martin_luther_king_day":    func() int { return mlkDay() },
-	"mlk_day":                   func() int { return mlkDay() },
 	"presidents_day":            func() int { return presidentsDay() },
 	"memorial_day":              func() int { return memorialDay() },
 	"labor_day":                 func() int { return laborDay() },
