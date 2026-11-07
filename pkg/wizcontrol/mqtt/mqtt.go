@@ -192,20 +192,15 @@ func (m *Mqtt) run() {
 
 	if m.cnf.MQTT.ServerCerts() != "" {
 		certPool := x509.NewCertPool()
-
-		// 2. Read your custom CA certificate file
 		caCert, err := os.ReadFile(m.cnf.MQTT.ServerCerts())
 		if err != nil {
 			logger.Errorf("Failed to read CA certificate: %v", err)
 			return
 		}
-
-		// 3. Append the CA certificate to the pool
 		if ok := certPool.AppendCertsFromPEM(caCert); !ok {
 			logger.Errorf("Failed to parse CA certificate")
 			return
 		}
-
 		tlsConfig.RootCAs = certPool
 	}
 
