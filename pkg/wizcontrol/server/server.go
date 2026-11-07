@@ -61,6 +61,8 @@ func NewServer(cnf *config.Config) *Server {
 	mux.HandleFunc("POST /delscenes", srv.intercept(srv.delScenesHandler))
 	mux.HandleFunc("POST /unlock", srv.intercept(srv.unlockHandler))
 	mux.HandleFunc("POST /reset", srv.intercept(srv.resetHandler))
+	mux.HandleFunc("POST /pause", srv.intercept(srv.pauseHandler))
+	mux.HandleFunc("POST /unpause", srv.intercept(srv.unpauseHandler))
 
 	return srv
 

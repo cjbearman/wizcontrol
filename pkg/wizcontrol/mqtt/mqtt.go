@@ -22,6 +22,8 @@ const (
 	topicAddScene    = "addscene"
 	topicDelScene    = "delscene"
 	topicReset       = "reset"
+	topicPause       = "pause"
+	topicUnpause     = "unpause"
 	topicScenes      = "scenes"
 	topicColors      = "colors"
 	topicTargets     = "targets"
@@ -114,6 +116,20 @@ func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 	_ = rpc.HandleResetRequest(m.cnf)
 }
 
+// handlePauseRPC handles inbound "pause" messages, routing them to the relevant RPC handler.
+func (m *Mqtt) handlePauseRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received pause RPC message")
+	_ = rpc.HandlePauseRequest(m.cnf)
+}
+
+// handleUnpauseRPC handles inbound "unpause" messages, routing them to the relevant RPC handler.
+func (m *Mqtt) handleUnpauseRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received unpause RPC message")
+	_ = rpc.HandleUnpauseRequest(m.cnf)
+}
+
 // connectHandler is called when the MQTT client successfully connects to the broker. It subscribes to control topics and publishes initial state.
 func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger := common.Logger.GetLogger("mqtt")
@@ -126,6 +142,8 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicAddScene), 1, m.handleAddSceneRPC)
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicDelScene), 1, m.handleDelSceneRPC)
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicReset), 1, m.handleResetRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicPause), 1, m.handlePauseRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicUnpause), 1, m.handleUnpauseRPC)
 	}
 
 	// Publish initial scenes, scenegroups, lightgroups, colors and targets
