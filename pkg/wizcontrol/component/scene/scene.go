@@ -10,7 +10,7 @@ import (
 // Element represents an individual element within a scene, including its targets and color.
 type Element struct {
 	targets []*light.Light
-	color   string
+	color   *color.Color
 }
 
 // Scene represents a scene, including its name, elements, and group.
@@ -35,7 +35,8 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 		}
 
 		for _, e := range s.Elements {
-			if colors[e.Color] == nil {
+			color := colors[e.Color]
+			if color == nil {
 				return nil, nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
 			}
 
@@ -57,7 +58,7 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 
 			element := &Element{
 				targets: targets,
-				color:   e.Color,
+				color:   color,
 			}
 			scene.elements = append(scene.elements, element)
 		}
@@ -91,7 +92,7 @@ func (e *Element) GetTargets() []*light.Light {
 }
 
 // GetColor returns the color of the element.
-func (e *Element) GetColor() string {
+func (e *Element) GetColor() *color.Color {
 	return e.color
 }
 

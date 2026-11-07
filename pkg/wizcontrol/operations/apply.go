@@ -45,15 +45,9 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 		// Each scene consists of multiple elements, each targeting specific targets (lights or light groups) with a color
 		// later elements will take precedence if they target the same lights as earlier elements or scenes
 		for _, targets := range elements {
-			colorName := targets.GetColor()
-			color := cnf.Colors[colorName]
-			if color == nil {
-				// Should not really happen, but it's not fatal
-				logger.Warnf("Color not found: %s", colorName)
-				continue
-			}
+			color := targets.GetColor()
 
-			logger := logger.WithField("colorName", colorName).WithField("color", color)
+			logger := logger.WithField("colorName", color.Name()).WithField("color", color.Value())
 
 			for _, light := range targets.GetTargets() {
 				operationsToDo[light] = color
