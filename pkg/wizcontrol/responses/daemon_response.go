@@ -3,6 +3,7 @@
 package responses
 
 import (
+	"strings"
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
@@ -12,14 +13,8 @@ import (
 type DaemonAttributes struct {
 	Scenes                string     `json:"scenes"`
 	CalendarScenes        []string   `json:"calendar_scenes"`
-	AdditionalScenes      []ScUntil  `json:"additional_scenes"`
+	AdditionalScenes      string     `json:"additional_scenes"`
 	AdditionalScenesUntil *time.Time `json:"additional_scenes_until,omitempty"`
-}
-
-// ScUntil represents a scene and the time until it is active.
-type ScUntil struct {
-	Scene string    `json:"scene"`
-	Until time.Time `json:"until"`
 }
 
 // DaemonStatus represents the overall status of the daemon, including its mode and attributes.
@@ -38,19 +33,16 @@ func BuildDaemonResponse(
 	mode string,
 ) DaemonStatus {
 
-	addscenes := []ScUntil{}
+	addScenes := []string{}
 	for _, item := range additionalScenes {
-		addscenes = append(addscenes, ScUntil{
-			Scene: item.Scene.Name(),
-			Until: item.Until,
-		})
+		addScenes = append(addScenes, item.Scene.Name())
 	}
 
 	return DaemonStatus{
 		Attributes: DaemonAttributes{
 			Scenes:           scenes,
 			CalendarScenes:   calendarScenes,
-			AdditionalScenes: addscenes,
+			AdditionalScenes: strings.Join(addScenes, ", "),
 		},
 		Mode: mode,
 	}
