@@ -211,7 +211,7 @@ scenes:
         color: warm_white_50
       - targets: [ office_lights ]
         color: daylight
-  - name: overname
+  - name: overnight
     elements:
       - targets:
         - porch_c
@@ -219,6 +219,7 @@ scenes:
       - targets:
         - porch_carriage_lights
         color: warm_white_30
+    group: outside_lights
   - name: halloween
     elements:
       - targets: [ outside_lights ]

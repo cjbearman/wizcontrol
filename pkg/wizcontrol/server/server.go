@@ -49,7 +49,7 @@ func NewServer(cnf *config.Config) *Server {
 	srv.Exec = srv.run
 
 	mux.HandleFunc("GET /", srv.intercept(srv.statusHandler))
-	mux.HandleFunc("GET /scenes", srv.intercept(srv.scenesHandler))
+	mux.HandleFunc("GET /scenegroups", srv.intercept(srv.scenegroupsHandler))
 	mux.HandleFunc("GET /colors", srv.intercept(srv.colorsHandler))
 	mux.HandleFunc("GET /targets", srv.intercept(srv.targetsHandler))
 	mux.HandleFunc("POST /lock", srv.intercept(srv.lockHandler))

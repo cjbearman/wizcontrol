@@ -4,6 +4,7 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 
 	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
@@ -14,7 +15,11 @@ type lightSettings struct {
 	color *c.Color
 }
 
-func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, sendMqtt bool) {
+func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, sendMqtt bool) {
+	sceneNames := []string{}
+	for _, s := range scenes {
+		sceneNames = append(sceneNames, s.GetName())
+	}
 	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
 
 	// Prefill a map of all lights with empty scene settings, we will update this as
@@ -28,14 +33,10 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 	// mappings from later scenes WILL take precedence by overwriting previous determinations
 	operationsToDo := make(map[*l.Light]*c.Color)
 
-	for _, sceneName := range sceneNames {
+	for _, scene := range scenes {
 
-		elements, found := cnf.Scenes.GetSceneElementsBySceneName(sceneName)
-		if !found {
-			logger.Warnf("Scene not found: %s", sceneName)
-			continue
-		}
-		logger := logger.WithField("scene", sceneName)
+		elements := scene.GetElements()
+		logger := logger.WithField("scene", scene.GetName())
 
 		for _, targets := range elements {
 			colorName := targets.GetColor()
@@ -57,7 +58,7 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 					operationsToDo[light] = color
 					logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
 					lightSceneSettings[light] = lightSettings{
-						scene: sceneName,
+						scene: scene.GetName(),
 						color: color,
 					}
 				}

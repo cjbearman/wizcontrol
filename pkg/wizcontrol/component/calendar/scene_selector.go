@@ -6,25 +6,26 @@ import (
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 )
 
 var RandomFrequencyMinutes = 60
 var RotationFrequencyMinutes = 60
 
 type SceneSelector interface {
-	GetScene(dayNumber int) []string
+	GetScene(dayNumber int) []*scene.Scene
 }
 
 type AllSceneSelector struct {
-	scenes []string
+	scenes []*scene.Scene
 }
 
-func (f *AllSceneSelector) GetScene(dayNumber int) []string {
+func (f *AllSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	return f.scenes
 }
 
 type RandomSceneSelector struct {
-	scenes    []string
+	scenes    []*scene.Scene
 	Frequency time.Duration
 }
 
@@ -32,7 +33,7 @@ type RandomSceneSelector struct {
 // change frequency defined by RandomFrequencyMinutes
 // It returns a psuedo-random scene that remains constant for the given frequency minutes
 // but will then (likely) change for the next period
-func (f *RandomSceneSelector) GetScene(dayNumber int) []string {
+func (f *RandomSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	// Number of minutes since epoch
 	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
 
@@ -48,16 +49,16 @@ func (f *RandomSceneSelector) GetScene(dayNumber int) []string {
 
 	hash := sha256.Sum256([]byte(sceneHashable))
 	index := (int(hash[0]) + int(hash[1]) + int(hash[2])) % len(f.scenes)
-	return []string{f.scenes[index]}
+	return []*scene.Scene{f.scenes[index]}
 }
 
 type RotateSceneSelector struct {
-	scenes    []string
+	scenes    []*scene.Scene
 	Frequency time.Duration
 }
 
 // GetScene returns scenes in order, changing on the given frequency
-func (f *RotateSceneSelector) GetScene(dayNumber int) []string {
+func (f *RotateSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	// Number of minutes since epoch
 	minutesSinceEpoch := time.Now().In(common.Location).Unix() / 60
 
@@ -70,5 +71,5 @@ func (f *RotateSceneSelector) GetScene(dayNumber int) []string {
 	// Use the frequency offset to determine the index
 	index := int(frequencyOffset) % len(f.scenes)
 
-	return []string{f.scenes[index]}
+	return []*scene.Scene{f.scenes[index]}
 }

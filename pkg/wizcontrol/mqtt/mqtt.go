@@ -13,14 +13,15 @@ import (
 )
 
 const (
-	topicLock     = "lock"
-	topicUnlock   = "unlock"
-	topicAddScene = "addscene"
-	topicDelScene = "delscene"
-	topicReset    = "reset"
-	topicScenes   = "scenes"
-	topicColors   = "colors"
-	topicTargets  = "targets"
+	topicLock        = "lock"
+	topicUnlock      = "unlock"
+	topicAddScene    = "addscene"
+	topicDelScene    = "delscene"
+	topicReset       = "reset"
+	topicScenes      = "scenes"
+	topicColors      = "colors"
+	topicTargets     = "targets"
+	topicSceneGroups = "scenegroups"
 )
 const BufferSize = 100
 
@@ -117,11 +118,11 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicReset), 1, m.handleResetRPC)
 	}
 
-	// Publish initial scenes and colors, retained
+	// Publish initial scenes, scenegroups, colors and targets
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleScenesRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicSceneGroups), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleSceneGroupsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleColorsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
-
 }
 
 func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {

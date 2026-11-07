@@ -32,6 +32,7 @@ type Config struct {
 	LightGroups      light.LightGroups
 	Colors           color.Colors
 	Scenes           scene.Scenes
+	SceneGroups      scene.SceneGroups
 	Calendars        calendar.Calendars
 	MQTT             *mqtt.Mqtt
 	HTTP             *http.Http
@@ -74,7 +75,7 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 		return nil, fmt.Errorf("error parsing colors: %v", err)
 	}
 
-	conf.Scenes, err = scene.Build(&cfg.Scenes, conf.Colors, conf.Lights, conf.LightGroups)
+	conf.Scenes, conf.SceneGroups, err = scene.Build(&cfg.Scenes, conf.Colors, conf.Lights, conf.LightGroups)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing scenes: %v", err)
 	}

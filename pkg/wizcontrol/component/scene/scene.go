@@ -20,12 +20,13 @@ type Scene struct {
 	group    string
 }
 
-func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgroups light.LightGroups) (Scenes, error) {
+func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgroups light.LightGroups) (Scenes, SceneGroups, error) {
 	scenes := make(Scenes)
+	groups := make(SceneGroups)
 
 	for _, s := range *cfg {
 		if _, found := scenes[s.Name]; found {
-			return nil, fmt.Errorf("scene %q is defined more than once", s.Name)
+			return nil, nil, fmt.Errorf("scene %q is defined more than once", s.Name)
 		}
 		scene := &Scene{
 			name:  s.Name,
@@ -34,12 +35,12 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 
 		for _, e := range s.Elements {
 			if colors.GetByName(e.Color) == nil {
-				return nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
+				return nil, nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
 			}
 
 			for _, t := range e.Targets {
 				if lights.GetByName(t) == nil && lightgroups.GetByName(t) == nil {
-					return nil, fmt.Errorf("scene %q references undefined target %q", s.Name, t)
+					return nil, nil, fmt.Errorf("scene %q references undefined target %q", s.Name, t)
 				}
 			}
 
@@ -50,9 +51,11 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 			scene.elements = append(scene.elements, element)
 		}
 		scenes[s.Name] = scene
+		if scene.group != "" {
+			groups.add(scene.group, scene)
+		}
 	}
-	return scenes, nil
-
+	return scenes, groups, nil
 }
 
 func (s *Scene) GetName() string {
@@ -98,4 +101,8 @@ func (s Scenes) GetByGroup(group string) ([]*Scene, bool) {
 		return nil, false
 	}
 	return result, true
+}
+
+func (s *Scene) GetElements() []*Element {
+	return s.elements
 }

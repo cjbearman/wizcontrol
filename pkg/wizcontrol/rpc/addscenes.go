@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/daemon"
 )
@@ -35,22 +36,23 @@ func HandleAddScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) 
 		cnf.AdditionalScenes.ClearAdditionalScenes()
 	}
 
-	scenesToAdd := []string{}
+	scenesToAdd := []*scene.Scene{}
 
 	for _, scene := range request.Scenes {
-		if cnf.Scenes.GetByName(scene) == nil {
+		sc := cnf.Scenes.GetByName(scene)
+		if sc == nil {
 			return NewGeneralResponse(false, fmt.Sprintf("scene %q not found", scene)), NewRpcError(404, "scene %q not found", scene)
 		}
-		scenesToAdd = append(scenesToAdd, scene)
+		scenesToAdd = append(scenesToAdd, sc)
 	}
 
 	for _, group := range request.Groups {
 
-		if scenes, found := cnf.Scenes.GetByGroup(group); !found {
+		if scenes, found := cnf.SceneGroups[group]; found {
 			return NewGeneralResponse(false, fmt.Sprintf("scene group %q not found", group)), NewRpcError(404, "scene group %q not found", group)
 		} else {
 			for _, scene := range scenes {
-				scenesToAdd = append(scenesToAdd, scene.GetName())
+				scenesToAdd = append(scenesToAdd, scene)
 			}
 		}
 	}

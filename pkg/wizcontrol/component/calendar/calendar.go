@@ -2,7 +2,6 @@ package calendar
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
@@ -21,7 +20,7 @@ type Calendar struct {
 	name          string
 	from, to      int
 	before, after *CalendarTime
-	scenes        []string
+	scenes        []*scene.Scene
 	selector      SceneSelector
 }
 
@@ -35,12 +34,13 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 			}
 		}
 
-		sceneNames := []string{}
+		sceneObjs := []*scene.Scene{}
 		for _, scene := range c.Scenes {
-			if scenes.GetByName(scene) == nil {
+			sc := scenes.GetByName(scene)
+			if sc == nil {
 				return nil, fmt.Errorf("scene %q for calendar %q not found", scene, c.Name)
 			}
-			sceneNames = append(sceneNames, scene)
+			sceneObjs = append(sceneObjs, sc)
 		}
 
 		calendar := &Calendar{
@@ -49,15 +49,15 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 			to:     DateToDayNumber(c.To),
 			before: func() *CalendarTime { t, _ := OptionalCalendarTime(c.Before); return t }(),
 			after:  func() *CalendarTime { t, _ := OptionalCalendarTime(c.After); return t }(),
-			scenes: sceneNames,
+			scenes: sceneObjs,
 			selector: func() SceneSelector {
 				switch c.SceneMode {
 				case SceneModeAll:
-					return &AllSceneSelector{scenes: sceneNames}
+					return &AllSceneSelector{scenes: sceneObjs}
 				case SceneModeRandom:
-					return &RandomSceneSelector{scenes: sceneNames, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
+					return &RandomSceneSelector{scenes: sceneObjs, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
 				case SceneModeRotate:
-					return &RotateSceneSelector{scenes: sceneNames, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
+					return &RotateSceneSelector{scenes: sceneObjs, Frequency: func() time.Duration { d, _ := time.ParseDuration(c.Frequency); return d }()}
 				default:
 					// Should not be possible due to validation in UnmarshalYAML
 					panic(fmt.Sprintf("invalid scene mode: %v", c.SceneMode))
@@ -94,7 +94,7 @@ func (c *Calendar) After() *CalendarTime {
 	return c.after
 }
 
-func (c *Calendar) Scenes() []string {
+func (c *Calendar) Scenes() []*scene.Scene {
 	return c.scenes
 }
 
@@ -107,9 +107,9 @@ func (c Calendars) GetByName(name string) *Calendar {
 	return nil
 }
 
-func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []string {
+func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []*scene.Scene {
 	logger := common.Logger.GetLogger("calendar")
-	result := []string{}
+	result := []*scene.Scene{}
 
 	dayNo, now := GetTodayNumber()
 
@@ -141,7 +141,12 @@ func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []string {
 		}
 	}
 
-	logger.Infof("Calendar scenes selected: %s", strings.Join(result, ","))
+	selectedSceneName := []string{}
+	for _, s := range result {
+		selectedSceneName = append(selectedSceneName, s.GetName())
+	}
+
+	logger.Infof("Calendar scenes selected: %v", selectedSceneName)
 
 	return result
 }

@@ -167,15 +167,28 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	calendarScenes := d.cnf.Calendars.GetCalendarScenes(d.cnf.Scenes)
 	additionalScenes := d.cnf.AdditionalScenes.GetAdditionalScenes()
 	activeScenes := append(calendarScenes, additionalScenes...)
-	activeSceneNames := strings.Join(activeScenes, ",")
+	activeSceneNamesList := []string{}
+	for _, s := range activeScenes {
+		activeSceneNamesList = append(activeSceneNamesList, s.GetName())
+	}
+	calendarSceneNamesList := []string{}
+	for _, s := range calendarScenes {
+		calendarSceneNamesList = append(calendarSceneNamesList, s.GetName())
+	}
+	additionalSceneNamesList := []string{}
+	for _, s := range additionalScenes {
+		additionalSceneNamesList = append(additionalSceneNamesList, s.GetName())
+	}
+
+	activeSceneNames := strings.Join(activeSceneNamesList, ",")
 
 	d.lock.Lock()
-	d.calendarScenes = calendarScenes
+	d.calendarScenes = calendarSceneNamesList
 	d.activeSceneNames = activeSceneNames
 	d.lock.Unlock()
 
-	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalScenes, ","))
-	logger.Infof("Will apply the following scenes in order: %s", strings.Join(activeScenes, ","))
+	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalSceneNamesList, ","))
+	logger.Infof("Will apply the following scenes in order: %s", strings.Join(activeSceneNamesList, ","))
 	// Update light availability, and additionall request status update for returning lights
 	logger.Debugf("Update light availability")
 	operations.UpdateAvailability(d.cnf)

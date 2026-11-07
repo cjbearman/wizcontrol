@@ -7,10 +7,15 @@ import (
 )
 
 type DaemonAttributes struct {
-	Scenes                string             `json:"scenes"`
-	CalendarScenes        []string           `json:"calendar_scenes"`
-	AdditionalScenes      []scene.SceneUntil `json:"additional_scenes"`
-	AdditionalScenesUntil *time.Time         `json:"additional_scenes_until,omitempty"`
+	Scenes                string     `json:"scenes"`
+	CalendarScenes        []string   `json:"calendar_scenes"`
+	AdditionalScenes      []ScUntil  `json:"additional_scenes"`
+	AdditionalScenesUntil *time.Time `json:"additional_scenes_until,omitempty"`
+}
+
+type ScUntil struct {
+	Scene string    `json:"scene"`
+	Until time.Time `json:"until"`
 }
 
 type DaemonStatus struct {
@@ -24,11 +29,20 @@ func BuildDaemonResponse(
 	additionalScenes []scene.SceneUntil,
 	mode string,
 ) DaemonStatus {
+
+	addscenes := []ScUntil{}
+	for _, item := range additionalScenes {
+		addscenes = append(addscenes, ScUntil{
+			Scene: item.Scene.GetName(),
+			Until: item.Until,
+		})
+	}
+
 	return DaemonStatus{
 		Attributes: DaemonAttributes{
 			Scenes:           scenes,
 			CalendarScenes:   calendarScenes,
-			AdditionalScenes: additionalScenes,
+			AdditionalScenes: addscenes,
 		},
 		Mode: mode,
 	}

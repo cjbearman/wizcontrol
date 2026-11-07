@@ -52,7 +52,7 @@ func WriteState(cnf *config.Config) error {
 
 	for _, scene := range cnf.AdditionalScenes.GetAdditionalScenesWithUntils() {
 		state.SceneLocks = append(state.SceneLocks, SceneState{
-			Scene: scene.Scene,
+			Scene: scene.Scene.GetName(),
 			Until: scene.Until,
 		})
 	}
@@ -106,7 +106,14 @@ func RecoverState(cnf *config.Config) error {
 	}
 
 	for _, scene := range state.SceneLocks {
-		if err := cnf.AdditionalScenes.AddAdditionalScene(scene.Scene, scene.Until); err != nil {
+
+		sc := cnf.Scenes.GetByName(scene.Scene)
+		if sc == nil {
+			logger.Warnf("Scene %q not found", scene.Scene)
+			continue
+		}
+
+		if err := cnf.AdditionalScenes.AddAdditionalScene(sc, scene.Until); err != nil {
 			logger.Warnf("failed to add additional scene %q: %v", scene.Scene, err)
 		}
 	}

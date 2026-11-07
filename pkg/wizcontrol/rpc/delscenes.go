@@ -24,10 +24,11 @@ func HandleDelScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) 
 	}
 
 	for _, scene := range request.Scenes {
-		if cnf.Scenes.GetByName(scene) == nil {
+		sc := cnf.Scenes.GetByName(scene)
+		if sc == nil {
 			return NewGeneralResponse(false, fmt.Sprintf("scene %q not found", scene)), NewRpcError(404, "scene %q not found", scene)
 		}
-		_ = cnf.AdditionalScenes.DeleteAdditionalScene(scene)
+		_ = cnf.AdditionalScenes.DeleteAdditionalScene(sc)
 	}
 
 	for _, group := range request.Groups {
@@ -36,8 +37,8 @@ func HandleDelScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) 
 			return NewGeneralResponse(false, fmt.Sprintf("scene group %q not found", group)), NewRpcError(404, "scene group %q not found", group)
 		} else {
 			for _, scene := range scenes {
-				logger.Infof("Additional scene %q removed", scene)
-				_ = cnf.AdditionalScenes.DeleteAdditionalScene(scene.GetName())
+				logger.Infof("Additional scene %q removed", scene.GetName())
+				_ = cnf.AdditionalScenes.DeleteAdditionalScene(scene)
 			}
 		}
 	}

@@ -140,6 +140,7 @@ func runAsDaemon(cnf *config.Config) {
 	waitStopped(server.Instance)
 	waitStopped(mqtt.Instance)
 	waitStopped(discovery.Instance)
+	cnf.Bus.Close()
 	logger.Info("Runner terminated")
 	os.Exit(0)
 

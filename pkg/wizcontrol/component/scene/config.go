@@ -15,7 +15,7 @@ type ElementYAML struct {
 type ConfigYAML struct {
 	Name     string        `yaml:"name"`
 	Elements []ElementYAML `yaml:"elements"`
-	Group    string        `yaml:"groups"`
+	Group    string        `yaml:"group"`
 }
 
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {

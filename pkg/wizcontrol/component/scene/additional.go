@@ -9,7 +9,7 @@ import (
 )
 
 type SceneUntil struct {
-	Scene string    `json:"scene"`
+	Scene *Scene    `json:"scene"`
 	Until time.Time `json:"until"`
 }
 
@@ -18,13 +18,13 @@ type AdditionalScenes struct {
 	lock       sync.RWMutex
 }
 
-func (a *AdditionalScenes) AddAdditionalScene(scene string, until time.Time) error {
+func (a *AdditionalScenes) AddAdditionalScene(scene *Scene, until time.Time) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	a.clearExpiredScenes()
 	for _, existing := range a.additional {
 		if existing.Scene == scene {
-			return fmt.Errorf("scene %q is already added", scene)
+			return fmt.Errorf("scene %q is already added", scene.GetName())
 		}
 	}
 
@@ -35,7 +35,19 @@ func (a *AdditionalScenes) AddAdditionalScene(scene string, until time.Time) err
 	return nil
 }
 
-func (a *AdditionalScenes) DeleteAdditionalScene(scene string) error {
+func (a *AdditionalScenes) GetAdditionalScenes() []*Scene {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	a.clearExpiredScenes()
+	result := []*Scene{}
+	a.clearExpiredScenes()
+	for _, existing := range a.additional {
+		result = append(result, existing.Scene)
+	}
+	return result
+}
+
+func (a *AdditionalScenes) DeleteAdditionalScene(scene *Scene) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	a.clearExpiredScenes()
@@ -51,7 +63,7 @@ func (a *AdditionalScenes) DeleteAdditionalScene(scene string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("scene %q not found", scene)
+		return fmt.Errorf("scene %q not found", scene.GetName())
 	}
 	a.additional = revised
 	return nil
@@ -74,13 +86,13 @@ func (a *AdditionalScenes) GetAdditionalScenesWithUntils() []SceneUntil {
 	return append([]SceneUntil{}, a.additional...)
 }
 
-func (a *AdditionalScenes) GetAdditionalScenes() []string {
+func (a *AdditionalScenes) GetAdditionalSceneNames() []string {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	a.clearExpiredScenes()
 	result := []string{}
 	for _, existing := range a.additional {
-		result = append(result, existing.Scene)
+		result = append(result, existing.Scene.GetName())
 	}
 	return result
 }
