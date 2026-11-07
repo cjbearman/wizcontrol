@@ -2,24 +2,36 @@ package rpc
 
 import (
 	"encoding/json"
-	"slices"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
-// HandleScenesRequest processes a request to list available scenes.
-type ScenesResponse struct {
-	Scenes []string `json:"scenes"`
+// SceneInfo represents information about a scene, including its name and whether it is currently selected.
+type SceneInfo struct {
+	Name              string `json:"name"`
+	CurrentlySelected bool   `json:"currently_selected"`
 }
 
 // ScenesResponse represents the response payload for a request to list available scenes.
 func HandleScenesRequest(cnf *config.Config) []byte {
-	resp := &ScenesResponse{}
+	resp := []SceneInfo{}
+
+	currentScenes, _ := cnf.Calendars.GetCalendarScenes(cnf.Scenes)
+	isCurrentlySelected := func(name string) bool {
+		for _, item := range currentScenes {
+			if item.Name() == name {
+				return true
+			}
+		}
+		return false
+	}
 
 	for name := range cnf.Scenes {
-		resp.Scenes = append(resp.Scenes, name)
+		resp = append(resp, SceneInfo{
+			Name:              name,
+			CurrentlySelected: isCurrentlySelected(name),
+		})
 	}
-	slices.Sort(resp.Scenes)
 
 	jResp, _ := json.Marshal(resp)
 	return jResp
