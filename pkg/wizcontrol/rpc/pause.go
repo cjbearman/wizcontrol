@@ -7,6 +7,6 @@ import (
 
 // HandlePauseRequest processes a request to pause the daemon by setting its mode to off.
 func HandlePauseRequest(cnf *config.Config) []byte {
-	daemon.Instance.SetMode(daemon.DaemonModeOff)
+	daemon.Instance.SetMode(daemon.DaemonModePaused)
 	return NewGeneralResponse(true, "")
 }

@@ -21,8 +21,8 @@ import (
 type DaemonMode string
 
 const (
-	// DaemonModeOff indicates that the daemon is turned off and will not manage lights.
-	DaemonModeOff = "off"
+	// DaemonModePaused indicates that the daemon is turned off and will not manage lights.
+	DaemonModePaused = "paused"
 
 	// DaemonModeAuto indicates that the daemon will automatically manage lights based on configured calendars and additional scenes.
 	DaemonModeAuto = "auto"
@@ -173,7 +173,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	logger = logger.WithField("recheck", recheck)
 	logger.Info("Evaluating scenes against configured settings")
 
-	if d.GetMode() == DaemonModeOff {
+	if d.GetMode() == DaemonModePaused {
 		logger.Debug("Daemon is off, skipping iteration")
 		_ = d.SendDaemonStatus()
 		return
