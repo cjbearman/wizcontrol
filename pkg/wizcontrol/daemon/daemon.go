@@ -222,7 +222,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 	}
 
 	// Apply the active scenes to the lights
-	operations.ApplyScenes(d.cnf, activeScenes, false)
+	operations.ApplyScenes(d.cnf, activeScenes)
 
 	// Send an updated daemon status to MQTT
 	_ = d.SendDaemonStatus()

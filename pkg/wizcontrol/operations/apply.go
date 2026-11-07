@@ -18,7 +18,7 @@ type lightSettings struct {
 
 // ApplyScenes will apply the list of scenes to the lights affected by those scenes
 // The list of scenes is ordered, and scenes are applied to lights in that order, with later scenes taking precedence.
-func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
+func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 
 	// Add the list of scene names to the logger
 	sceneNames := []string{}
@@ -165,9 +165,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 	}
 
 	// Dispatch MQTT status for all lights
-	if sendMqtt {
-		for _, light := range cnf.Lights {
-			sendLightStatus(cnf.Bus, light)
-		}
+	for _, light := range cnf.Lights {
+		sendLightStatus(cnf.Bus, light)
 	}
 }
