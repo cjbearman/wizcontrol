@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"slices"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
@@ -23,13 +24,14 @@ func HandleScenesRequest(cnf *config.Config) []byte {
 	resp := []SceneInfo{}
 
 	currentScenes, _ := cnf.Calendars.GetCalendarScenes(cnf.Scenes)
+	additionalScenes := cnf.AdditionalScenes.GetAdditionalSceneNames()
 	isCurrentlySelected := func(name string) bool {
 		for _, item := range currentScenes {
 			if item.Name() == name {
 				return true
 			}
 		}
-		return false
+		return slices.Contains(additionalScenes, name)
 	}
 
 	for name := range cnf.Scenes {
