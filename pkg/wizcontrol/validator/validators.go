@@ -47,7 +47,7 @@ func RequiredColorString(color string) (string, error) {
 		return "", fmt.Errorf("%q is not a valid color string", color)
 	}
 
-	return colorstr, nil
+	return strings.ToLower(colorstr), nil
 
 }
 

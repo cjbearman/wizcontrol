@@ -25,14 +25,14 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 		}
 
 		for name, oc := range colors {
-			if c.Color == oc.Value() {
+			if strings.EqualFold(c.Color, oc.Value()) {
 				return nil, fmt.Errorf("color %q has same value as existing color %q", c.Name, name)
 			}
 		}
 
 		colors[c.Name] = &Color{
 			name:  c.Name,
-			value: c.Color,
+			value: strings.ToLower(c.Color),
 		}
 	}
 	return colors, nil
@@ -58,7 +58,7 @@ func (c Colors) GetByValue(color string) *Color {
 	// We prefer one of our defined colors, but will return one with unknown spec if needd
 
 	for _, col := range c {
-		if col.value == color {
+		if strings.EqualFold(col.Value(), color) {
 			// One of our own
 			return col
 		}
