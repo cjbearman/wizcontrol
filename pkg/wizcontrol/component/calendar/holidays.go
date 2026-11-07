@@ -25,7 +25,7 @@ var HolidayNames = map[string]func() int{
 	"memorial_day":              func() int { return memorialDay() },
 	"labor_day":                 func() int { return laborDay() },
 	"columbus_day":              func() int { return columbusDay() },
-	"veterans_day":              func() int { return veteransDay() },
+	"veterans_day":              func() int { return GetDayNumberByDayAndMonth(11, time.November) },
 	"thanksgiving_day":          func() int { return thanksgivingDay() },
 	"independence_day":          func() int { return GetDayNumberByDayAndMonth(4, time.July) },
 	"halloween":                 func() int { return GetDayNumberByDayAndMonth(31, time.October) },
@@ -66,10 +66,6 @@ func laborDay() int {
 }
 func columbusDay() int {
 	t := cal.CalcWeekdayFrom(us.ColumbusDay, time.Now().In(common.Location).Year())
-	return GetDayNumberByDayAndMonth(t.Day(), t.Month())
-}
-func veteransDay() int {
-	t := cal.CalcWeekdayFrom(us.VeteransDay, time.Now().In(common.Location).Year())
 	return GetDayNumberByDayAndMonth(t.Day(), t.Month())
 }
 func thanksgivingDay() int {

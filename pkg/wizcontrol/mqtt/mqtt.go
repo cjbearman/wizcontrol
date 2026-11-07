@@ -29,6 +29,8 @@ const (
 	topicTargets     = "targets"
 	topicSceneGroups = "scenegroups"
 	topicLightGroups = "lightgroups"
+	topicCalendars   = "calendars"
+	topicHolidays    = "holidays"
 )
 
 // Instance holds the singleton instance of the MQTT integration
@@ -109,7 +111,6 @@ func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
-// handleResetRPC handles inbound "reset" messages, routing them to the relevant RPC handler.
 func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received reset RPC message")
@@ -152,6 +153,8 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicLightGroups), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleLightGroupsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleColorsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicCalendars), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleCalendarsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicHolidays), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHolidaysRequest(m.cnf)).Wait()
 }
 
 // disconnectHandler is called when the MQTT client loses connection to the broker.

@@ -14,11 +14,12 @@ const (
 )
 
 type Calendar struct {
-	name          string
-	from, to      int
-	before, after *CalendarTime
-	scenes        []*scene.Scene
-	selector      SceneSelector
+	name                     string
+	from, to                 int
+	originalFrom, originalTo string
+	before, after            *CalendarTime
+	scenes                   []*scene.Scene
+	selector                 SceneSelector
 }
 
 func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
@@ -41,12 +42,14 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 		}
 
 		calendar := &Calendar{
-			name:   c.Name,
-			from:   DateToDayNumber(c.From),
-			to:     DateToDayNumber(c.To),
-			before: func() *CalendarTime { t, _ := OptionalCalendarTime(c.Before); return t }(),
-			after:  func() *CalendarTime { t, _ := OptionalCalendarTime(c.After); return t }(),
-			scenes: sceneObjs,
+			name:         c.Name,
+			from:         DateToDayNumber(c.From),
+			to:           DateToDayNumber(c.To),
+			originalFrom: c.From,
+			originalTo:   c.To,
+			before:       func() *CalendarTime { t, _ := OptionalCalendarTime(c.Before); return t }(),
+			after:        func() *CalendarTime { t, _ := OptionalCalendarTime(c.After); return t }(),
+			scenes:       sceneObjs,
 			selector: func() SceneSelector {
 				switch c.SceneMode {
 				case SceneModeAll:
@@ -93,4 +96,16 @@ func (c *Calendar) After() *CalendarTime {
 
 func (c *Calendar) Scenes() []*scene.Scene {
 	return c.scenes
+}
+
+func (c *Calendar) OriginalFrom() string {
+	return c.originalFrom
+}
+
+func (c *Calendar) OriginalTo() string {
+	return c.originalTo
+}
+
+func (c *Calendar) Selector() SceneSelector {
+	return c.selector
 }

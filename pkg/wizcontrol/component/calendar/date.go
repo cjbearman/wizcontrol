@@ -133,3 +133,16 @@ func dayValid(day int, month time.Month) bool {
 		return false
 	}
 }
+
+func DayThisYearFromDayNumber(day int) (string, error) {
+	if day < 1 || day > 365 {
+		return "", fmt.Errorf("invalid day number: %d", day)
+	}
+
+	// Get a timestamp representing this day number in our target leap year
+	t := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
+	t = t.AddDate(0, 0, day-1)
+
+	// Return this formatted with just the month and day
+	return t.Format("Jan 2"), nil
+}

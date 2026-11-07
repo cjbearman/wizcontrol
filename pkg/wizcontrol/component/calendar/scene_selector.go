@@ -14,6 +14,8 @@ var RotationFrequencyMinutes = 60
 
 type SceneSelector interface {
 	GetScene(dayNumber int) []*scene.Scene
+	FrequencyStr() string
+	ModeStr() string
 }
 
 type AllSceneSelector struct {
@@ -24,9 +26,25 @@ func (f *AllSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	return f.scenes
 }
 
+func (f *AllSceneSelector) ModeStr() string {
+	return SceneModeAll
+}
+
+func (f *AllSceneSelector) FrequencyStr() string {
+	return ""
+}
+
 type RandomSceneSelector struct {
 	scenes    []*scene.Scene
 	Frequency time.Duration
+}
+
+func (f *RandomSceneSelector) ModeStr() string {
+	return SceneModeRandom
+}
+
+func (f *RandomSceneSelector) FrequencyStr() string {
+	return f.Frequency.String()
 }
 
 // GetScene returns a pseudo-random scene based on the current time and a defined
@@ -72,4 +90,12 @@ func (f *RotateSceneSelector) GetScene(dayNumber int) []*scene.Scene {
 	index := int(frequencyOffset) % len(f.scenes)
 
 	return []*scene.Scene{f.scenes[index]}
+}
+
+func (f *RotateSceneSelector) ModeStr() string {
+	return SceneModeRotate
+}
+
+func (f *RotateSceneSelector) FrequencyStr() string {
+	return f.Frequency.String()
 }
