@@ -84,7 +84,6 @@ func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
 	}
 
 	msg := bus.Message{
-		Type:    bus.MessageTypeLight,
 		Topic:   "light/" + light.Name(),
 		Payload: encoded,
 	}

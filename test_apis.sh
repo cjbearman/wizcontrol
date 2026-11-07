@@ -22,5 +22,9 @@ if [ "$1" == "office_warm" ]; then
 	exit 1
 fi
 	
+if [ "$1" == "reset" ]; then
+	curl -v ${ENDPOINT}/reset -H "${CT}" -H "${AC}" -X POST 
+	exit 1
+fi
 
 echo "provide a valid type"

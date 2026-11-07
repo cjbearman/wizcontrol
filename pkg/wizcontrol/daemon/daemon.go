@@ -10,7 +10,6 @@ import (
 	"github.com/cjbearman/logger"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/operations"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
@@ -55,7 +54,16 @@ func NewDaemon(cnf *config.Config) *Daemon {
 	}
 	d.Exec = d.run
 
-	light.KickFunc = d.Kick
+	// Various bits and pieces need to send us a message that we need to run a cycle
+	// However, direct references end up causing import loops so instead we set a function
+	// that can be used to kick us in a few places...
+	for _, l := range cnf.Lights {
+		l.Locker().SetKicker(d.Kick)
+	}
+
+	// Also, for import loop prevention, we set the global instance here
+	// not ideal, but there's only ever one daemon, so no real problem
+	Instance = d
 
 	return d
 }
@@ -198,7 +206,6 @@ func (d *Daemon) SendDaemonStatus() error {
 	}
 
 	d.cnf.Bus.Publish(bus.Message{
-		Type:    bus.MessageTypeDaemon,
 		Topic:   "server",
 		Payload: statusEncoded,
 	})

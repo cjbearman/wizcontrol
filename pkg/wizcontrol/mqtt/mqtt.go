@@ -166,19 +166,19 @@ func (m *Mqtt) run() {
 			logger.Info("mqtt stopped")
 			return
 		case msg := <-m.outboundMessage:
-			if msg.ID != "" {
-				// Message has an ID, check for uniqueness
-				hash := m.hashMessage(msg.Payload)
-				key := fmt.Sprintf("%s:%s", msg.Type, msg.ID)
-				if prevHash, exists := messageUniqueness[key]; exists && prevHash == hash {
-					logger.Debugf("Duplicate message type %s ID %s skipped", msg.Type, msg.ID)
+
+			// Message has an ID, check for uniqueness
+			hash := m.hashMessage(msg.Payload)
+			if prevHash, exists := messageUniqueness[msg.Topic]; exists {
+				if prevHash == hash {
+					logger.Debugf("Duplicate message to %s skipped", msg.Topic)
 					continue
 				}
-				messageUniqueness[key] = hash
 			}
+			messageUniqueness[msg.Topic] = hash
 			topic := fmt.Sprintf("%s/%s", m.MqttTopic, msg.Topic)
 			client.Publish(topic, 1, m.cnf.MQTT.ShouldRetainMessages(), msg.Payload)
-			logger.Debugf("Send a message to %s", topic)
+			logger.Infof("Dispatched an MQTT update to %s", topic)
 		}
 	}
 }

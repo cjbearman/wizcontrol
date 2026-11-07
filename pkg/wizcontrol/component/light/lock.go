@@ -7,14 +7,13 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
-var KickFunc func() // Set by daemon to prevent import loop
-
 type LightLock struct {
 	lockedUntil time.Time
 	lock        sync.Mutex
 	timer       *time.Timer
 	lightName   string
 	lockToColor string
+	kicker      func()
 }
 
 func newLocker(lightName string) *LightLock {
@@ -51,13 +50,12 @@ func (l *LightLock) UnlockNow(noKick bool) {
 	l.lockedUntil = time.Time{}
 	logger.Debug("Light lock manually unlocked, kicking daemon")
 	if !noKick {
-		if KickFunc == nil {
-			logger.Error("KickFunc is nil, cannot kick daemon")
+		if l.kicker != nil {
+			l.kicker()
 		} else {
-			KickFunc()
+			logger.Warnf("Kicker not set in light lock for %s", l.lightName)
 		}
 	}
-
 }
 
 func (l *LightLock) cancelTimer() {
@@ -82,8 +80,10 @@ func (l *LightLock) timerExpired() {
 	defer l.lock.Unlock()
 	logger.Debug("Light lock expired, kicking daemon, light is now unlocked")
 	l.lockedUntil = time.Time{}
-	if KickFunc != nil {
-		KickFunc()
+	if l.kicker != nil {
+		l.kicker()
+	} else {
+		logger.Warnf("Kicker not set in light lock for %s", l.lightName)
 	}
 }
 
@@ -91,4 +91,10 @@ func (l *LightLock) IsLocked() (locked bool, colorValue string, t time.Time) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockToColor, l.lockedUntil
+}
+
+func (l *LightLock) SetKicker(kicker func()) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.kicker = kicker
 }

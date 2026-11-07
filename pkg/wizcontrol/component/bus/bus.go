@@ -9,15 +9,10 @@ import (
 type MessageType string
 
 const (
-	MessageTypeDaemon = "server"
-	MessageTypeLight  = "light"
-
 	bufferSize = 256
 )
 
 type Message struct {
-	Type    MessageType
-	ID      string
 	Topic   string
 	Payload []byte
 }
