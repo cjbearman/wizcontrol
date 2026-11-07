@@ -13,7 +13,7 @@ const Off = "off"
 type Colors map[string]*Color
 
 type Color struct {
-	name, color string
+	name, value string
 }
 
 func Build(cfg *[]ConfigYAML) (Colors, error) {
@@ -32,7 +32,7 @@ func Build(cfg *[]ConfigYAML) (Colors, error) {
 
 		colors[c.Name] = &Color{
 			name:  c.Name,
-			color: c.Color,
+			value: c.Color,
 		}
 	}
 	return colors, nil
@@ -43,7 +43,7 @@ func (c Color) Name() string {
 }
 
 func (c Color) Value() string {
-	return c.color
+	return c.value
 }
 
 func (c Colors) GetByName(name string) *Color {
@@ -53,32 +53,48 @@ func (c Colors) GetByName(name string) *Color {
 	return nil
 }
 
-func (c Colors) GetByColor(color string) *Color {
+func (c Colors) GetByValue(color string) *Color {
+
+	// We prefer one of our defined colors, but will return one with unknown spec if needd
+
 	for _, col := range c {
-		if col.color == color {
+		if col.value == color {
+			// One of our own
 			return col
 		}
 	}
 	return &Color{
+		// Unknown
 		name:  UnknownColor,
-		color: color,
+		value: color,
 	}
 }
 
 func (c *Color) String() string {
-	return fmt.Sprintf("%s: %s", c.name, c.color)
+	return fmt.Sprintf("%s (%s)", c.name, c.value)
 }
 
 func (c Colors) prefillWizColors() {
 	c[Off] = &Color{
 		name:  Off,
-		color: Off,
+		value: Off,
 	}
 	for _, wizScene := range wiz.AllSceneNames() {
 		name := fmt.Sprintf("wiz_%s", strings.ToLower(wizScene))
 		c[name] = &Color{
 			name:  name,
-			color: wizScene,
+			value: wizScene,
 		}
 	}
+}
+
+func (c *Color) SameColorAs(other *Color) bool {
+	if other == nil {
+		return false
+	}
+	return c.value == other.value
+}
+
+func (c *Color) GetWizSettings() (*wiz.Settings, error) {
+	return wiz.SettingsFromString(c.value)
 }

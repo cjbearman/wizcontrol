@@ -51,8 +51,8 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		logger.Errorf("Error parsing active light color: %v", err)
 		return
 	}
-	col := cnf.Colors.GetByColor(color)
-	light.SetLastActualColor(col.Name(), col.String())
+	col := cnf.Colors.GetByValue(color)
+	light.SetLastActualColor(col)
 	logger.Debugf("State: color=%s, on=%v", color, on)
 
 	// MQTT update

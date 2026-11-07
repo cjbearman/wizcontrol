@@ -4,32 +4,21 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
+
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
 const UnknownColor = "unknown"
-
-type ColorNameAndColor struct {
-	name  string
-	color string
-}
-
-func (c ColorNameAndColor) Name() string {
-	return c.name
-}
-
-func (c ColorNameAndColor) Value() string {
-	return c.color
-}
 
 type Lights map[string]*Light
 
 type Light struct {
 	name, ip, mac           string
 	groups                  []string
-	lastProgrammedColor     ColorNameAndColor
+	lastProgrammedColor     *color.Color
 	lastProgrammedColorLock sync.Mutex
-	lastActualColor         ColorNameAndColor
+	lastActualColor         *color.Color
 	lastActualColorLock     sync.Mutex
 	locker                  *LightLock
 	activeScene             string
@@ -67,8 +56,8 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			ip:                  l.IP,
 			mac:                 l.MAC,
 			groups:              l.Groups,
-			lastProgrammedColor: ColorNameAndColor{name: UnknownColor, color: UnknownColor},
-			lastActualColor:     ColorNameAndColor{name: UnknownColor, color: UnknownColor},
+			lastProgrammedColor: nil,
+			lastActualColor:     nil,
 			locker:              newLocker(l.Name),
 			activeScene:         "",
 			available:           false,
@@ -125,28 +114,28 @@ func (l *Light) String() string {
 	return fmt.Sprintf("Light{name: %s, ip: %s, mac: %s, groups: %v}", l.name, l.ip, l.mac, l.groups)
 }
 
-func (l *Light) LastProgrammedColor() ColorNameAndColor {
+func (l *Light) LastProgrammedColor() *color.Color {
 	l.lastProgrammedColorLock.Lock()
 	defer l.lastProgrammedColorLock.Unlock()
 	return l.lastProgrammedColor
 }
 
-func (l *Light) SetLastProgrammedColor(name, color string) {
+func (l *Light) SetLastProgrammedColor(c *color.Color) {
 	l.lastProgrammedColorLock.Lock()
 	defer l.lastProgrammedColorLock.Unlock()
-	l.lastProgrammedColor = ColorNameAndColor{name: name, color: color}
+	l.lastProgrammedColor = c
 }
 
-func (l *Light) LastActualColor() ColorNameAndColor {
+func (l *Light) LastActualColor() *color.Color {
 	l.lastActualColorLock.Lock()
 	defer l.lastActualColorLock.Unlock()
 	return l.lastActualColor
 }
 
-func (l *Light) SetLastActualColor(name, color string) {
+func (l *Light) SetLastActualColor(c *color.Color) {
 	l.lastActualColorLock.Lock()
 	defer l.lastActualColorLock.Unlock()
-	l.lastActualColor = ColorNameAndColor{name: name, color: color}
+	l.lastActualColor = c
 }
 
 func (l *Light) Locker() *LightLock {

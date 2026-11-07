@@ -3,6 +3,7 @@ package responses
 import (
 	"time"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
 
@@ -15,7 +16,7 @@ type LightAttributes struct {
 	AffectedByScene     bool       `json:"affected_by_scene"`
 	ActiveScene         string     `json:"active_scene"`
 	Locked              bool       `json:"locked"`
-	LockedUUntil        *time.Time `json:"locked_until,omitempty"`
+	LockedUntil         *time.Time `json:"locked_until,omitempty"`
 }
 
 type LightStatus struct {
@@ -25,11 +26,21 @@ type LightStatus struct {
 
 func BuildLightStatus(light *light.Light) LightStatus {
 	lpc := light.LastProgrammedColor()
-	programmedColorName := lpc.Name()
-	programmedColor := lpc.Value()
+	var programmedColorName, programmedColor string
+	if lpc != nil {
+		programmedColorName, programmedColor = lpc.Name(), lpc.Value()
+	} else {
+		programmedColorName, programmedColor = color.UnknownColor, color.UnknownColor
+	}
+
+	var actualColor, actualColorName string
 	lac := light.LastActualColor()
-	actualColor := lac.Value()
-	actualColorName := lac.Name()
+	if lac != nil {
+		actualColorName, actualColor = lac.Name(), lac.Value()
+	} else {
+		actualColorName, actualColor = color.UnknownColor, color.UnknownColor
+	}
+
 	activeScene := light.ActiveScene()
 	var lockedUntil *time.Time
 	locked, _, until := light.Locker().IsLocked()
@@ -51,7 +62,7 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			AffectedByScene:     activeScene != "",
 			ActiveScene:         activeScene,
 			Locked:              locked,
-			LockedUUntil:        lockedUntil,
+			LockedUntil:         lockedUntil,
 		},
 	}
 }

@@ -70,14 +70,15 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 	// those that were not included in a scene will have empty values
 	for light, settings := range lightSceneSettings {
 		light.SetActiveScene(settings.scene)
-		light.SetLastProgrammedColor(settings.color.Name(), settings.color.Value())
+		light.SetLastProgrammedColor(settings.color)
 	}
 
 	// Lights that are locked get added / overriden here
 	for _, light := range cnf.Lights {
 		if locked, color, _ := light.Locker().IsLocked(); locked {
-			operationsToDo[light] = cnf.Colors.GetByColor(color)
-			logger.Debugf("Locked light %q will be set to color %q", light.Name(), operationsToDo[light].Value())
+			setToColor := cnf.Colors.GetByValue(color)
+			operationsToDo[light] = setToColor
+			logger.Debugf("Locked light %q will be set to color %q", light.Name(), setToColor)
 			light.SetActiveScene("")
 		}
 	}
@@ -95,15 +96,21 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 				logger.Debugf("Skipping unavailable light")
 				continue
 			}
-			if light.LastActualColor().Value() == color.Value() {
+
+			if !light.On() && color.Value() == c.Off {
+				logger.Debugf("Light is off and intended color is off, skipping")
+				continue
+			}
+
+			if color.SameColorAs(light.LastActualColor()) {
 				logger.Debugf("Light has correct color of %q, skipping", color)
 				continue
 			} else {
-				logger.Infof("Will apply color %q since current color is %q (intended %q) and light on state is %v", color, light.LastActualColor().Value(), color, light.On())
+				logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.Name(), light.LastActualColor())
 			}
 		}
 
-		settings, err := wiz.SettingsFromString(color.Value())
+		settings, err := color.GetWizSettings()
 		if err != nil {
 			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
 			continue
@@ -137,17 +144,18 @@ func ApplyScenes(cnf *config.Config, sceneNames []string, unconditional bool, se
 
 			light.SetOn(operationsToDo[light].Value() != c.Off)
 
-			// Retrieve the intended color for this light from the operationsToDo map
-			colorSpec, found := operationsToDo[light]
+			// Retrieve the intended color for this light from the operationsToDo map since we now
+			// know we succesfully set the light to that color
+			color, found := operationsToDo[light]
 			if !found {
 				logger.Errorf("Color for light not found")
 				continue
 			}
 
 			// Update light now that we definitively know it's setting
-			light.SetLastActualColor(colorSpec.Name(), colorSpec.Value())
+			light.SetLastActualColor(color)
 
-			logger.Debugf("Successful application of color %q (%q)", colorSpec.Name(), colorSpec.Value())
+			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())
 		}
 	}
 
