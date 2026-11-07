@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"encoding/json"
-	"slices"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
@@ -16,7 +15,6 @@ type Time struct {
 // Calendar represents a calendar with its associated metadata and selection criteria.
 type Calendar struct {
 	Name      string `json:"name"`
-	Active    bool   `json:"currently_selected"`
 	From      string `json:"from,omitempty"`
 	To        string `json:"to,omitempty"`
 	Before    *Time  `json:"before,omitempty"`
@@ -33,12 +31,8 @@ type CalendarsResponse struct {
 // HandleCalendarsRequest handles a request for calendar data, returning a JSON-encoded response containing the list of calendars.
 func HandleCalendarsRequest(cnf *config.Config) []byte {
 
-	_, activeCalendarNames := cnf.Calendars.GetCalendarScenes(cnf.Scenes)
-
 	resp := &CalendarsResponse{}
 	for _, calendar := range cnf.Calendars {
-
-		active := slices.Contains(activeCalendarNames, calendar.Name())
 
 		var before, after *Time
 		if calendar.Before() != nil {
@@ -57,7 +51,6 @@ func HandleCalendarsRequest(cnf *config.Config) []byte {
 		resp.Calendars = append(resp.Calendars,
 			Calendar{
 				Name:      calendar.Name(),
-				Active:    active,
 				From:      calendar.OriginalFrom(),
 				To:        calendar.OriginalTo(),
 				Before:    before,
