@@ -99,8 +99,8 @@ func (d *Daemon) Kick() {
 // SetMode sets the daemon run mode
 func (d *Daemon) SetMode(mode DaemonMode) {
 	d.lock.Lock()
-	defer d.lock.Unlock()
 	d.mode = mode
+	d.lock.Unlock()
 	d.SendDaemonStatus()
 	d.Kick()
 }
