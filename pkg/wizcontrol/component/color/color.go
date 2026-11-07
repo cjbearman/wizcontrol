@@ -10,8 +10,6 @@ import (
 const UnknownColor = "unknown"
 const Off = "off"
 
-type Colors map[string]*Color
-
 type Color struct {
 	name, value string
 }
@@ -46,46 +44,8 @@ func (c Color) Value() string {
 	return c.value
 }
 
-func (c Colors) GetByName(name string) *Color {
-	if col, found := c[name]; found {
-		return col
-	}
-	return nil
-}
-
-func (c Colors) GetByValue(color string) *Color {
-
-	// We prefer one of our defined colors, but will return one with unknown spec if needd
-
-	for _, col := range c {
-		if strings.EqualFold(col.Value(), color) {
-			// One of our own
-			return col
-		}
-	}
-	return &Color{
-		// Unknown
-		name:  UnknownColor,
-		value: color,
-	}
-}
-
 func (c *Color) String() string {
 	return fmt.Sprintf("%s (%s)", c.name, c.value)
-}
-
-func (c Colors) prefillWizColors() {
-	c[Off] = &Color{
-		name:  Off,
-		value: Off,
-	}
-	for _, wizScene := range wiz.AllSceneNames() {
-		name := fmt.Sprintf("wiz_%s", strings.ToLower(wizScene))
-		c[name] = &Color{
-			name:  name,
-			value: wizScene,
-		}
-	}
 }
 
 func (c *Color) SameColorAs(other *Color) bool {

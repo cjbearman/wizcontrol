@@ -7,8 +7,6 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
 
-type Scenes map[string]*Scene
-
 type Element struct {
 	targets []*light.Light
 	color   string
@@ -82,14 +80,6 @@ func (s Scenes) GetByName(name string) *Scene {
 
 func (s *Scene) String() string {
 	return fmt.Sprintf("Scene{name: %s, group: %s, elements: %d	}", s.name, s.group, len(s.elements))
-}
-
-func (s Scenes) GetSceneElementsBySceneName(name string) ([]*Element, bool) {
-	scene, found := s[name]
-	if !found {
-		return nil, false
-	}
-	return scene.elements, true
 }
 
 func (e *Element) GetTargets() []*light.Light {

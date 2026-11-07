@@ -90,7 +90,12 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 	conf.Discovery = discovery.Build(cfg.Discovery)
 	conf.System = system.Build(cfg.System)
 
-	conf.Bus = bus.NewBus()
+	if conf.MQTT != nil {
+		conf.Bus = bus.NewBus()
+	} else {
+		// If MQTT is not running, we use a fake bus that discards all messages
+		conf.Bus = bus.NewNilBus()
+	}
 
 	return conf, nil
 }
