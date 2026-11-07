@@ -3,7 +3,6 @@
 package responses
 
 import (
-	"strings"
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
@@ -13,7 +12,7 @@ import (
 type DaemonAttributes struct {
 	Scenes                string     `json:"scenes"`
 	CalendarScenes        []string   `json:"calendar_scenes"`
-	AdditionalScenes      string     `json:"additional_scenes"`
+	AdditionalScenes      []string   `json:"additional_scenes"`
 	AdditionalScenesUntil *time.Time `json:"additional_scenes_until,omitempty"`
 }
 
@@ -37,12 +36,16 @@ func BuildDaemonResponse(
 	for _, item := range additionalScenes {
 		addScenes = append(addScenes, item.Scene.Name())
 	}
+	if calendarScenes == nil {
+		// null prevention
+		calendarScenes = []string{}
+	}
 
 	return DaemonStatus{
 		Attributes: DaemonAttributes{
 			Scenes:           scenes,
 			CalendarScenes:   calendarScenes,
-			AdditionalScenes: strings.Join(addScenes, ", "),
+			AdditionalScenes: addScenes,
 		},
 		Mode: mode,
 	}
