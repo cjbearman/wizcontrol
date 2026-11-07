@@ -9,6 +9,11 @@ system:
   # Specify the period for rechecking currently set light colors
   recheck_period: 5m
 
+  # Specify a file for retained state, if you want active scenes and locked colors
+  # to preserve state across restarts, specify a file path here
+  # If using docker, make sure this is on a volume
+  state_file: "/config/state.json"
+
 # Include mqtt section if you want to utilize MQTT broker
 mqtt:
   # broker URL
@@ -17,13 +22,20 @@ mqtt:
   username: "wizcontrol_mqtt"
   # broker password
   password: "asdkljiodsjf23489h!"
-  # base topic
-  topic: "wizcontrol_dev"
-  retain_messages: false
+  
+  # base topic (defaults to wizcontrol)
+  # topic: "wizcontrol"
+
+  # Enable or disable control of the lights via MQTT, default true, if false, the lights will not be controllable via MQTT
+  # control_enabled: true
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses
 discovery:
+  # broadcast address for discovery should be set to the broadcast address for the interface connected
+  # to the light's subnet. 
+  # Can be omitted if this is your default network
+  # Discovery will not work if you are not directly connected to the light's subnet
   broadcast_address: "192.168.21.255"
   interval: "30s"
   period: "5s"
@@ -37,7 +49,7 @@ http:
   #cert_chain: test_certs/wizcontrol.crt
   #key: test_certs/wizcontrol.key
 
-  # To establish HTTP basic authentication, uncomment and configure the auth block below
+  # To use HTTP basic authentication, uncomment and configure the auth block below
   #auth:
    # username: "chris"
     #password: "changeme"
@@ -110,7 +122,8 @@ lights:
     #mac: 98:77:d5:30:1a:fc
     groups: [ "indoor", "office_lights" , "office_ceiling"]
 
-
+# Specify desired colors here. Each color should have a unique name
+# and a valid color code.
 colors:
   - name: red
     color: "#FF0000"
@@ -201,9 +214,13 @@ colors:
   - name: halloween_dynamic
     color: halloween/100/75
 
+# Scenes are specified here
 scenes:
+  # Each scene must have a name
   - name: default
+    # And a list of elements, at least one
     elements:
+      # Each element targets one or more lights or light groups and specifies a target color for those targets
       - targets:
         - outside_lights
         color: warm_white
@@ -395,12 +412,24 @@ scenes:
       - targets: [ patio_lights ]
         color: sunset_dynamic
 
-
+# Calendars activate scenes at specific times
+# Each calendar must have a name and a from and to date for which it will be considered
+# Optionally a before and/or after time can be used to limit the time within matching days when it will be considered active
+# A list of scenes to be applied is required
+# A mode can be provided, and if not provided will default to all:
+#   all: All scenes will be applied in the order specified
+#   random: Scenes will be applied in a random order
+#   rotate: Scenes will be applied in a rotating order
+# frequency can be specified to determine how often the scenes should be randomized / rotated when in random or rotate mode
+# Calendars are applied in the order specified
 calendar:
+  # Our first calendar entry is our default (lowest priority), who's scenes are always applied because we've set it for the whole
+  # year
   - name: default
     from: jan 1
     to: dec 31
     scenes: [ default ]
+  # Subsequent calendars apply there scenes on more restrictive time periods, overriding the default scene during those periods
   - name: halloween
     from: halloween - 10
     to: halloween
@@ -433,6 +462,7 @@ calendar:
     from: thanksgiving_day - 3
     to: thanksgiving_day + 1
     scenes: [ thanksgiving ]  
+  # An example scene that randomizes scenes every 30 minutes (every day of the year in this case)
   - name: patio_changeup
     from: jan 1
     to: dec 31

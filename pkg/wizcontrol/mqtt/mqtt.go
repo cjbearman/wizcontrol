@@ -3,7 +3,10 @@ package mqtt
 
 import (
 	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
@@ -183,6 +186,29 @@ func (m *Mqtt) run() {
 		panic(fmt.Sprintf("failed to generate client UUID: %v", err))
 	}
 
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: m.cnf.MQTT.ShouldConnectInsecurely(),
+	}
+
+	if m.cnf.MQTT.ServerCerts() != "" {
+		certPool := x509.NewCertPool()
+
+		// 2. Read your custom CA certificate file
+		caCert, err := os.ReadFile(m.cnf.MQTT.ServerCerts())
+		if err != nil {
+			logger.Errorf("Failed to read CA certificate: %v", err)
+			return
+		}
+
+		// 3. Append the CA certificate to the pool
+		if ok := certPool.AppendCertsFromPEM(caCert); !ok {
+			logger.Errorf("Failed to parse CA certificate")
+			return
+		}
+
+		tlsConfig.RootCAs = certPool
+	}
+
 	// Set up the MQTT broker
 	opts := mqtt.NewClientOptions().
 		AddBroker(m.MqttURL).
@@ -190,7 +216,8 @@ func (m *Mqtt) run() {
 		SetUsername(m.MqttUsername).
 		SetPassword(m.MqttPassword).
 		SetAutoReconnect(true).
-		SetCleanSession(true)
+		SetCleanSession(true).
+		SetTLSConfig(tlsConfig)
 
 	opts.OnConnect = m.connectHandler
 	opts.OnConnectionLost = m.disconnectHandler

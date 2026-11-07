@@ -9,6 +9,8 @@ type Mqtt struct {
 	topic          string
 	controlEnabled bool
 	retainMessages bool
+	insecure       bool
+	serverCerts    string
 }
 
 // Build constructs an Mqtt instance from the provided ConfigYAML, applying default values where necessary.
@@ -30,6 +32,8 @@ func Build(config *ConfigYAML) *Mqtt {
 		topic:          topic,
 		controlEnabled: *config.ControlEnabled,
 		retainMessages: *config.RetainMessages,
+		insecure:       *config.Insecure,
+		serverCerts:    config.ServerCerts,
 	}
 }
 
@@ -66,7 +70,16 @@ func (m *Mqtt) ShouldRetainMessages() bool {
 	return m.retainMessages
 }
 
+// ShouldConnectInsecurely returns whether the MQTT connection should be established insecurely (without verifying the server's TLS certificate).
+func (m *Mqtt) ShouldConnectInsecurely() bool {
+	return m.insecure
+}
+
 // String returns a string representation of the MQTT configuration, including URL, topic, username, and password.
 func (m *Mqtt) String() string {
 	return "MQTT URL: " + m.GetURL() + ", Topic: " + m.GetTopic() + ", Username: " + m.GetUsername() + ", Password: " + m.GetPassword()
+}
+
+func (m *Mqtt) ServerCerts() string {
+	return m.serverCerts
 }

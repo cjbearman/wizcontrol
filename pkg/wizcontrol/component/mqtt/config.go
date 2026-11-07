@@ -17,6 +17,8 @@ type ConfigYAML struct {
 	Topic          string `yaml:"topic"`
 	ControlEnabled *bool  `yaml:"control_enabled"`
 	RetainMessages *bool  `yaml:"retain_messages"`
+	Insecure       *bool  `yaml:"insecure"`
+	ServerCerts    string `yaml:"server_certs"`
 }
 
 // UnmarshalYAML customizes the unmarshalling of the MQTT configuration from YAML. It validates the URL and sets default values for optional fields.
@@ -51,6 +53,13 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		rm = *alias.RetainMessages
 	}
 	c.RetainMessages = &rm
+
+	inc := false
+	if alias.Insecure != nil {
+		inc = *alias.Insecure
+	}
+	c.Insecure = &inc
+	c.ServerCerts = alias.ServerCerts
 
 	return nil
 }
