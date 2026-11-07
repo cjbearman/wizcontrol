@@ -21,5 +21,5 @@ COPY config.yaml /config/config.yaml
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app
 
-CMD [ "wizcontrol", "-d" ]
+CMD [ "wizcontrol", "-config", "/config/config.yaml" ]
 
