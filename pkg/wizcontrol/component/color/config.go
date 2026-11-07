@@ -7,11 +7,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigYAML is the YAML representation of a color configuration
 type ConfigYAML struct {
 	Name  string `yaml:"name"`
 	Color string `yaml:"color"`
 }
 
+// UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

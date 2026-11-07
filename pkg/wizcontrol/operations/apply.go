@@ -10,17 +10,22 @@ import (
 	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 )
 
+// lightSettings holds the scene and color information for a light.
 type lightSettings struct {
 	scene string
 	color *c.Color
 }
 
-func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, sendMqtt bool) {
+// ApplyScenes will apply the list of scenes to the lights affected by those scenes
+// The list of scenes is ordered, and scenes are applied to lights in that order, with later scenes taking precedence.
+func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
+
+	// Add the list of scene names to the logger
 	sceneNames := []string{}
 	for _, s := range scenes {
-		sceneNames = append(sceneNames, s.GetName())
+		sceneNames = append(sceneNames, s.Name())
 	}
-	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames).WithField("unconditional", unconditional)
+	logger := common.Logger.GetLogger("apply").WithField("scenes", sceneNames)
 
 	// Prefill a map of all lights with empty scene settings, we will update this as
 	// we figure out what is going to be set
@@ -34,14 +39,16 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, 
 	operationsToDo := make(map[*l.Light]*c.Color)
 
 	for _, scene := range scenes {
-
 		elements := scene.GetElements()
-		logger := logger.WithField("scene", scene.GetName())
+		logger := logger.WithField("scene", scene.Name())
 
+		// Each scene consists of multiple elements, each targeting specific targets (lights or light groups) with a color
+		// later elements will take precedence if they target the same lights as earlier elements or scenes
 		for _, targets := range elements {
 			colorName := targets.GetColor()
-			color := cnf.Colors.GetByName(colorName)
+			color := cnf.Colors[colorName]
 			if color == nil {
+				// Should not really happen, but it's not fatal
 				logger.Warnf("Color not found: %s", colorName)
 				continue
 			}
@@ -52,7 +59,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, 
 				operationsToDo[light] = color
 				logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
 				lightSceneSettings[light] = lightSettings{
-					scene: scene.GetName(),
+					scene: scene.Name(),
 					color: color,
 				}
 			}
@@ -83,24 +90,21 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, 
 	for light, color := range operationsToDo {
 		logger := logger.WithField("device", light.Name())
 
-		if !unconditional {
-			// We are not in unconditional mode, so we skip lights that are locked, unavailable or appear to be correctly set
-			if !light.Available() {
-				logger.Debugf("Skipping unavailable light")
-				continue
-			}
+		if !light.Available() {
+			logger.Debugf("Skipping unavailable light")
+			continue
+		}
 
-			if !light.On() && color.Value() == c.Off {
-				logger.Debugf("Light is off and intended color is off, skipping")
-				continue
-			}
+		if !light.On() && color.Value() == c.Off {
+			logger.Debugf("Light is off and intended color is off, skipping")
+			continue
+		}
 
-			if color.SameColorAs(light.LastActualColor()) {
-				logger.Debugf("Light has correct color of %q, skipping", color)
-				continue
-			} else {
-				logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.Name(), light.LastActualColor())
-			}
+		if color.SameColorAs(light.LastActualColor()) {
+			logger.Debugf("Light has correct color of %q, skipping", color)
+			continue
+		} else {
+			logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.Name(), light.LastActualColor())
 		}
 
 		settings, err := color.GetWizSettings()

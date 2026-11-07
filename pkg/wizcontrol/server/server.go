@@ -50,6 +50,7 @@ func NewServer(cnf *config.Config) *Server {
 
 	mux.HandleFunc("GET /", srv.intercept(srv.statusHandler))
 	mux.HandleFunc("GET /scenegroups", srv.intercept(srv.scenegroupsHandler))
+	mux.HandleFunc("GET /lightgroups", srv.intercept(srv.lightgroupsHandler))
 	mux.HandleFunc("GET /colors", srv.intercept(srv.colorsHandler))
 	mux.HandleFunc("GET /targets", srv.intercept(srv.targetsHandler))
 	mux.HandleFunc("POST /lock", srv.intercept(srv.lockHandler))

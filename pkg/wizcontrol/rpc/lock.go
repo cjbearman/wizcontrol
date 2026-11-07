@@ -36,7 +36,7 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	}
 
 	var color string
-	col := cnf.Colors.GetByName(color)
+	col := cnf.Colors[request.Color]
 	if col != nil {
 		color = col.Value()
 	} else {

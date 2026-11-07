@@ -16,7 +16,7 @@ func HandleSceneGroupsRequest(cnf *config.Config) []byte {
 	for name, scenes := range cnf.SceneGroups {
 
 		for _, scene := range scenes {
-			resp.SceneGroups[name] = append(resp.SceneGroups[name], scene.GetName())
+			resp.SceneGroups[name] = append(resp.SceneGroups[name], scene.Name())
 		}
 	}
 

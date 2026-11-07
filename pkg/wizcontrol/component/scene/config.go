@@ -7,17 +7,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ElementYAML represents the configuration for an individual element within a scene, including its targets and color.
 type ElementYAML struct {
 	Targets []string `yaml:"targets"`
 	Color   string   `yaml:"color"`
 }
 
+// ConfigYAML represents the configuration for a scene, including its name, elements, and group.
 type ConfigYAML struct {
 	Name     string        `yaml:"name"`
 	Elements []ElementYAML `yaml:"elements"`
 	Group    string        `yaml:"group"`
 }
 
+// UnmarshalYAML custom unmarshals a ConfigYAML from a YAML node, validating its fields.
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

@@ -33,7 +33,7 @@ func BuildDaemonResponse(
 	addscenes := []ScUntil{}
 	for _, item := range additionalScenes {
 		addscenes = append(addscenes, ScUntil{
-			Scene: item.Scene.GetName(),
+			Scene: item.Scene.Name(),
 			Until: item.Until,
 		})
 	}

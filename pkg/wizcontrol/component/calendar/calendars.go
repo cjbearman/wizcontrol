@@ -54,7 +54,7 @@ func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []*scene.Scene {
 
 	selectedSceneName := []string{}
 	for _, s := range result {
-		selectedSceneName = append(selectedSceneName, s.GetName())
+		selectedSceneName = append(selectedSceneName, s.Name())
 	}
 
 	logger.Infof("Calendar scenes selected: %v", selectedSceneName)

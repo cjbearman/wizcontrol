@@ -8,20 +8,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//   broadcast_address: 192.168.21.255
-//   # The interval at which discovery runs are initiated
-//   interval: 30s
-//   # The period to wait for responses after sending discovery packets
-//   period: 5s
-
-const DefaultHTTPPort = 12120
-
+// ConfigYAML is the YAML representation of a discovery configuration
 type ConfigYAML struct {
 	BroadcastAddress string `yaml:"broadcast_address"`
 	Interval         string `yaml:"interval"`
 	Period           string `yaml:"period"`
 }
 
+// UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

@@ -7,17 +7,20 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
 
+// Element represents an individual element within a scene, including its targets and color.
 type Element struct {
 	targets []*light.Light
 	color   string
 }
 
+// Scene represents a scene, including its name, elements, and group.
 type Scene struct {
 	name     string
 	elements []*Element
 	group    string
 }
 
+// Build constructs scenes and scene groups from the provided configuration, colors, lights, and light groups.
 func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgroups light.LightGroups) (Scenes, SceneGroups, error) {
 	scenes := make(Scenes)
 	groups := make(SceneGroups)
@@ -32,18 +35,18 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 		}
 
 		for _, e := range s.Elements {
-			if colors.GetByName(e.Color) == nil {
+			if colors[e.Color] == nil {
 				return nil, nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
 			}
 
 			targets := []*light.Light{}
 			for _, t := range e.Targets {
 
-				light := lights.GetByName(t)
+				light := lights[t]
 				if light != nil {
 					targets = append(targets, light)
 				} else {
-					group := lightgroups.GetByName(t)
+					group := lightgroups[t]
 					if group != nil {
 						targets = append(targets, group.Lights()...)
 					} else {
@@ -66,30 +69,33 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 	return scenes, groups, nil
 }
 
-func (s *Scene) GetName() string {
+// Name returns the name of the scene.
+func (s *Scene) Name() string {
 	return s.name
 }
 
+// GetGroup returns the group of the scene.
+// may be empty if no group is defined
 func (s *Scene) GetGroup() string {
 	return s.group
 }
 
-func (s Scenes) GetByName(name string) *Scene {
-	return s[name]
-}
-
+// String returns a string representation of the scene.
 func (s *Scene) String() string {
 	return fmt.Sprintf("Scene{name: %s, group: %s, elements: %d	}", s.name, s.group, len(s.elements))
 }
 
+// GetTargets returns the targets of the element.
 func (e *Element) GetTargets() []*light.Light {
 	return e.targets
 }
 
+// GetColor returns the color of the element.
 func (e *Element) GetColor() string {
 	return e.color
 }
 
+// GetByGroup returns all scenes belonging to the specified group.
 func (s Scenes) GetByGroup(group string) ([]*Scene, bool) {
 	result := []*Scene{}
 	for _, scene := range s {
@@ -103,6 +109,7 @@ func (s Scenes) GetByGroup(group string) ([]*Scene, bool) {
 	return result, true
 }
 
+// GetElements returns the elements of the scene.
 func (s *Scene) GetElements() []*Element {
 	return s.elements
 }

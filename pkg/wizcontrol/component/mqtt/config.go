@@ -9,11 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ElementYAML struct {
-	Targets []string `yaml:"targets"`
-	Color   string   `yaml:"color"`
-}
-
+// ConfigYAML represents the YAML configuration for the MQTT component.
 type ConfigYAML struct {
 	URL            string `yaml:"url"`
 	Username       string `yaml:"username"`
@@ -23,6 +19,7 @@ type ConfigYAML struct {
 	RetainMessages *bool  `yaml:"retain_messages"`
 }
 
+// UnmarshalYAML customizes the unmarshalling of the MQTT configuration from YAML. It validates the URL and sets default values for optional fields.
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML
@@ -58,6 +55,9 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+// ValidateMQTTURL checks if the provided MQTT URL is valid, ensuring it has a supported scheme and a host.
+// TODO: We probably need more work in the MQTT main component for supporting TLS based transports.
+// Also need to check that the MQTT implementation accepts all of these URL patterns
 func ValidateMQTTURL(rawURL string) error {
 	u, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil {

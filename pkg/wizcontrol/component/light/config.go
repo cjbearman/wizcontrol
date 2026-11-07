@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigYAML is the YAML representation of a light configuration
 type ConfigYAML struct {
 	Name   string   `yaml:"name"`
 	IP     string   `yaml:"ip"`
@@ -14,6 +15,7 @@ type ConfigYAML struct {
 	Groups []string `yaml:"groups"`
 }
 
+// UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

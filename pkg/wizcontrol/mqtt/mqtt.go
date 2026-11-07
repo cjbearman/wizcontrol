@@ -1,3 +1,4 @@
+// Package mqtt provides MQTT integration for the wizcontrol system, handling both publishing and subscribing to relevant topics.
 package mqtt
 
 import (
@@ -12,6 +13,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// List of topics used for MQTT communication
+// these are all housed underneath the primary topic and thus are not considered
+// fully qualified names
 const (
 	topicLock        = "lock"
 	topicUnlock      = "unlock"
@@ -22,16 +26,13 @@ const (
 	topicColors      = "colors"
 	topicTargets     = "targets"
 	topicSceneGroups = "scenegroups"
+	topicLightGroups = "lightgroups"
 )
-const BufferSize = 100
 
-type messageAndTopic struct {
-	topic   string
-	message []byte
-}
-
+// Instance holds the singleton instance of the MQTT integration
 var Instance *Mqtt
 
+// Mqtt represents the MQTT integration, managing connection, subscriptions, and message handling.
 type Mqtt struct {
 	*common.BaseRunner
 	outboundMessage      <-chan bus.Message
@@ -45,6 +46,7 @@ type Mqtt struct {
 	cnf                  *config.Config
 }
 
+// NewMqtt creates a new instance of the MQTT integration with the provided configuration.
 func NewMqtt(cnf *config.Config) *Mqtt {
 	mqtt := Mqtt{
 		BaseRunner:           common.NewRunner("mqtt"),
@@ -64,6 +66,8 @@ func NewMqtt(cnf *config.Config) *Mqtt {
 
 }
 
+// handleLockRPC handles inbound "lock" messages, routing them to the
+// relevant RPC handler.
 func (m *Mqtt) handleLockRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received day RPC message")
@@ -73,6 +77,7 @@ func (m *Mqtt) handleLockRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+// handleUnlockRPC handles inbound "unlock" messages, routing them to the relevant RPC handler.
 func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received unlock RPC message")
@@ -82,6 +87,7 @@ func (m *Mqtt) handleUnlockRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+// handleAddSceneRPC handles inbound "add scene" messages, routing them to the relevant RPC handler.
 func (m *Mqtt) handleAddSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received add scene RPC message")
@@ -90,6 +96,8 @@ func (m *Mqtt) handleAddSceneRPC(client mqtt.Client, msg mqtt.Message) {
 		logger.Errorf("Failed to handle add scene request: %v", err)
 	}
 }
+
+// handleDelSceneRPC handles inbound "delete scene" messages, routing them to the relevant RPC handler.
 func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received delete scene RPC message")
@@ -99,12 +107,14 @@ func (m *Mqtt) handleDelSceneRPC(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
+// handleResetRPC handles inbound "reset" messages, routing them to the relevant RPC handler.
 func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received reset RPC message")
 	_ = rpc.HandleResetRequest(m.cnf)
 }
 
+// connectHandler is called when the MQTT client successfully connects to the broker. It subscribes to control topics and publishes initial state.
 func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("MQTT connected")
@@ -118,31 +128,41 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicReset), 1, m.handleResetRPC)
 	}
 
-	// Publish initial scenes, scenegroups, colors and targets
+	// Publish initial scenes, scenegroups, lightgroups, colors and targets
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicScenes), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleScenesRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicSceneGroups), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleSceneGroupsRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicLightGroups), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleLightGroupsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicColors), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleColorsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
 }
 
+// disconnectHandler is called when the MQTT client loses connection to the broker.
+// it logs the disconnection event and the associated error.
 func (m *Mqtt) disconnectHandler(client mqtt.Client, err error) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Errorf("MQTT disconnected: %v", err)
 }
 
+// run is the main loop for the MQTT integration, handling connection, message dispatch, and stop signals.
 func (m *Mqtt) run() {
 	logger := common.Logger.GetLogger("mqtt")
 	defer close(m.Closed)
 
+	// messageUniqueness is used to store hashes of outbound
+	// messages to prevent duplicate dispatches.
+	// this is applied to any messages dispatched via the bus, which are daemon and light messages
+	// all other sent messages are just sent on connection and therefore exempt from uniqueness checks.
 	messageUniqueness := make(map[string]string)
 
-	logger.Info("mqtt started")
+	logger.Info("MQTT started")
 
 	clientId, err := uuid.NewRandom()
 	if err != nil {
-		logger.Errorf("failed to generate client UUID: %v", err)
+		// bloody unlikely, but handle it anyway.
+		panic(fmt.Sprintf("failed to generate client UUID: %v", err))
 	}
 
+	// Set up the MQTT broker
 	opts := mqtt.NewClientOptions().
 		AddBroker(m.MqttURL).
 		SetClientID(clientId.String()).
@@ -155,10 +175,11 @@ func (m *Mqtt) run() {
 	opts.OnConnectionLost = m.disconnectHandler
 	client := mqtt.NewClient(opts)
 
+	// Initiate connection
 	client.Connect()
-
 	logger.Info("MQTT connection initiated")
 
+	// Main loop for handling stop signals and outbound messages
 	for {
 		select {
 		case <-m.StopSignalled:
@@ -168,7 +189,8 @@ func (m *Mqtt) run() {
 			return
 		case msg := <-m.outboundMessage:
 
-			// Message has an ID, check for uniqueness
+			// Before dispatching this message, make sure it's different from the
+			// last message dispatched to the topic
 			hash := m.hashMessage(msg.Payload)
 			if prevHash, exists := messageUniqueness[msg.Topic]; exists {
 				if prevHash == hash {
@@ -177,6 +199,8 @@ func (m *Mqtt) run() {
 				}
 			}
 			messageUniqueness[msg.Topic] = hash
+
+			// Dispatch the message
 			topic := fmt.Sprintf("%s/%s", m.MqttTopic, msg.Topic)
 			client.Publish(topic, 1, m.cnf.MQTT.ShouldRetainMessages(), msg.Payload)
 			logger.Infof("Dispatched an MQTT update to %s", topic)
@@ -184,6 +208,7 @@ func (m *Mqtt) run() {
 	}
 }
 
+// hashMessage computes a SHA-256 hash of the given message.
 func (m *Mqtt) hashMessage(message []byte) string {
 	return fmt.Sprintf("%x", sha256.Sum256(message))
 }

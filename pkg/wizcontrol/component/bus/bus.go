@@ -1,3 +1,4 @@
+// Package bus provides a message bus for dispatching messages to MQTT
 package bus
 
 import (

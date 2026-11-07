@@ -22,6 +22,7 @@ import (
 func main() {
 	logLevel := flag.String("log", "info", "Set the logging level")
 	cfg := flag.String("config", "config.yaml", "Path to the configuration file")
+	wc := flag.Bool("wc", false, "List available pre-defined wiz colors")
 
 	flag.Parse()
 
@@ -48,6 +49,13 @@ func main() {
 	common.Location = finalConfig.System.Timezone()
 	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
 	common.Logger.Infof("Operating in location: %v", common.Location)
+
+	if *wc {
+		for name := range finalConfig.WizColors {
+			fmt.Printf("%s\n", name)
+		}
+		return
+	}
 
 	runAsDaemon(finalConfig)
 }

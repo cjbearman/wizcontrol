@@ -1,3 +1,4 @@
+// Package config handles configuration of the wizcontrol application
 package config
 
 import (
@@ -16,6 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigYAML represents the configuration as defined in the YAML file.
 type ConfigYAML struct {
 	Lights    []light.ConfigYAML    `yaml:"lights"`
 	Colors    []color.ConfigYAML    `yaml:"colors"`
@@ -27,10 +29,12 @@ type ConfigYAML struct {
 	System    system.ConfigYAML     `yaml:"system"`
 }
 
+// Config represents the fully built configuration of the wizcontrol application.
 type Config struct {
 	Lights           light.Lights
 	LightGroups      light.LightGroups
 	Colors           color.Colors
+	WizColors        color.Colors
 	Scenes           scene.Scenes
 	SceneGroups      scene.SceneGroups
 	Calendars        calendar.Calendars
@@ -42,6 +46,7 @@ type Config struct {
 	Bus              *bus.Bus
 }
 
+// Load reads the configuration from the specified YAML file and returns a ConfigYAML instance.
 func Load(path string) (*ConfigYAML, error) {
 	fp, err := os.Open(path)
 	if err != nil {
@@ -60,17 +65,20 @@ func Load(path string) (*ConfigYAML, error) {
 	return cfg, nil
 }
 
+// Build constructs a Config instance from the provided ConfigYAML, applying necessary defaults and building components.
 func Build(cfg *ConfigYAML) (*Config, error) {
 
 	conf := &Config{}
 	var err error
+
+	conf.System = system.Build(cfg.System)
 
 	conf.Lights, conf.LightGroups, err = light.Build(&cfg.Lights)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing lights: %v", err)
 	}
 
-	conf.Colors, err = color.Build(&cfg.Colors)
+	conf.Colors, conf.WizColors, err = color.Build(&cfg.Colors, conf.System.WizColorPrefix())
 	if err != nil {
 		return nil, fmt.Errorf("error parsing colors: %v", err)
 	}
@@ -88,7 +96,6 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 	conf.MQTT = mqtt.Build(cfg.MQTT)
 	conf.HTTP = http.Build(cfg.HTTP)
 	conf.Discovery = discovery.Build(cfg.Discovery)
-	conf.System = system.Build(cfg.System)
 
 	if conf.MQTT != nil {
 		conf.Bus = bus.NewBus()
@@ -100,8 +107,10 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 	return conf, nil
 }
 
+// GetLightOrGroup returns either a single light or group of lights by name.
+// Lights and light groups cannot share a name, and thus this function is deterministic.
 func (c *Config) GetLightOrGroup(lightOrGroup string) []*light.Light {
-	if l := c.Lights.GetByName(lightOrGroup); l != nil {
+	if l := c.Lights[lightOrGroup]; l != nil {
 		return []*light.Light{l}
 	}
 	if g, found := c.LightGroups[lightOrGroup]; found {

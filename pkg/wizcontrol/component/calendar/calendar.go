@@ -33,7 +33,7 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 
 		sceneObjs := []*scene.Scene{}
 		for _, scene := range c.Scenes {
-			sc := scenes.GetByName(scene)
+			sc := scenes[scene]
 			if sc == nil {
 				return nil, fmt.Errorf("scene %q for calendar %q not found", scene, c.Name)
 			}

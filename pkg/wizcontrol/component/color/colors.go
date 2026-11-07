@@ -7,42 +7,46 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+const DefaultWizColorPrefix = "wiz_"
+
+// Colors is a map of Color names to Color objects
 type Colors map[string]*Color
 
-func (c Colors) GetByName(name string) *Color {
-	if col, found := c[name]; found {
-		return col
-	}
-	return nil
-}
+// GetByValue returns the color with the given value, or an unknown color if not found
+func (c Colors) GetByValue(value string) *Color {
 
-func (c Colors) GetByValue(color string) *Color {
-
-	// We prefer one of our defined colors, but will return one with unknown spec if needd
-
+	// Search our existing colors for one that has this value
 	for _, col := range c {
-		if strings.EqualFold(col.Value(), color) {
+		if strings.EqualFold(col.Value(), value) {
 			// One of our own
 			return col
 		}
 	}
+
+	// We didn't find a color, so return an "unknown" color for this value
 	return &Color{
 		// Unknown
 		name:  UnknownColor,
-		value: color,
+		value: value,
 	}
 }
 
-func (c Colors) prefillWizColors() {
+// prefillWizColors will create and map a color for all the wiz scene names, which
+// are valid wiz color definitions
+// It will also return a set of those colors for additional use cases
+func (c Colors) prefillWizColors(prefix string) (wizColors Colors) {
+	wizColors = make(Colors)
 	c[Off] = &Color{
 		name:  Off,
 		value: Off,
 	}
 	for _, wizScene := range wiz.AllSceneNames() {
-		name := fmt.Sprintf("wiz_%s", strings.ToLower(wizScene))
-		c[name] = &Color{
+		name := fmt.Sprintf("%s%s", prefix, strings.ToLower(wizScene))
+		col := &Color{
 			name:  name,
-			value: wizScene,
+			value: strings.ToLower(wizScene),
 		}
+		c[name], wizColors[name] = col, col
 	}
+	return wizColors
 }

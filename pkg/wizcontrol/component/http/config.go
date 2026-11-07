@@ -6,8 +6,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// DefaultHTTPPort is the default HTTP port for the HTTP component
 const DefaultHTTPPort = 12120
 
+// ConfigYAML is the YAML representation of an HTTP configuration
 type ConfigYAML struct {
 	Port      int    `yaml:"port"`
 	CertChain string `yaml:"cert_chain"`
@@ -18,6 +20,7 @@ type ConfigYAML struct {
 	} `yaml:"auth"`
 }
 
+// UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
 func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	type Alias ConfigYAML

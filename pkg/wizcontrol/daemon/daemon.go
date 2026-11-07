@@ -1,3 +1,4 @@
+// Package daemon provides a service to provide periodic management of light state based on configured calendars and additional scenes.
 package daemon
 
 import (
@@ -16,16 +17,21 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/state"
 )
 
+// DaemonMode represents the mode in which the daemon operates.
 type DaemonMode string
 
 const (
-	DaemonModeOff  = "off"
+	// DaemonModeOff indicates that the daemon is turned off and will not manage lights.
+	DaemonModeOff = "off"
+
+	// DaemonModeAuto indicates that the daemon will automatically manage lights based on configured calendars and additional scenes.
 	DaemonModeAuto = "auto"
 )
 
+// Instance holds the global instance of the daemon. There should only ever be one daemon running.
 var Instance *Daemon
 
-// Daemon is the runner that handles automatic light setting based on configured calendar
+// Daemon is the runner that handles automatic light setting based on configured calendar and additional scenes.
 type Daemon struct {
 	*common.BaseRunner
 	kicker           chan struct{}
@@ -68,12 +74,14 @@ func NewDaemon(cnf *config.Config) *Daemon {
 	return d
 }
 
+// GetActiveSceneNames returns a comma separated list of active scene names
 func (d *Daemon) GetActiveSceneNames() string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.activeSceneNames
 }
 
+// GetCalendarScenes returns a list of scenes that are currently active from the calendar
 func (d *Daemon) GetCalendarScenes() []string {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -88,12 +96,14 @@ func (d *Daemon) Kick() {
 	}
 }
 
+// SetMode sets the daemon run mode
 func (d *Daemon) SetMode(mode DaemonMode) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.mode = mode
 }
 
+// GetMode returns the current daemon run mode
 func (d *Daemon) GetMode() DaemonMode {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -106,6 +116,7 @@ func (d *Daemon) run() {
 	// Make sure we mark the runner as closed when we exit
 	defer close(d.Closed)
 
+	// A couple of sanity checks to ensure the evaluation and recheck periods are valid
 	if d.evaluationPeriod <= 0 {
 		panic("Invalid evaluation period")
 	}
@@ -149,14 +160,16 @@ func (d *Daemon) run() {
 	}
 }
 
+// runIteration runs a single iteration of the daemon loop
 func (d *Daemon) runIteration(logger logger.Logger) {
 	recheck := false
 	if d.lastRecheck.Add(d.recheckPeriod).Before(time.Now()) {
 		d.lastRecheck = time.Now()
 		recheck = true
 	}
+
 	logger = logger.WithField("recheck", recheck)
-	logger.Info("daemon iteration")
+	logger.Info("Evaluating scenes against configured settings")
 
 	if d.GetMode() == DaemonModeOff {
 		logger.Debug("Daemon is off, skipping iteration")
@@ -164,24 +177,32 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 		return
 	}
 
+	// calendarScenes are whichever scenes the calendar currently dictates should be active
+	// there may be multiple and are ordered
 	calendarScenes := d.cnf.Calendars.GetCalendarScenes(d.cnf.Scenes)
+
+	// additionalScenes may have been provided by API, and are also ordered
 	additionalScenes := d.cnf.AdditionalScenes.GetAdditionalScenes()
+
+	// activeScenes are the calendar scenes, followed by additional scenes, also ordered
 	activeScenes := append(calendarScenes, additionalScenes...)
+
 	activeSceneNamesList := []string{}
 	for _, s := range activeScenes {
-		activeSceneNamesList = append(activeSceneNamesList, s.GetName())
+		activeSceneNamesList = append(activeSceneNamesList, s.Name())
 	}
 	calendarSceneNamesList := []string{}
 	for _, s := range calendarScenes {
-		calendarSceneNamesList = append(calendarSceneNamesList, s.GetName())
+		calendarSceneNamesList = append(calendarSceneNamesList, s.Name())
 	}
 	additionalSceneNamesList := []string{}
 	for _, s := range additionalScenes {
-		additionalSceneNamesList = append(additionalSceneNamesList, s.GetName())
+		additionalSceneNamesList = append(additionalSceneNamesList, s.Name())
 	}
 
 	activeSceneNames := strings.Join(activeSceneNamesList, ",")
 
+	// Update the daemon's internal state with the current calendar and active scenes
 	d.lock.Lock()
 	d.calendarScenes = calendarSceneNamesList
 	d.activeSceneNames = activeSceneNames
@@ -189,22 +210,30 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 
 	logger = logger.WithField("base-scenes", activeSceneNames).WithField("add-scenes", strings.Join(additionalSceneNamesList, ","))
 	logger.Infof("Will apply the following scenes in order: %s", strings.Join(activeSceneNamesList, ","))
+
 	// Update light availability, and additionall request status update for returning lights
 	logger.Debugf("Update light availability")
 	operations.UpdateAvailability(d.cnf)
 
+	// Periodically, we will unconditionally get status updates for all lights
 	if recheck {
 		logger.Debugf("Recheck period reached, rechecking all light statuses")
 		operations.UpdateStatusForAllAvailableLights(d.cnf, false)
 	}
 
-	logger.Debugf("Apply scenes")
-	operations.ApplyScenes(d.cnf, activeScenes, false, true)
+	// Apply the active scenes to the lights
+	operations.ApplyScenes(d.cnf, activeScenes, false)
+
+	// Send an updated daemon status to MQTT
 	_ = d.SendDaemonStatus()
+
+	// Update persistent state, if we are doing that
 	_ = state.WriteState(d.cnf)
-	logger.Info("daemon iteration completed")
+
+	logger.Info("Completed evaluation of scenes against configured settings")
 }
 
+// SendDaemonStatus dispatches current daemon status to MQTT, if running
 func (d *Daemon) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
 		d.GetActiveSceneNames(),
