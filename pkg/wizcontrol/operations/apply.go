@@ -60,8 +60,8 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 		}
 	}
 
-	// Update programming information for all lights
-	// those that were not included in a scene will have empty values
+	// Update the reported status (active scene and programmed color)
+	// for all lights
 	for light, settings := range lightSceneSettings {
 		light.SetActiveScene(settings.scene)
 		light.SetLastProgrammedColor(settings.color)
@@ -70,30 +70,31 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 	// Lights that are locked get added / overriden here
 	for _, light := range cnf.Lights {
 		if locked, color, _ := light.Locker().IsLocked(); locked {
-			setToColor := cnf.Colors.GetByValue(color)
-			operationsToDo[light] = setToColor
-			logger.Debugf("Locked light %q will be set to color %q", light.Name(), setToColor)
+			operationsToDo[light] = color
+			logger.Debugf("Locked light %q will be set to color %q", light.Name(), color.Value())
 			light.SetActiveScene("")
 		}
 	}
 
-	// Initiate application operations
-
+	// We now prepare async set pilots for each light that needs to be updated
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
 	for light, color := range operationsToDo {
 		logger := logger.WithField("device", light.Name())
 
+		// Lights must be available for us to work with them
 		if !light.Available() {
 			logger.Debugf("Skipping unavailable light")
 			continue
 		}
 
+		// Skip lights that are already off if the intended color is also off
 		if !light.On() && color.Value() == c.Off {
 			logger.Debugf("Light is off and intended color is off, skipping")
 			continue
 		}
 
+		// Skip lights that already have the intended color
 		if color.SameColorAs(light.LastActualColor()) {
 			logger.Debugf("Light has correct color of %q, skipping", color)
 			continue
@@ -101,6 +102,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 			logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.Name(), light.LastActualColor())
 		}
 
+		// Generate the Wiz-specific settings for the intended color
 		settings, err := color.GetWizSettings()
 		if err != nil {
 			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
@@ -110,29 +112,41 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 			settings.On()
 		}
 
+		// Get the wiz device for the light
 		dev := light.Device()
 		if dev == nil {
+			// Ohoh, this device needs discovery and hasn't been discovered yet, we have to skip it
 			logger.Warnf("No discovered device, skipping")
 			continue
 		}
+
+		// At this point, we have a valid discovered device for the light
+		// Start the set pilot operation and append it to our list of operations
 		asyncs = append(asyncs, dev.SetPilotAsync(settings))
 	}
 
+	// Wait for all operations to complete
 	results := asyncs.AwaitAll()
+
+	// And go through the results
 	for _, result := range results {
+
 		logger := logger.WithField("device", result.Device.Name())
 		if result.Err != nil {
 			logger.Warnf("Set pilot failed")
 		} else {
 			logger.Debugf("Set pilot succeeded")
 
-			// Find the light
+			// The result doesn't have our light in it, but it has the device, which has the same name as our light
+			// as a back-reference. Use that to find the light instance.
 			light, found := cnf.Lights[result.Device.Name()]
 			if !found {
+				// Should not happen
 				logger.Errorf("Light not found")
 				continue
 			}
 
+			// Update the light's "on" state based on the intended color
 			light.SetOn(operationsToDo[light].Value() != c.Off)
 
 			// Retrieve the intended color for this light from the operationsToDo map since we now
@@ -143,7 +157,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, sendMqtt bool) {
 				continue
 			}
 
-			// Update light now that we definitively know it's setting
+			// Update the light's last actual color based on the intended color
 			light.SetLastActualColor(color)
 
 			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())

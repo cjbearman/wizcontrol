@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 )
 
 // LightLock is a component used to manage locked statuses of lights
@@ -13,7 +14,7 @@ type LightLock struct {
 	lock        sync.Mutex
 	timer       *time.Timer
 	lightName   string
-	lockToColor string
+	lockToColor *color.Color
 	kicker      func()
 }
 
@@ -25,25 +26,25 @@ func newLocker(lightName string) *LightLock {
 }
 
 // LockFor locks the light for the specified duration with the given color value.
-func (l *LightLock) LockFor(d time.Duration, colorValue string) {
+func (l *LightLock) LockFor(d time.Duration, color *color.Color) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.lockedUntil = time.Now().In(common.Location).Add(d)
-	l.lockToColor = colorValue
+	l.lockToColor = color
 	l.setTimer(d)
-	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, colorValue)
+	logger.Debugf("Light locked for duration: %v, until %v, color: %s", d, l.lockedUntil, color.Value())
 }
 
 // LockUntil locks the light until the specified time with the given color value.
-func (l *LightLock) LockUntil(t time.Time, colorValue string) {
+func (l *LightLock) LockUntil(t time.Time, color *color.Color) {
 	logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.lockedUntil = t
-	l.lockToColor = colorValue
+	l.lockToColor = color
 	l.setTimer(time.Until(t))
-	logger.Debugf("Light locked until: %v, color: %s", l.lockedUntil, colorValue)
+	logger.Debugf("Light locked until: %v, color: %s", l.lockedUntil, color.Value())
 }
 
 // UnlockNow unlocks the light immediately. If noKick is false, it will trigger the kicker.
@@ -96,7 +97,7 @@ func (l *LightLock) timerExpired() {
 }
 
 // IsLocked returns whether the light is currently locked, the color value it is locked to, and the time until it is unlocked.
-func (l *LightLock) IsLocked() (locked bool, colorValue string, t time.Time) {
+func (l *LightLock) IsLocked() (locked bool, colorValue *color.Color, t time.Time) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	return time.Now().In(common.Location).Before(l.lockedUntil), l.lockToColor, l.lockedUntil

@@ -7,6 +7,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
 
+// LightAttributes represents the attributes of a light, including its IP, MAC, color, scene, and lock status.
 type LightAttributes struct {
 	IP                  string     `json:"ip,omitempty"`
 	MAC                 string     `json:"mac,omitempty"`
@@ -21,11 +22,14 @@ type LightAttributes struct {
 	LockedUntil         *time.Time `json:"locked_until,omitempty"`
 }
 
+// LightStatus represents the current status of a light, including its availability and attributes.
 type LightStatus struct {
 	Available  bool            `json:"available"`
 	Attributes LightAttributes `json:"attributes"`
 }
 
+// BuildLightStatus constructs a LightStatus response from the given light's current state.
+// 'light' is the light whose status is being represented.
 func BuildLightStatus(light *light.Light) LightStatus {
 	lpc := light.LastProgrammedColor()
 	var programmedColorName, programmedColor string

@@ -77,7 +77,9 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	}
 	// Lock the targets
 	for _, target := range targetLights {
-		target.Locker().LockUntil(lockedUntil, color)
+		colorObj := cnf.Colors.GetByValue(color)
+
+		target.Locker().LockUntil(lockedUntil, colorObj)
 		logger.Infof("Locked %q until %v with color %s", target.Name(), lockedUntil, color)
 	}
 

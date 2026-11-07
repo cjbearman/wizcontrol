@@ -44,7 +44,7 @@ func WriteState(cnf *config.Config) error {
 		if locked {
 			state.LightLocks = append(state.LightLocks, LockState{
 				LightName: name,
-				Color:     color,
+				Color:     color.Value(),
 				Until:     until,
 			})
 		}
@@ -101,7 +101,7 @@ func RecoverState(cnf *config.Config) error {
 	// Apply the recovered state
 	for _, lock := range state.LightLocks {
 		if light, ok := cnf.Lights[lock.LightName]; ok {
-			light.Locker().LockUntil(lock.Until, lock.Color)
+			light.Locker().LockUntil(lock.Until, cnf.Colors.GetByValue(lock.Color))
 		}
 	}
 

@@ -12,6 +12,8 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 )
 
+// UpdateStatusForAllAvailableLights retrieves the current status of all available lights
+// and updates their internal state. If 'force' is true, it will update all lights regardless of availability.
 func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
 
 	targetLights := wiz.NewDeviceGroup()
@@ -34,6 +36,7 @@ func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
 	}
 }
 
+// handleStatusUpdate processes the status update for a single light, updating its internal state and sending MQTT updates.
 func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndError[*wiz.PilotResult]) {
 
 	logger := common.Logger.GetLogger("status-update").WithField("device", statusUpdate.Device.Name())
@@ -73,6 +76,7 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 	sendLightStatus(cnf.Bus, light)
 }
 
+// sendLightStatus publishes the current status of the light to the MQTT bus.
 func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
 	logger := common.Logger.GetLogger("light-status").WithField("device", light.Name())
 	status := responses.BuildLightStatus(light)
