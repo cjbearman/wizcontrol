@@ -73,7 +73,7 @@ func (d *Discovery) callback(dev *wiz.Device) {
 	logger.Debugf("Device discovery inbound for MAC %s IP %s", dev.MAC(), dev.IP())
 
 	for _, l := range d.cnf.Lights {
-		mac := l.MAC()
+		mac := l.DiscoveryMAC()
 		if mac != "" {
 			// Device has a MAC and is enabled for discovery
 

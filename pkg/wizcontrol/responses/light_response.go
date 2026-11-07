@@ -8,6 +8,8 @@ import (
 )
 
 type LightAttributes struct {
+	IP                  string     `json:"ip,omitempty"`
+	MAC                 string     `json:"mac,omitempty"`
 	On                  bool       `json:"on"`
 	ProgrammedColorName string     `json:"programmed_color_name"`
 	ProgrammedColor     string     `json:"programmed_color"`
@@ -51,9 +53,16 @@ func BuildLightStatus(light *light.Light) LightStatus {
 		lockedUntil = &until
 	}
 
+	var ip string
+	if light.Device() != nil {
+		ip = light.Device().IP()
+	}
+
 	return LightStatus{
 		Available: light.Available(),
 		Attributes: LightAttributes{
+			IP:                  ip,
+			MAC:                 light.MAC(),
 			On:                  light.On() && light.Available(),
 			ProgrammedColorName: programmedColorName,
 			ProgrammedColor:     programmedColor,

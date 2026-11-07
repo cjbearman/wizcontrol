@@ -14,7 +14,8 @@ const UnknownColor = "unknown"
 type Lights map[string]*Light
 
 type Light struct {
-	name, ip, mac           string
+	name, ip, discoveryMAC  string
+	mac                     string
 	groups                  []string
 	lastProgrammedColor     *color.Color
 	lastProgrammedColorLock sync.Mutex
@@ -41,7 +42,7 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 		if other := lights.getLightByIP(l.IP); other != nil {
 			return nil, nil, fmt.Errorf("light %q has same IP as light %q", l.Name, other.name)
 		}
-		if other := lights.getLightByMAC(l.MAC); other != nil {
+		if other := lights.getLightsByDiscoveryMac(l.MAC); other != nil {
 			return nil, nil, fmt.Errorf("light %q has same MAC as light %q", l.Name, other.name)
 		}
 
@@ -54,7 +55,7 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 		lights[l.Name] = &Light{
 			name:                l.Name,
 			ip:                  l.IP,
-			mac:                 l.MAC,
+			discoveryMAC:        l.MAC,
 			groups:              l.Groups,
 			lastProgrammedColor: nil,
 			lastActualColor:     nil,
@@ -91,12 +92,12 @@ func (l Lights) getLightByIP(ip string) *Light {
 	return nil
 }
 
-func (l Lights) getLightByMAC(mac string) *Light {
+func (l Lights) getLightsByDiscoveryMac(mac string) *Light {
 	for _, light := range l {
-		if light.mac == "" {
+		if light.discoveryMAC == "" {
 			continue
 		}
-		if light.mac == mac {
+		if light.discoveryMAC == mac {
 			return light
 		}
 	}
@@ -111,7 +112,7 @@ func (l Lights) GetByName(name string) *Light {
 }
 
 func (l *Light) String() string {
-	return fmt.Sprintf("Light{name: %s, ip: %s, mac: %s, groups: %v}", l.name, l.ip, l.mac, l.groups)
+	return fmt.Sprintf("Light{name: %s, ip: %s, mac: %s, groups: %v}", l.name, l.ip, l.discoveryMAC, l.groups)
 }
 
 func (l *Light) LastProgrammedColor() *color.Color {
@@ -192,7 +193,7 @@ func (l *Light) SetDevice(device *wiz.Device) {
 }
 
 func (l *Light) UseDiscovery() bool {
-	return l.mac != ""
+	return l.discoveryMAC != ""
 }
 
 func (l Lights) DiscoveryRequired() bool {
@@ -204,8 +205,8 @@ func (l Lights) DiscoveryRequired() bool {
 	return false
 }
 
-func (l *Light) MAC() string {
-	return l.mac
+func (l *Light) DiscoveryMAC() string {
+	return l.discoveryMAC
 }
 
 func (l *Light) Name() string {
@@ -237,4 +238,19 @@ func (l Lights) GetAllLightsDeviceGroup() *wiz.DeviceGroup {
 	}
 
 	return dg
+}
+
+// MAC returns the MAC address (if known) for this light, else empty
+func (l *Light) MAC() string {
+	if l.mac != "" {
+		// Got a mac
+		return l.mac
+	}
+
+	// Haven't got a mac, but if discovery MAC was set, we can use that
+	return l.discoveryMAC
+}
+
+func (l *Light) SetMAC(mac string) {
+	l.mac = mac
 }

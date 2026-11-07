@@ -9,6 +9,7 @@ import (
 	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/responses"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 )
 
 func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
@@ -34,6 +35,7 @@ func UpdateStatusForAllAvailableLights(cnf *config.Config, force bool) {
 }
 
 func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndError[*wiz.PilotResult]) {
+
 	logger := common.Logger.GetLogger("status-update").WithField("device", statusUpdate.Device.Name())
 	// Find the light
 	light, exists := cnf.Lights[statusUpdate.Device.Name()]
@@ -46,6 +48,14 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		logger.Errorf("Error updating status: %v", statusUpdate.Err)
 		return
 	}
+
+	macNormalized, err := validator.MAC(statusUpdate.Result.Mac, true)
+	if err != nil {
+		logger.Warnf("Error normalizing MAC address: %v", err)
+		return
+	}
+
+	light.SetMAC(macNormalized)
 
 	on := statusUpdate.Result.State
 	light.SetOn(on)
