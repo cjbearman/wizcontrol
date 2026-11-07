@@ -135,7 +135,7 @@ func dayValid(day int, month time.Month) bool {
 }
 
 func DayThisYearFromDayNumber(day int) (string, error) {
-	if day < 1 || day > 365 {
+	if day < 1 || day > 366 {
 		return "", fmt.Errorf("invalid day number: %d", day)
 	}
 

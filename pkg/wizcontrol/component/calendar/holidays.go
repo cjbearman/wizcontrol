@@ -30,6 +30,16 @@ var HolidayNames = map[string]func() int{
 	"halloween":                 func() int { return GetDayNumberByDayAndMonth(31, time.October) },
 	"st_patricks_day":           func() int { return GetDayNumberByDayAndMonth(17, time.March) },
 	"juneteenth":                func() int { return GetDayNumberByDayAndMonth(19, time.June) },
+	"groundhog_day":             func() int { return GetDayNumberByDayAndMonth(2, time.February) },
+	"valentines_day":            func() int { return GetDayNumberByDayAndMonth(14, time.February) },
+	"april_fools_day":           func() int { return GetDayNumberByDayAndMonth(1, time.April) },
+	"pi_day":                    func() int { return GetDayNumberByDayAndMonth(14, time.March) },
+	"earth_day":                 func() int { return GetDayNumberByDayAndMonth(22, time.April) },
+	"may_day":                   func() int { return GetDayNumberByDayAndMonth(1, time.May) },
+	"star_wars_day":             func() int { return GetDayNumberByDayAndMonth(4, time.May) },
+	"mothers_day":               func() int { return mothersDay() },
+	"fathers_day":               func() int { return fathersDay() },
+	"new_years_eve":             func() int { return GetDayNumberByDayAndMonth(31, time.December) },
 }
 
 func easterSunday() int {
@@ -70,6 +80,41 @@ func columbusDay() int {
 }
 func thanksgivingDay() int {
 	t := cal.CalcWeekdayFrom(us.ThanksgivingDay, time.Now().In(common.Location).Year())
+	return GetDayNumberByDayAndMonth(t.Day(), t.Month())
+}
+func mothersDay() int {
+	// Second Sunday in may
+	baseTime := time.Date(time.Now().In(common.Location).Year(), time.May, 1, 0, 0, 0, 0, common.Location)
+	cnt := 0
+	t := baseTime
+	for {
+		if t.Weekday() == time.Sunday {
+			cnt++
+			if cnt == 2 {
+				break
+			}
+		}
+		t = t.AddDate(0, 0, 1)
+	}
+
+	return GetDayNumberByDayAndMonth(t.Day(), t.Month())
+}
+
+func fathersDay() int {
+	// Third Sunday in June
+	baseTime := time.Date(time.Now().In(common.Location).Year(), time.June, 1, 0, 0, 0, 0, common.Location)
+	cnt := 0
+	t := baseTime
+	for {
+		if t.Weekday() == time.Sunday {
+			cnt++
+			if cnt == 3 {
+				break
+			}
+		}
+		t = t.AddDate(0, 0, 1)
+	}
+
 	return GetDayNumberByDayAndMonth(t.Day(), t.Month())
 }
 
