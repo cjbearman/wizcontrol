@@ -1,5 +1,5 @@
 #!/bin/bash
-ENDPOINT="http://localhost:12120"
+ENDPOINT="http://10.0.0.4:12120"
 CT="Content-Type: application/json"
 AC="Accept: application/json"
 
@@ -22,8 +22,21 @@ if [ "$1" == "office_warm" ]; then
 	exit 1
 fi
 	
+
 if [ "$1" == "reset" ]; then
 	curl -v ${ENDPOINT}/reset -H "${CT}" -H "${AC}" -X POST 
+	exit 1
+fi
+
+
+if [ "$1" == "unpause" ]; then
+	curl -v ${ENDPOINT}/unpause -H "${CT}" -H "${AC}" -X POST 
+	exit 1
+fi
+
+
+if [ "$1" == "pause" ]; then
+	curl -v ${ENDPOINT}/pause -H "${CT}" -H "${AC}" -X POST 
 	exit 1
 fi
 

@@ -101,6 +101,8 @@ func (d *Daemon) SetMode(mode DaemonMode) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.mode = mode
+	d.SendDaemonStatus()
+	d.Kick()
 }
 
 // GetMode returns the current daemon run mode
