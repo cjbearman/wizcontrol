@@ -15,7 +15,7 @@ const (
 	SceneModeRotate = "rotate"
 )
 
-type Calendars map[string]*Calendar
+type Calendars []*Calendar
 
 type Calendar struct {
 	name          string
@@ -26,11 +26,13 @@ type Calendar struct {
 }
 
 func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
-	calendars := make(Calendars)
+	var calendars Calendars
 
 	for _, c := range cfg {
-		if _, found := calendars[c.Name]; found {
-			return nil, fmt.Errorf("calendar %q is defined more than once", c.Name)
+		for _, existing := range calendars {
+			if existing.name == c.Name {
+				return nil, fmt.Errorf("calendar %q is defined more than once", c.Name)
+			}
 		}
 
 		sceneNames := []string{}
@@ -41,7 +43,7 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 			sceneNames = append(sceneNames, scene)
 		}
 
-		calendars[c.Name] = &Calendar{
+		calendar := &Calendar{
 			name:   c.Name,
 			from:   DateToDayNumber(c.From),
 			to:     DateToDayNumber(c.To),
@@ -62,6 +64,7 @@ func Build(cfg []ConfigYAML, scenes scene.Scenes) (Calendars, error) {
 				}
 			}(),
 		}
+		calendars = append(calendars, calendar)
 	}
 
 	return calendars, nil
@@ -96,7 +99,12 @@ func (c *Calendar) Scenes() []string {
 }
 
 func (c Calendars) GetByName(name string) *Calendar {
-	return c[name]
+	for _, item := range c {
+		if item.name == name {
+			return item
+		}
+	}
+	return nil
 }
 
 func (c Calendars) GetCalendarScenes(scenes scene.Scenes) []string {
