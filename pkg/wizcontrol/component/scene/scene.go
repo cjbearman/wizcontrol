@@ -10,7 +10,7 @@ import (
 type Scenes map[string]*Scene
 
 type Element struct {
-	targets []string
+	targets []*light.Light
 	color   string
 }
 
@@ -38,14 +38,24 @@ func Build(cfg *[]ConfigYAML, colors color.Colors, lights light.Lights, lightgro
 				return nil, nil, fmt.Errorf("scene %q references undefined color %q", s.Name, e.Color)
 			}
 
+			targets := []*light.Light{}
 			for _, t := range e.Targets {
-				if lights.GetByName(t) == nil && lightgroups.GetByName(t) == nil {
-					return nil, nil, fmt.Errorf("scene %q references undefined target %q", s.Name, t)
+
+				light := lights.GetByName(t)
+				if light != nil {
+					targets = append(targets, light)
+				} else {
+					group := lightgroups.GetByName(t)
+					if group != nil {
+						targets = append(targets, group.Lights()...)
+					} else {
+						return nil, nil, fmt.Errorf("scene %q references undefined target %q, this is neither a light nor a light group", s.Name, t)
+					}
 				}
 			}
 
 			element := &Element{
-				targets: e.Targets,
+				targets: targets,
 				color:   e.Color,
 			}
 			scene.elements = append(scene.elements, element)
@@ -82,7 +92,7 @@ func (s Scenes) GetSceneElementsBySceneName(name string) ([]*Element, bool) {
 	return scene.elements, true
 }
 
-func (e *Element) GetTargets() []string {
+func (e *Element) GetTargets() []*light.Light {
 	return e.targets
 }
 

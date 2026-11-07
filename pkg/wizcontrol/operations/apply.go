@@ -48,19 +48,12 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene, unconditional bool, 
 
 			logger := logger.WithField("colorName", colorName).WithField("color", color)
 
-			for _, target := range targets.GetTargets() {
-				lights := l.GetLightOrGroup(target, cnf.Lights, cnf.LightGroups)
-				if len(lights) == 0 {
-					logger.Warnf("Light or group not found: %s", target)
-					continue
-				}
-				for _, light := range lights {
-					operationsToDo[light] = color
-					logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
-					lightSceneSettings[light] = lightSettings{
-						scene: scene.GetName(),
-						color: color,
-					}
+			for _, light := range targets.GetTargets() {
+				operationsToDo[light] = color
+				logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
+				lightSceneSettings[light] = lightSettings{
+					scene: scene.GetName(),
+					color: color,
 				}
 			}
 		}
