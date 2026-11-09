@@ -68,6 +68,9 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		logger.Errorf("Error parsing active light color: %v", err)
 		return
 	}
+
+	light.RecordRSSI(statusUpdate.Result.Rssi)
+
 	col := cnf.Colors.GetByValue(color)
 	light.SetLastActualColor(col)
 	logger.Debugf("State: color=%s, on=%v", color, on)
