@@ -70,7 +70,7 @@ func main() {
 		finalConfig.StartTime = DaemonStartTime
 		finalConfig.RestartTime = DaemonRestartTime
 		runAsDaemon(finalConfig)
-		finalConfig.RestartTime = time.Now().In(common.Location)
+		DaemonRestartTime = time.Now().In(common.Location)
 	}
 }
 
