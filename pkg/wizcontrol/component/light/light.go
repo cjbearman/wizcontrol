@@ -19,7 +19,7 @@ type Light struct {
 	lastActualColor         *color.Color
 	lastActualColorLock     sync.Mutex
 	rssi                    int
-	cum_rssi, cnt_rssi      uint64
+	cum_rssi, cnt_rssi      int64
 	locker                  *LightLock
 	activeScene             string
 	activeSceneLock         sync.Mutex
@@ -223,7 +223,7 @@ func (l *Light) SetMAC(mac string) {
 
 func (l *Light) RecordRSSI(rssi int) {
 	l.rssi = rssi
-	l.cum_rssi += uint64(rssi)
+	l.cum_rssi += int64(rssi)
 	l.cnt_rssi++
 }
 

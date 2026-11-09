@@ -20,7 +20,7 @@ type LightAttributes struct {
 	ActiveScene         string     `json:"active_scene"`
 	Locked              bool       `json:"locked"`
 	LockedUntil         *time.Time `json:"locked_until,omitempty"`
-	LastRSSI            *int       `json:"last_rssi,omitempty"`
+	LastRSSI            *int       `json:"rssi,omitempty"`
 	AvgRSSI             *int       `json:"avg_rssi,omitempty"`
 }
 
