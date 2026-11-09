@@ -246,6 +246,7 @@ func (d *Daemon) runIteration(logger logger.Logger) {
 // SendDaemonStatus dispatches current daemon status to MQTT, if running
 func (d *Daemon) SendDaemonStatus() error {
 	status := responses.BuildDaemonResponse(
+		d.cnf,
 		d.GetActiveSceneNames(),
 		d.GetCalendarScenes(),
 		d.GetActiveCalendars(),

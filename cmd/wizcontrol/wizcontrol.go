@@ -35,6 +35,9 @@ func main() {
 	}
 	common.Logger = logger.NewLoggerFactory(level, logger.NewColorStringFormatter(), logger.NewSyncWriter(os.Stdout)).GetLogger("root")
 
+	DaemonStartTime := time.Now().In(common.Location)
+	DaemonRestartTime := DaemonStartTime
+
 	for {
 		// Load the configuration file specified by the command line flag
 		parsed, err := config.Load(*cfg)
@@ -60,11 +63,14 @@ func main() {
 			for name := range finalConfig.WizColors {
 				fmt.Printf("%s\n", name)
 			}
-			return
+			os.Exit(0)
 		}
 
 		// Run the application as a daemon with the final configuration
+		finalConfig.StartTime = DaemonStartTime
+		finalConfig.RestartTime = DaemonRestartTime
 		runAsDaemon(finalConfig)
+		finalConfig.RestartTime = time.Now().In(common.Location)
 	}
 }
 

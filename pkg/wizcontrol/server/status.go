@@ -21,6 +21,7 @@ func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 	status := &StatusResponse{
 		Lights: make(map[string]responses.LightStatus),
 		Server: responses.BuildDaemonResponse(
+			s.cnf,
 			daemon.Instance.GetActiveSceneNames(),
 			daemon.Instance.GetCalendarScenes(),
 			daemon.Instance.GetActiveCalendars(),

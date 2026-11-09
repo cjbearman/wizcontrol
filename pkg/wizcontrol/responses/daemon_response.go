@@ -6,10 +6,13 @@ import (
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 // DaemonAttributes represents the attributes of the daemon, including scenes and their schedules.
 type DaemonAttributes struct {
+	StartTime             time.Time  `json:"start_time"`
+	RestartTime           time.Time  `json:"restart_time"`
 	Scenes                string     `json:"scenes"`
 	ActiveCalendars       []string   `json:"active_calendars"`
 	CalendarScenes        []string   `json:"calendar_scenes"`
@@ -27,6 +30,7 @@ type DaemonStatus struct {
 // 'scenes' is the current active scenes, 'calendarScenes' are the scheduled scenes,
 // 'additionalScenes' are any extra scenes with their active duration, and 'mode' is the daemon's mode.
 func BuildDaemonResponse(
+	cfg *config.Config,
 	scenes string,
 	calendarScenes []string,
 	activeCalendars []string,
@@ -45,6 +49,8 @@ func BuildDaemonResponse(
 
 	return DaemonStatus{
 		Attributes: DaemonAttributes{
+			StartTime:        cfg.StartTime,
+			RestartTime:      cfg.RestartTime,
 			Scenes:           scenes,
 			CalendarScenes:   calendarScenes,
 			AdditionalScenes: addScenes,

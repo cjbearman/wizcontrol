@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
@@ -45,6 +46,8 @@ type Config struct {
 	AdditionalScenes scene.AdditionalScenes
 	Bus              *bus.Bus
 	RestartCh        chan struct{}
+	StartTime        time.Time
+	RestartTime      time.Time
 }
 
 // Load reads the configuration from the specified YAML file and returns a ConfigYAML instance.
