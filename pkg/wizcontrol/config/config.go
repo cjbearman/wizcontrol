@@ -44,6 +44,7 @@ type Config struct {
 	System           system.System
 	AdditionalScenes scene.AdditionalScenes
 	Bus              *bus.Bus
+	RestartCh        chan struct{}
 }
 
 // Load reads the configuration from the specified YAML file and returns a ConfigYAML instance.
@@ -103,7 +104,7 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 		// If MQTT is not running, we use a fake bus that discards all messages
 		conf.Bus = bus.NewNilBus()
 	}
-
+	conf.RestartCh = make(chan struct{}, 1)
 	return conf, nil
 }
 

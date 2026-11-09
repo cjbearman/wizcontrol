@@ -34,6 +34,7 @@ const (
 	topicLightGroups = "lightgroups"
 	topicCalendars   = "calendars"
 	topicHolidays    = "holidays"
+	topicRestart     = "restart"
 )
 
 // Instance holds the singleton instance of the MQTT integration
@@ -121,6 +122,11 @@ func (m *Mqtt) handleResetRPC(client mqtt.Client, msg mqtt.Message) {
 }
 
 // handlePauseRPC handles inbound "pause" messages, routing them to the relevant RPC handler.
+func (m *Mqtt) handleRestartRPC(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Info("Received restart RPC message")
+	_ = rpc.HandleRestartRequest(m.cnf)
+}
 func (m *Mqtt) handlePauseRPC(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
 	logger.Info("Received pause RPC message")
@@ -148,6 +154,7 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicReset), 1, m.handleResetRPC)
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicPause), 1, m.handlePauseRPC)
 		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicUnpause), 1, m.handleUnpauseRPC)
+		client.Subscribe(fmt.Sprintf("%s/control/%s", m.MqttTopic, topicRestart), 1, m.handleRestartRPC)
 	}
 
 	// Publish initial scenes, scenegroups, lightgroups, colors and targets

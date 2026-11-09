@@ -35,35 +35,37 @@ func main() {
 	}
 	common.Logger = logger.NewLoggerFactory(level, logger.NewColorStringFormatter(), logger.NewSyncWriter(os.Stdout)).GetLogger("root")
 
-	// Load the configuration file specified by the command line flag
-	parsed, err := config.Load(*cfg)
-	if err != nil {
-		common.Logger.Errorf("Failed to load config: %v", err)
-		os.Exit(1)
-	}
-
-	// Build the runtime configuration
-	finalConfig, err := config.Build(parsed)
-	if err != nil {
-		common.Logger.Errorf("Failed to build config: %v", err)
-		os.Exit(1)
-	}
-
-	// Set our system wide timezone and add timestamping to the logger in the same timezone
-	common.Location = finalConfig.System.Timezone()
-	common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
-	common.Logger.Infof("Operating in location: %v", common.Location)
-
-	// If the user requested to list available pre-defined wiz colors, do that and exit
-	if *wc {
-		for name := range finalConfig.WizColors {
-			fmt.Printf("%s\n", name)
+	for {
+		// Load the configuration file specified by the command line flag
+		parsed, err := config.Load(*cfg)
+		if err != nil {
+			common.Logger.Errorf("Failed to load config: %v", err)
+			os.Exit(1)
 		}
-		return
-	}
 
-	// Run the application as a daemon with the final configuration
-	runAsDaemon(finalConfig)
+		// Build the runtime configuration
+		finalConfig, err := config.Build(parsed)
+		if err != nil {
+			common.Logger.Errorf("Failed to build config: %v", err)
+			os.Exit(1)
+		}
+
+		// Set our system wide timezone and add timestamping to the logger in the same timezone
+		common.Location = finalConfig.System.Timezone()
+		common.Logger = common.Logger.WithField("time", logger.NewTimestamper(time.DateTime+".000000", common.Location))
+		common.Logger.Infof("Operating in location: %v", common.Location)
+
+		// If the user requested to list available pre-defined wiz colors, do that and exit
+		if *wc {
+			for name := range finalConfig.WizColors {
+				fmt.Printf("%s\n", name)
+			}
+			return
+		}
+
+		// Run the application as a daemon with the final configuration
+		runAsDaemon(finalConfig)
+	}
 }
 
 // runAsDaemon runs the wizcontrol service through completion
@@ -119,6 +121,8 @@ func runAsDaemon(cnf *config.Config) {
 	daemonStopCh := guaranteeChannel(daemon.Instance)
 	serverStopCh := guaranteeChannel(server.Instance)
 
+	restartRequested := false
+
 	// Everything is now running, wait for something to stop or for a termination signal
 	// and shutdown things as needed
 	select {
@@ -152,6 +156,14 @@ func runAsDaemon(cnf *config.Config) {
 		stop(server.Instance)
 		stop(mqtt.Instance)
 		stop(discovery.Instance)
+
+	case <-cnf.RestartCh:
+		logger.Warn("Restart requested, stopping other tasks")
+		stop(daemon.Instance)
+		stop(server.Instance)
+		stop(mqtt.Instance)
+		stop(discovery.Instance)
+		restartRequested = true
 	}
 
 	// Everything should now be stopping, wait for all services to confirm they have stopped
@@ -166,6 +178,12 @@ func runAsDaemon(cnf *config.Config) {
 	logger.Info("Runner terminated")
 
 	// That's all folks
+	if restartRequested {
+		logger.Warnf("Restarting...")
+		return
+	}
+
+	// Was not a restart, so we're done
 	os.Exit(0)
 
 }

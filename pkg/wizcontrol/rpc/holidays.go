@@ -25,7 +25,6 @@ func HandleHolidaysRequest(cnf *config.Config) []byte {
 	resp := HolidaysResponse{}
 
 	for name, dayFunc := range calendar.HolidayNames {
-		logger.Errorf("Processing %s as %d", name, dayFunc())
 		dayThisYear, err := calendar.DayThisYearFromDayNumber(dayFunc())
 		if err != nil {
 			// unlikely
