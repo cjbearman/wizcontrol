@@ -57,14 +57,8 @@ func UpdateAvailability(cnf *config.Config) {
 	// which may have changed since we last saw it
 	if len(updateStatusOps) > 0 {
 		for _, statusUpdate := range updateStatusOps.AwaitAll() {
-			light, found := cnf.Lights[statusUpdate.Device.Name()]
-			if !found {
-				logger.Errorf("Light %q not found for status update", statusUpdate.Device.Name())
-				continue
-			}
-
-			// Update the light's availability based on the status update result
-			sendLightStatus(cnf.Bus, light)
+			// Handle the status update
+			handleStatusUpdate(cnf, statusUpdate)
 		}
 	}
 }

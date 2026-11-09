@@ -64,12 +64,6 @@ func BuildLightStatus(light *light.Light) LightStatus {
 		ip = light.Device().IP()
 	}
 
-	var lastRSSI *int
-	if light.Available() {
-		l := light.LastRSSI()
-		lastRSSI = &l
-	}
-
 	return LightStatus{
 		Available: light.Available(),
 		Attributes: LightAttributes{
@@ -84,7 +78,7 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			ActiveScene:         activeScene,
 			Locked:              locked,
 			LockedUntil:         lockedUntil,
-			LastRSSI:            lastRSSI,
+			LastRSSI:            light.LastRSSI(),
 			AvgRSSI:             light.AverageRSSI(),
 		},
 	}

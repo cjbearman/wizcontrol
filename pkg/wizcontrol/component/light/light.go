@@ -234,6 +234,10 @@ func (l *Light) AverageRSSI() *int {
 	avg := int(float64(l.cum_rssi) / float64(l.cnt_rssi))
 	return &avg
 }
-func (l *Light) LastRSSI() int {
-	return l.rssi
+func (l *Light) LastRSSI() *int {
+	if l.rssi == 0 {
+		return nil
+	}
+	r := l.rssi
+	return &r
 }
