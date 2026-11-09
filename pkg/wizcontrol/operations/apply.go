@@ -160,8 +160,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			// Update the light's last actual color based on the intended color
 			light.SetLastActualColor(color)
 
-			light.RecordRSSI(result.Device.LastRSSI())
-
 			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())
 		}
 	}
