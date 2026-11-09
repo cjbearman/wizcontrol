@@ -20,6 +20,8 @@ type LightAttributes struct {
 	ActiveScene         string     `json:"active_scene"`
 	Locked              bool       `json:"locked"`
 	LockedUntil         *time.Time `json:"locked_until,omitempty"`
+	LastRSSI            *int       `json:"last_rssi,omitempty"`
+	AvgRSSI             *int       `json:"avg_rssi,omitempty"`
 }
 
 // LightStatus represents the current status of a light, including its availability and attributes.
@@ -62,6 +64,12 @@ func BuildLightStatus(light *light.Light) LightStatus {
 		ip = light.Device().IP()
 	}
 
+	var lastRSSI *int
+	if light.Available() {
+		l := light.LastRSSI()
+		lastRSSI = &l
+	}
+
 	return LightStatus{
 		Available: light.Available(),
 		Attributes: LightAttributes{
@@ -76,6 +84,8 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			ActiveScene:         activeScene,
 			Locked:              locked,
 			LockedUntil:         lockedUntil,
+			LastRSSI:            lastRSSI,
+			AvgRSSI:             light.AverageRSSI(),
 		},
 	}
 }

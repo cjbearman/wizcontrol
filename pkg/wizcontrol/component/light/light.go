@@ -18,6 +18,8 @@ type Light struct {
 	lastProgrammedColorLock sync.Mutex
 	lastActualColor         *color.Color
 	lastActualColorLock     sync.Mutex
+	rssi                    int
+	cum_rssi, cnt_rssi      uint64
 	locker                  *LightLock
 	activeScene             string
 	activeSceneLock         sync.Mutex
@@ -217,4 +219,21 @@ func (l *Light) MAC() string {
 // SetMAC sets the (non-discovery) MAC address for the light.
 func (l *Light) SetMAC(mac string) {
 	l.mac = mac
+}
+
+func (l *Light) RecordRSSI(rssi int) {
+	l.rssi = rssi
+	l.cum_rssi += uint64(rssi)
+	l.cnt_rssi++
+}
+
+func (l *Light) AverageRSSI() *int {
+	if l.cnt_rssi == 0 {
+		return nil
+	}
+	avg := int(float64(l.cum_rssi) / float64(l.cnt_rssi))
+	return &avg
+}
+func (l *Light) LastRSSI() int {
+	return l.rssi
 }
