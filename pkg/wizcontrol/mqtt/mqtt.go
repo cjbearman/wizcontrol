@@ -20,21 +20,22 @@ import (
 // these are all housed underneath the primary topic and thus are not considered
 // fully qualified names
 const (
-	topicLock        = "lock"
-	topicUnlock      = "unlock"
-	topicAddScene    = "addscene"
-	topicDelScene    = "delscene"
-	topicReset       = "reset"
-	topicPause       = "pause"
-	topicUnpause     = "unpause"
-	topicScenes      = "scenes"
-	topicColors      = "colors"
-	topicTargets     = "targets"
-	topicSceneGroups = "scenegroups"
-	topicLightGroups = "lightgroups"
-	topicCalendars   = "calendars"
-	topicHolidays    = "holidays"
-	topicRestart     = "restart"
+	topicLock          = "lock"
+	topicUnlock        = "unlock"
+	topicAddScene      = "addscene"
+	topicDelScene      = "delscene"
+	topicReset         = "reset"
+	topicPause         = "pause"
+	topicUnpause       = "unpause"
+	topicScenes        = "scenes"
+	topicColors        = "colors"
+	topicTargets       = "targets"
+	topicSceneGroups   = "scenegroups"
+	topicLightGroups   = "lightgroups"
+	topicCalendars     = "calendars"
+	topicHolidays      = "holidays"
+	topicRestart       = "restart"
+	topicHomeAssistant = "test"
 )
 
 // Instance holds the singleton instance of the MQTT integration
@@ -165,6 +166,7 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicCalendars), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleCalendarsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicHolidays), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHolidaysRequest(m.cnf)).Wait()
+	client.Publish(fmt.Sprintf("homeassistant/device/some_node_id/wizcontrol/config"), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
 }
 
 // disconnectHandler is called when the MQTT client loses connection to the broker.

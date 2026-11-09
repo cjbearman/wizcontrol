@@ -20,15 +20,15 @@ system:
 # Include mqtt section if you want to utilize MQTT broker
 mqtt:
   # broker URL
-  url: "mqtt://192.168.10.189:1883"
+  url: "mqtt://10.0.0.4:11883"
   # broker username
-  username: "wizcontrol_mqtt"
+  # username: "wizcontrol_mqtt"
   # broker password
-  password: "asdkljiodsjf23489h!"
+  # password: "asdkljiodsjf23489h!"
   # base topic (defaults to wizcontrol)
   topic: "wizcontrol_dev"
   # For development only, set retain_messages to false to avoid persisting messages on the broker
-  retain_messages: false
+  retain_messages: true
   # Allow connection to TLS enabled brokers without TLS validation
   # insecure: false
   # Path to the server certificate for TLS validation, if using TLS with insecure: false (recommended)
