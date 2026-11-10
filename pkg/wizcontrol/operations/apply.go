@@ -128,7 +128,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 		// we can recover them when the async finishes
 
 		go func(dev *wiz.Device, settings *wiz.Settings, logger log.Logger, light *l.Light) {
-			logger.Warnf("DOING SET PILOT ON light %q", light.ID())
 			_, err := dev.SetPilot(settings)
 			if err != nil {
 				logger.Warnf("Set pilot failed: %v", err)
@@ -140,7 +139,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 
 			// Okay so our set pilot succeeded, we need to do a get pilot here
 			// for total accuracy in setting things downstream
-			logger.Warnf("DOING GET PILOT ON light %q", light.ID())
 			res, err := dev.GetPilot()
 			if err != nil {
 				logger.Warnf("Get pilot failed, light is likely out of sync: %v", err)
@@ -166,7 +164,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			logger.Debugf("successfully updated light state from pilot")
 
 			// We can go ahead and send the light status
-			logger.Warnf("Updating light status for light %q", light.ID())
 			sendLightStatus(cnf.Bus, light)
 		}(dev, settings, logger, light)
 

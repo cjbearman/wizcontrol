@@ -1,0 +1,143 @@
+mqtt:
+  sensor:
+    - name: wizcontrol_front_flood_ll
+      unique_id: wizcontrol_front_flood_ll
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_ll
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_ll
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_front_flood_lr
+      unique_id: wizcontrol_front_flood_lr
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_lr
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_lr
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_front_flood_cl
+      unique_id: wizcontrol_front_flood_cl
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_cl
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_cl
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_front_flood_cr
+      unique_id: wizcontrol_front_flood_cr
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_cr
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_cr
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_front_flood_rl
+      unique_id: wizcontrol_front_flood_rl
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_rl
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_rl
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_front_flood_rr
+      unique_id: wizcontrol_front_flood_rr
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/front_flood_rr
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/front_flood_rr
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_porch_l
+      unique_id: wizcontrol_porch_l
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/porch_l
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/porch_l
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_porch_c
+      unique_id: wizcontrol_porch_c
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/porch_c
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/porch_c
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_porch_r
+      unique_id: wizcontrol_porch_r
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/porch_r
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/porch_r
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_patio_ceiling_1
+      unique_id: wizcontrol_patio_ceiling_1
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/patio_ceiling_1
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/patio_ceiling_1
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_patio_ceiling_2
+      unique_id: wizcontrol_patio_ceiling_2
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/patio_ceiling_2
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/patio_ceiling_2
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_patio_wall
+      unique_id: wizcontrol_patio_wall
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/patio_wall
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/patio_wall
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_patio_string
+      unique_id: wizcontrol_patio_string
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/patio_string
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/patio_string
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_stand_light_upper
+      unique_id: wizcontrol_office_stand_light_upper
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_stand_light_upper
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_stand_light_upper
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_stand_light_lower
+      unique_id: wizcontrol_office_stand_light_lower
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_stand_light_lower
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_stand_light_lower
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_minecraft_lamp
+      unique_id: wizcontrol_office_minecraft_lamp
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_minecraft_lamp
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_minecraft_lamp
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_ceiling_1
+      unique_id: wizcontrol_office_ceiling_1
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_ceiling_1
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_ceiling_1
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_ceiling_2
+      unique_id: wizcontrol_office_ceiling_2
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_ceiling_2
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_ceiling_2
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_office_ceiling_3
+      unique_id: wizcontrol_office_ceiling_3
+      icon: mdi:lightbulb
+      state_topic: wizcontrol/light/office_ceiling_3
+      value_template: "{{ value_json.available | iif('on', 'off') }}"
+      json_attributes_topic: wizcontrol/light/office_ceiling_3
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+    - name: wizcontrol_server
+      unique_id: wizcontrol_server2
+      icon: mdi:server-network
+      state_topic: wizcontrol/server
+      value_template: "{{ value_json.mode }}"
+      json_attributes_topic: wizcontrol/server
+      json_attributes_template: "{{ value_json.attributes | to_json }}"
+
