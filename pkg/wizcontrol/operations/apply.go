@@ -173,7 +173,8 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 				int(pending.GetWW()),
 				pending.GetBrightness(),
 				pending.GetTemperature(),
-				int(pending.GetScene()))
+				int(pending.GetScene()),
+				pending.GetState())
 
 			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())
 		}

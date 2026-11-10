@@ -31,10 +31,13 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "p": "light",
       "unique_id": #IDS#,
       "state_topic": #TOPIC#,
+	  "name": "Light",
       "json_attributes_topic": #TOPIC#,
       "brightness_state_topic": #TOPIC#,
       "rgbww_state_topic": #TOPIC#,
       "color_temp_state_topic": #TOPIC#,
+	  "availability_topic": #TOPIC#,
+	  "availability_template": "{{ value_json.available }}",
       "json_attributes_template": "{{ value_json.attributes | to_json }}",
       "state_value_template": "{{ value_json.ha.state }}",
       "color_mode_value_template": "{{ value_json.ha.color_mode }}",
@@ -42,6 +45,8 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "color_temp_value_template": "{{ value_json.ha.color_temp }}",
       "rgbww_value_template": "{{ value_json.ha.rgbww }}",
       "brightness_scale": 100,
+	  "payload_available": true,
+	  "payload_not_available": false,
       "supported_color_modes": [
         "color_temp",
         "rgbww"
@@ -58,6 +63,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "unique_id": #SWITCH_UID#,
       "command_topic": #TOPIC#,
 	  "state_topic": #TOPIC#,
+	  "name": "Lock",
       "value_template": "{{ value_json.attributes.locked }}",
 	  "state_on": true,
 	  "state_off": false

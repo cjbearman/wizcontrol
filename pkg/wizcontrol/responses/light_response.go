@@ -85,7 +85,7 @@ func BuildLightStatus(light *light.Light) LightStatus {
 	}
 
 	state := "OFF"
-	if light.On() && light.Available() {
+	if light.On() {
 		state = "ON"
 	}
 	ha := &HAEntity{

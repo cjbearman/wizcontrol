@@ -12,6 +12,7 @@ import (
 
 type RawColor struct {
 	R, G, B, CW, WW, BR, Temp, Scene int
+	State                            bool
 }
 
 // Light represents an individual wiz lightbulb
@@ -135,7 +136,7 @@ func (l *Light) SetLastActualColor(c *color.Color) {
 	l.lastActualColor = c
 }
 
-func (l *Light) SetLastRawColor(r, g, b, cw, ww, br, temp, scene int) {
+func (l *Light) SetLastRawColor(r, g, b, cw, ww, br, temp, scene int, state bool) {
 	l.lastActualColorLock.Lock()
 	defer l.lastActualColorLock.Unlock()
 	l.raw = &RawColor{
@@ -147,6 +148,7 @@ func (l *Light) SetLastRawColor(r, g, b, cw, ww, br, temp, scene int) {
 		BR:    br,
 		Temp:  temp,
 		Scene: scene,
+		State: state,
 	}
 
 }
