@@ -15,7 +15,8 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	IDS := jsonEscapeStr(snake(light.Name()))
 	name := jsonEscapeStr(light.Name())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
-	SWITCH_UID := jsonEscapeStr(snake(light.Name() + "_lock"))
+	switchUID := jsonEscapeStr(snake(light.Name() + "_lock"))
+	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 
 	payloadTemplate := `{
   "dev": {
@@ -54,14 +55,15 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "color_temp_kelvin": true,
       "min_kelvin": 2200,
       "max_kelvin": 6500,
-      "command_topic": "dross",
-      "color_temp_command_topic": "dross2",
-      "rgbww_command_topic": "dross3"
+      "command_topic": "#CMD_TOPIC#/command",
+      "color_temp_command_topic": "#CMD_TOPIC#/temp",
+      "rgbww_command_topic": "#CMD_TOPIC#/rgbww",
+      "brightness_command_topic": "#CMD_TOPIC#/brightness"
     },
 	"lock": {
       "p": "switch",
       "unique_id": #SWITCH_UID#,
-      "command_topic": #TOPIC#,
+      "command_topic": "#CMD_TOPIC#/lock",
 	  "state_topic": #TOPIC#,
 	  "name": "Lock",
       "value_template": "{{ value_json.attributes.locked }}",
@@ -77,7 +79,8 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#IDS#", IDS)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#NAME#", name)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#TOPIC#", topic)
-	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", SWITCH_UID)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
 
 	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.MQTT.HomeAssistantTopic(), jsonEscapeStrNoQuotes(snake(light.Name())))
 

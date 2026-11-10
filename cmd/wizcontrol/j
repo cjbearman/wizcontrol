@@ -1,4 +1,5 @@
-{"dev": {
+{
+  "dev": {
     "ids": "patio_ceiling_1",
     "name": "patio_ceiling_1",
     "mf": "Chris Bearman"
@@ -11,10 +12,13 @@
       "p": "light",
       "unique_id": "patio_ceiling_1",
       "state_topic": "wizcontrol_dev/light/patio_ceiling_1",
+	  "name": "Light",
       "json_attributes_topic": "wizcontrol_dev/light/patio_ceiling_1",
       "brightness_state_topic": "wizcontrol_dev/light/patio_ceiling_1",
       "rgbww_state_topic": "wizcontrol_dev/light/patio_ceiling_1",
       "color_temp_state_topic": "wizcontrol_dev/light/patio_ceiling_1",
+	  "availability_topic": "wizcontrol_dev/light/patio_ceiling_1",
+	  "availability_template": "{{ value_json.available }}",
       "json_attributes_template": "{{ value_json.attributes | to_json }}",
       "state_value_template": "{{ value_json.ha.state }}",
       "color_mode_value_template": "{{ value_json.ha.color_mode }}",
@@ -22,6 +26,8 @@
       "color_temp_value_template": "{{ value_json.ha.color_temp }}",
       "rgbww_value_template": "{{ value_json.ha.rgbww }}",
       "brightness_scale": 100,
+	  "payload_available": true,
+	  "payload_not_available": false,
       "supported_color_modes": [
         "color_temp",
         "rgbww"
@@ -29,7 +35,20 @@
       "color_temp_kelvin": true,
       "min_kelvin": 2200,
       "max_kelvin": 6500,
-      "command_topic": "dross",
-      "color_temp_command_topic": "dross2",
-      "rgbww_command_topic": "dross3"
-    }}}
+      "command_topic": "wizcontrol_dev/light/patio_ceiling_1/command",
+      "color_temp_command_topic": "wizcontrol_dev/light/patio_ceiling_1/temp",
+      "rgbww_command_topic": "wizcontrol_dev/light/patio_ceiling_1/rgbww",
+	  "brightness_command_topic": "wizcontrol_dev/light/patio_ceiling_1/brightness",
+    },
+	"lock": {
+      "p": "switch",
+      "unique_id": "patio_ceiling_1_lock",
+      "command_topic": "wizcontrol_dev/light/patio_ceiling_1/lock",
+	  "state_topic": "wizcontrol_dev/light/patio_ceiling_1",
+	  "name": "Lock",
+      "value_template": "{{ value_json.attributes.locked }}",
+	  "state_on": true,
+	  "state_off": false
+    }
+  }
+}

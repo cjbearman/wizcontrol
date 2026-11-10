@@ -142,6 +142,12 @@ func (m *Mqtt) handleUnpauseRPC(client mqtt.Client, msg mqtt.Message) {
 	_ = rpc.HandleUnpauseRequest(m.cnf)
 }
 
+func (m *Mqtt) handleLightCommand(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	logger.Infof("Received light command on topic %q: %s", msg.Topic(), string(msg.Payload()))
+	// Handle the light command here
+}
+
 // connectHandler is called when the MQTT client successfully connects to the broker. It subscribes to control topics and publishes initial state.
 func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger := common.Logger.GetLogger("mqtt")
@@ -170,6 +176,9 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 
 	// If HA is enabled, publish discovery configuration
 	if m.cnf.MQTT.EnableHomeAssistant() {
+
+		client.Subscribe(fmt.Sprintf("%s/light/+/+", m.MqttTopic), 1, m.handleLightCommand)
+
 		for _, light := range m.cnf.Lights {
 			msg, to := homeassistant.DiscoveryPayload(m.cnf, light)
 			client.Publish(to, 1, m.cnf.MQTT.ShouldRetainMessages(), msg)
