@@ -15,6 +15,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	IDS := jsonEscapeStr(snake(light.Name()))
 	name := jsonEscapeStr(light.Name())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
+	SWITCH_UID := jsonEscapeStr(snake(light.Name() + "_lock"))
 
 	payloadTemplate := `{
   "dev": {
@@ -51,12 +52,26 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "command_topic": "dross",
       "color_temp_command_topic": "dross2",
       "rgbww_command_topic": "dross3"
+    },
+	"lock": {
+      "p": "switch",
+      "unique_id": #SWITCH_UID#,
+      "command_topic": #TOPIC#,
+	  "state_topic": #TOPIC#,
+      "value_template": "{{ value_json.attributes.locked }}",
+	  "state_on": true,
+	  "state_off": false
     }
   }
 }`
+
+	/*
+
+	 */
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#IDS#", IDS)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#NAME#", name)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#TOPIC#", topic)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", SWITCH_UID)
 
 	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.MQTT.HomeAssistantTopic(), jsonEscapeStrNoQuotes(snake(light.Name())))
 
