@@ -37,6 +37,8 @@ type Light struct {
 	deviceLock              sync.Mutex
 	raw                     *RawColor
 	haLockFor               string
+	haUID                   string
+	mqttID                  string
 }
 
 // Build constructs the Lights and LightGroups from the given configuration YAML
@@ -83,6 +85,8 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			on:                  false,
 			device:              d,
 			haLockFor:           l.HALockFor,
+			haUID:               l.HAUID,
+			mqttID:              makeMqttId(l.Name),
 		}
 	}
 
@@ -275,9 +279,24 @@ func (l *Light) LastRSSI() *int {
 }
 
 func (l *Light) MqqtID() string {
-	return strings.TrimSpace(strings.ReplaceAll(l.Name(), " ", "_"))
+	return l.mqttID
+}
+
+// HAUID returns the UID we will use for this device in HA discovery
+func (l *Light) HAUID() string {
+	return l.haUID
 }
 
 func (l *Light) HALockFor() string {
 	return l.haLockFor
+}
+
+func makeMqttId(name string) string {
+	name = strings.TrimSpace(name)
+	name = strings.ReplaceAll(name, " ", "_")
+	name = strings.ReplaceAll(name, "#", "_")
+	name = strings.ReplaceAll(name, "$", "_")
+	name = strings.ReplaceAll(name, "/", "_")
+	name = strings.ReplaceAll(name, "+", "_")
+	return name
 }

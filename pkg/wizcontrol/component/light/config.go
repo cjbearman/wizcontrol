@@ -1,12 +1,16 @@
 package light
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"regexp"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
+
+var UIDReg = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 // ConfigYAML is the YAML representation of a light configuration
 type ConfigYAML struct {
@@ -15,6 +19,7 @@ type ConfigYAML struct {
 	MAC       string   `yaml:"mac"`
 	Groups    []string `yaml:"groups"`
 	HALockFor string   `yaml:"ha_lock_for"`
+	HAUID     string   `yaml:"ha_uid"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
@@ -30,6 +35,17 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	var err error
 	if c.Name, err = validator.RequiredComponentName(alias.Name); err != nil {
 		return fmt.Errorf("light %q, invalid name: %v", alias.Name, err)
+	}
+
+	if alias.HAUID != "" {
+		if !UIDReg.MatchString(alias.HAUID) {
+			return fmt.Errorf("light %q ha_uid %q invalid, must contains alphanumerics, _ and - only", alias.Name, alias.HAUID)
+		}
+		c.HAUID = alias.HAUID
+	} else {
+		// We don't have a user provided uid, so we'll use the light name and hash it to create a unique identifier
+		hash := sha256.Sum256([]byte(c.Name))
+		c.HAUID = fmt.Sprintf("%x", hash)
 	}
 
 	if c.IP, err = validator.IP(alias.IP, false); err != nil {

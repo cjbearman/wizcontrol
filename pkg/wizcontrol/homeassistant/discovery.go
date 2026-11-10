@@ -17,10 +17,10 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 		return nil, ""
 	}
 
-	IDS := jsonEscapeStr(snake(light.Name()))
+	IDS := jsonEscapeStr(light.HAUID())
 	name := jsonEscapeStr(light.Name())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
-	switchUID := jsonEscapeStr(snake(light.Name() + "_lock"))
+	switchUID := jsonEscapeStr(light.HAUID() + "_lock")
 	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 
 	payloadTemplate := `{
@@ -87,7 +87,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
 
-	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), jsonEscapeStrNoQuotes(snake(light.Name())))
+	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), light.HAUID())
 
 	return []byte(payloadTemplate), discTopic
 }
