@@ -22,29 +22,38 @@ type HAOrigin struct {
 }
 
 type HAComponent struct {
-	P                       string   `json:"p"`
-	StateTopic              string   `json:"state_topic"`
-	ValueTemplate           string   `json:"value_template"`
-	UniqueID                string   `json:"unique_id"`
-	JsonAttributesTopic     string   `json:"json_attributes_topic"`
-	JsonAttributesTemplate  string   `json:"json_attributes_template"`
-	BrightnessScale         int      `json:"brightness_scale"`
-	StateValueTemplate      string   `json:"state_value_template"`
-	ColorModeTemplate       string   `json:"color_mode_value_template"`
-	BrightnessStateTopic    string   `json:"brightness_state_topic"`
-	BrightnessValueTemplate string   `json:"brightness_value_template"`
-	ColorTempStateTopic     string   `json:"color_temp_state_topic"`
-	ColorTempValueTemplate  string   `json:"color_temp_value_template"`
-	RGBWWStateTopic         string   `json:"rgbww_state_topic"`
-	RGBWWValueTemplate      string   `json:"rgbww_value_template"`
-	Name                    string   `json:"name"`
-	CommandTopic            string   `json:"command_topic"`
-	ColorTempCommandTopic   string   `json:"color_temp_command_topic"`
-	RGBWWCommandTopic       string   `json:"rgbww_command_topic"`
-	SupportedColorModes     []string `json:"supported_color_modes"`
-	ColorTempKelvin         bool     `json:"color_temp_kelvin"`
-	MinKelvin               int      `json:"min_kelvin"`
-	MaxKelvin               int      `json:"max_kelvin"`
+	P        string `json:"p"`
+	UniqueID string `json:"unique_id"`
+
+	// All our topics are in fact the same, we just extract different bits from it using the value
+	StateTopic           string `json:"state_topic"`            // Main state published here
+	JsonAttributesTopic  string `json:"json_attributes_topic"`  // Attributes published here
+	BrightnessStateTopic string `json:"brightness_state_topic"` // Brightness state published here
+	RGBWWStateTopic      string `json:"rgbww_state_topic"`      // RGBWW state published here
+	ColorTempStateTopic  string `json:"color_temp_state_topic"` // Color temperature state published here
+	Name                 string `json:"name"`
+
+	// ValueTemplate           string   `json:"value_template"`		// Main value for the light, believe incorrect, removed
+
+	// Various templates that extract values from the payload
+	JsonAttributesTemplate  string `json:"json_attributes_template"`  // Template for extracting attributes from the state payload
+	StateValueTemplate      string `json:"state_value_template"`      // Template for extracting the main state value
+	ColorModeTemplate       string `json:"color_mode_value_template"` // Template for extracting the color mode
+	BrightnessValueTemplate string `json:"brightness_value_template"` // Template for extracting the brightness value
+	ColorTempValueTemplate  string `json:"color_temp_value_template"` // Template for extracting the color temperature value
+	RGBWWValueTemplate      string `json:"rgbww_value_template"`      // Template for extracting the RGBWW value
+
+	// These set various parameters for the integration
+	BrightnessScale     int      `json:"brightness_scale"` // Scale for brightness values
+	SupportedColorModes []string `json:"supported_color_modes"`
+	ColorTempKelvin     bool     `json:"color_temp_kelvin"`
+	MinKelvin           int      `json:"min_kelvin"`
+	MaxKelvin           int      `json:"max_kelvin"`
+
+	// Command topics are where change commands are sent
+	CommandTopic          string `json:"command_topic"`
+	ColorTempCommandTopic string `json:"color_temp_command_topic"`
+	RGBWWCommandTopic     string `json:"rgbww_command_topic"`
 }
 
 type HAConfig struct {
@@ -73,30 +82,32 @@ func HandleHomeAssistantConfiguration(cnf *config.Config) []byte {
 		haTopic := fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.Name())
 		uid := Snakeify(light.Name())
 		resp.Components[uid] = HAComponent{
-			P:          "light",
-			StateTopic: haTopic,
-			// ValueTemplate:           "{{ value_json.available | iif('ON', 'OFF') }}",
-			ValueTemplate:           "{{ value_json.ha.available  }}",
+			P:        "light",
+			UniqueID: uid,
+			Name:     light.Name(),
+
+			StateTopic:           haTopic,
+			JsonAttributesTopic:  haTopic,
+			BrightnessStateTopic: haTopic,
+			ColorTempStateTopic:  haTopic,
+			RGBWWStateTopic:      haTopic,
+
 			StateValueTemplate:      "{{ value_json.ha.state }}",
-			JsonAttributesTopic:     haTopic,
 			JsonAttributesTemplate:  "{{ value_json.attributes | to_json }}",
-			BrightnessScale:         100,
-			SupportedColorModes:     []string{"color_temp", "rgbww"},
 			ColorModeTemplate:       "{{ value_json.ha.color_mode }}",
-			BrightnessStateTopic:    haTopic,
-			ColorTempStateTopic:     haTopic,
-			RGBWWStateTopic:         haTopic,
 			BrightnessValueTemplate: "{{ value_json.ha.brightness }}",
 			ColorTempValueTemplate:  "{{ value_json.ha.color_temp }}",
 			RGBWWValueTemplate:      "{{ value_json.ha.rgbww }}",
-			UniqueID:                uid,
-			Name:                    light.Name(),
-			CommandTopic:            "dross",
-			ColorTempCommandTopic:   "dross2",
-			RGBWWCommandTopic:       "dross3",
-			ColorTempKelvin:         true,
-			MinKelvin:               2200,
-			MaxKelvin:               6500,
+
+			CommandTopic:          "dross",
+			ColorTempCommandTopic: "dross2",
+			RGBWWCommandTopic:     "dross3",
+
+			SupportedColorModes: []string{"color_temp", "rgbww"},
+			BrightnessScale:     100,
+			ColorTempKelvin:     true,
+			MinKelvin:           2200,
+			MaxKelvin:           6500,
 		}
 	}
 
