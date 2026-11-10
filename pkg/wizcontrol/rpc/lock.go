@@ -79,7 +79,7 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 		colorObj := cnf.Colors.GetByValue(color)
 
 		target.Locker().LockUntil(lockedUntil, colorObj)
-		logger.Infof("Locked %q until %v with color %s", target.Name(), lockedUntil, color)
+		logger.Infof("Locked %q until %v with color %s", target.ID(), lockedUntil, color)
 	}
 
 	daemon.Instance.Kick()

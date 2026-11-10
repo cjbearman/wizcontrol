@@ -9,26 +9,33 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+type RawColor struct {
+	R, G, B, CW, WW, BR, Temp, Scene int
+	State                            bool
+}
+
 // Light represents an individual wiz lightbulb
 type Light struct {
-	name, ip, discoveryMAC  string
-	mac                     string
-	groups                  []string
-	lastProgrammedColor     *color.Color
-	lastProgrammedColorLock sync.Mutex
-	lastActualColor         *color.Color
-	lastActualColorLock     sync.Mutex
-	rssi                    int
-	cum_rssi, cnt_rssi      int64
-	locker                  *LightLock
-	activeScene             string
-	activeSceneLock         sync.Mutex
-	available               bool
-	availableLock           sync.Mutex
-	on                      bool
-	onLock                  sync.Mutex
-	device                  *wiz.Device
-	deviceLock              sync.Mutex
+	name, id, ip, discoveryMAC string
+	mac                        string
+	groups                     []string
+	lastProgrammedColor        *color.Color
+	lastProgrammedColorLock    sync.Mutex
+	lastActualColor            *color.Color
+	lastActualColorLock        sync.Mutex
+	rssi                       int
+	cum_rssi, cnt_rssi         int64
+	locker                     *LightLock
+	activeScene                string
+	activeSceneLock            sync.Mutex
+	available                  bool
+	availableLock              sync.Mutex
+	on                         bool
+	onLock                     sync.Mutex
+	device                     *wiz.Device
+	deviceLock                 sync.Mutex
+	raw                        *RawColor
+	haLockFor                  string
 }
 
 // Build constructs the Lights and LightGroups from the given configuration YAML
@@ -59,10 +66,14 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 		var d *wiz.Device
 		if l.IP != "" {
 			d = wiz.MustDevice(l.IP) // Safe since IP has previously been checked
-			d.SetName(l.Name)        // Important that our devices are named for our lights, so we can correlate async results back
+			d.SetName(l.ID)          // Important that our devices are named for our lights, so we can correlate async results back
 		}
 
-		lights[l.Name] = &Light{
+		if _, found := lights[l.ID]; found {
+			return nil, nil, fmt.Errorf("light %q has the same ID as another light", l.ID)
+		}
+
+		lights[l.ID] = &Light{
 			name:                l.Name,
 			ip:                  l.IP,
 			discoveryMAC:        l.MAC,
@@ -74,6 +85,8 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			available:           false,
 			on:                  false,
 			device:              d,
+			haLockFor:           l.HALockFor,
+			id:                  l.ID,
 		}
 	}
 
@@ -83,7 +96,7 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 		for _, groupName := range light.groups {
 			// A light group must not have the same name as a light
 			if _, exists := lights[groupName]; exists {
-				return nil, nil, fmt.Errorf("light group %q has the same name as a light", groupName)
+				return nil, nil, fmt.Errorf("light group %q has the same ID as a light", groupName)
 			}
 
 			if groups[groupName] == nil {
@@ -127,6 +140,29 @@ func (l *Light) SetLastActualColor(c *color.Color) {
 	l.lastActualColorLock.Lock()
 	defer l.lastActualColorLock.Unlock()
 	l.lastActualColor = c
+}
+
+func (l *Light) SetLastRawColor(r, g, b, cw, ww, br, temp, scene int, state bool) {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	l.raw = &RawColor{
+		R:     r,
+		G:     g,
+		B:     b,
+		CW:    cw,
+		WW:    ww,
+		BR:    br,
+		Temp:  temp,
+		Scene: scene,
+		State: state,
+	}
+
+}
+
+func (l *Light) GetLastRawColor() *RawColor {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	return l.raw
 }
 
 func (l *Light) Locker() *LightLock {
@@ -188,7 +224,7 @@ func (l *Light) SetDevice(device *wiz.Device) {
 	l.deviceLock.Lock()
 	defer l.deviceLock.Unlock()
 	l.device = device
-	l.device.SetName(l.name)
+	l.device.SetName(l.id)
 }
 
 // UseDiscovery returns whether the light is using discovery mode.
@@ -240,4 +276,21 @@ func (l *Light) LastRSSI() *int {
 	}
 	r := l.rssi
 	return &r
+}
+
+func (l *Light) MqqtID() string {
+	return l.id
+}
+
+// HAUID returns the UID we will use for this device in HA discovery
+func (l *Light) HAUID() string {
+	return l.id
+}
+
+func (l *Light) HALockFor() string {
+	return l.haLockFor
+}
+
+func (l *Light) ID() string {
+	return l.id
 }

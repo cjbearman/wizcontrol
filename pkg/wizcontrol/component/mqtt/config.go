@@ -31,6 +31,8 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
+	// TODO: More validation for Home Assistant fields
+
 	var err error
 
 	c.URL = strings.TrimSpace(alias.URL)

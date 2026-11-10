@@ -1,0 +1,138 @@
+package homeassistant
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+
+	"github.com/cjbearman/wiz/pkg/wiz"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
+)
+
+func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
+
+	if cnf.HomeAssistant == nil {
+		common.Logger.GetLogger("homeassistant-disc").Errorf("Home Assistant configuration is not available")
+		return nil, ""
+	}
+
+	IDS := jsonEscapeStr(light.HAUID())
+	name := jsonEscapeStr(light.Name())
+	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
+	switchUID := jsonEscapeStr(light.HAUID() + "_lock")
+	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
+
+	wizScenesArray := append([]string{"None"}, wiz.AllSceneNames()...)
+	wizScenesArrayEncoded, err := json.Marshal(wizScenesArray)
+	if err != nil {
+		// Can't imagine this could ever happen, but for sureity
+		panic("Failed to encode scenes array")
+	}
+
+	payloadTemplate := `{
+  "dev": {
+    "ids": #IDS#,
+    "name": #NAME#,
+    "mf": "Chris Bearman"
+  },
+  "o": {
+    "name": "Chris Bearman"
+  },
+  "cmps": {
+    "light": {
+      "p": "light",
+      "unique_id": #IDS#,
+      "state_topic": #TOPIC#,
+	  "name": "Light",
+      "json_attributes_topic": #TOPIC#,
+      "brightness_state_topic": #TOPIC#,
+      "rgbww_state_topic": #TOPIC#,
+      "color_temp_state_topic": #TOPIC#,
+	  "color_mode_state_topic": #TOPIC#,
+	  "effect_state_topic": #TOPIC#,
+	  "availability_topic": #TOPIC#,
+	  "availability_template": "{{ value_json.available }}",
+      "json_attributes_template": "{{ value_json.attributes | to_json }}",
+      "state_value_template": "{{ value_json.ha.state }}",
+      "color_mode_value_template": "{{ value_json.ha.color_mode }}",
+      "brightness_value_template": "{{ value_json.ha.brightness }}",
+      "color_temp_value_template": "{{ value_json.ha.color_temp }}",
+      "rgbww_value_template": "{{ value_json.ha.rgbww }}",
+	  "effect_value_template": "{{ value_json.ha.effect }}",
+      "brightness_scale": 100,
+	  "payload_available": true,
+	  "payload_not_available": false,
+      "supported_color_modes": [
+        "color_temp",
+        "rgbww"
+      ],
+      "color_temp_kelvin": true,
+      "min_kelvin": 2200,
+      "max_kelvin": 6500,
+      "command_topic": "#CMD_TOPIC#/command",
+      "color_temp_command_topic": "#CMD_TOPIC#/temp",
+      "rgbww_command_topic": "#CMD_TOPIC#/rgbww",
+      "brightness_command_topic": "#CMD_TOPIC#/brightness",
+	  "effect_command_topic": "#CMD_TOPIC#/effect",
+	  "effect_list": #EFFECTS#,
+	  "effect": true
+
+    },
+	"lock": {
+      "p": "switch",
+      "unique_id": #SWITCH_UID#,
+      "command_topic": "#CMD_TOPIC#/auto",
+	  "state_topic": #TOPIC#,
+	  "name": "Automatic Control",
+      "value_template": "{{ not value_json.attributes.locked }}",
+	  "state_on": true,
+	  "state_off": false
+    }
+  }
+}`
+
+	/*
+
+	 */
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#IDS#", IDS)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#NAME#", name)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#TOPIC#", topic)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#EFFECTS#", string(wizScenesArrayEncoded))
+
+	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), light.HAUID())
+
+	// Uncomment this for validation parsing during dev
+	// junk := make(map[string]interface{})
+	// err = json.Unmarshal([]byte(payloadTemplate), &junk)
+	// if err != nil {
+	// 	common.Logger.GetLogger("homeassistant-disc").Errorf("Failed to parse discovery payload: %v", err)
+	// 	panic("shit went south")
+	// }
+
+	return []byte(payloadTemplate), discTopic
+}
+
+func jsonEscapeStr(str string) string {
+	bytes, err := json.Marshal(str)
+	if err != nil {
+		common.Logger.GetLogger("json-escape").Errorf("Failed to escape JSON string: %v", err)
+		return ""
+	}
+
+	return string(bytes)
+}
+
+func jsonEscapeStrNoQuotes(str string) string {
+	bytes, err := json.Marshal(str)
+	if err != nil {
+		common.Logger.GetLogger("json-escape").Errorf("Failed to escape JSON string: %v", err)
+		return ""
+	}
+
+	escaped := string(bytes)
+	return escaped[1 : len(escaped)-1]
+}

@@ -27,7 +27,7 @@ func HandleScenesRequest(cnf *config.Config) []byte {
 		for _, e := range cnf.Scenes[name].GetElements() {
 			targets := []string{}
 			for _, t := range e.GetTargets() {
-				targets = append(targets, t.Name())
+				targets = append(targets, t.ID())
 			}
 			els = append(els, SceneElement{
 				Targets: e.GetRawTargets(),

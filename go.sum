@@ -1,7 +1,7 @@
 github.com/cjbearman/logger v0.0.0-20261105180923-ca92117cd857 h1:FhagkL3ypvWmT8zyjp14QRJz95gcUZ6nujUOi487dD0=
 github.com/cjbearman/logger v0.0.0-20261105180923-ca92117cd857/go.mod h1:uquYjCiqlZyzC4HYcZ8SGTac/6Q14eIeRxGqO/jvhF8=
-github.com/cjbearman/wiz v1.0.0 h1:Z/ICrWhS1zIiHHvGTiB5wPL4plYE1DzTUmsjZ8/Xslo=
-github.com/cjbearman/wiz v1.0.0/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
+github.com/cjbearman/wiz v1.0.1 h1:AZvXI0GSyGqomhNm24PD9bJRQzgop8XHfN1ILahYe0w=
+github.com/cjbearman/wiz v1.0.1/go.mod h1:RveYXPhkHXvu75NG6wlpanDADQyerjkvqwv8OSHWxI8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/eclipse/paho.mqtt.golang v1.5.1 h1:/VSOv3oDLlpqR2Epjn1Q7b2bSTplJIeV2ISgCl2W7nE=
 github.com/eclipse/paho.mqtt.golang v1.5.1/go.mod h1:1/yJCneuyOoCOzKSsOTUc0AJfpsItBGWvYpBLimhArU=

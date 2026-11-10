@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
@@ -63,53 +62,16 @@ func validateForUntil(forspec, until string) (time.Time, *RpcError) {
 		return time.Time{}, NewRpcError(400, "'for' and 'until' are mutually exclusive")
 	}
 	if forspec != "" {
-		return forParser(forspec)
+		t, err := common.ForParser(forspec)
+		if err != nil {
+			return time.Time{}, NewRpcError(400, "%v", err)
+		}
+		return t, nil
 	}
 	if until != "" {
 		return untilParse(until)
 	}
 	return time.Time{}, NewRpcError(400, "either 'for' or 'until' is required")
-}
-
-// forParser parses the 'for' duration string and returns the corresponding time.
-// 'forSpec' is the 'for' duration string.
-// Returns the calculated time and an optional RpcError if the input is invalid.
-// Accepts any duration or "day", "week", "month"
-func forParser(forSpec string) (time.Time, *RpcError) {
-	forSpec = strings.TrimSpace(strings.ToLower(forSpec))
-	// Accept a standard Go duration string, e.g., "1h30m"
-	duration, err := time.ParseDuration(forSpec)
-
-	if err == nil {
-		return time.Now().In(common.Location).Add(duration), nil
-	}
-
-	// Okay, so that wasn't it, we have a few other suported options
-	if forSpec == "day" {
-		now := time.Now().In(common.Location)
-		return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, common.Location), nil
-	}
-
-	if forSpec == "week" {
-		now := time.Now().In(common.Location)
-		weekday := int(now.Weekday())
-		if weekday == 0 {
-			weekday = 7
-		}
-		daysUntilEndOfWeek := 7 - weekday
-		endOfWeek := now.AddDate(0, 0, daysUntilEndOfWeek)
-		return time.Date(endOfWeek.Year(), endOfWeek.Month(), endOfWeek.Day(), 23, 59, 59, 0, common.Location), nil
-	}
-
-	if forSpec == "month" {
-		now := time.Now().In(common.Location)
-		// Day zero of any next month rationally gives us the last day of the current month,
-		// even though we might be setting a month of 13. Works.
-		endOfMonth := time.Date(now.Year(), now.Month()+1, 0, 23, 59, 59, 0, common.Location)
-		return endOfMonth, nil
-	}
-
-	return time.Time{}, NewRpcError(400, "invalid 'for' duration: %v", err)
 }
 
 // parseableTimeDateFormats lists the time and date formats that can be parsed by untilParse.

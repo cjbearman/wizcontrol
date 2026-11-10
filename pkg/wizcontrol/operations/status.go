@@ -69,6 +69,11 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		return
 	}
 
+	r, g, b, cw, ww := statusUpdate.Result.R, statusUpdate.Result.G, statusUpdate.Result.B, statusUpdate.Result.C, statusUpdate.Result.W
+	br, temp, scene := statusUpdate.Result.Dimming, statusUpdate.Result.Temp, statusUpdate.Result.SceneId
+	state := statusUpdate.Result.State
+	light.SetLastRawColor(r, g, b, cw, ww, br, temp, scene, state)
+
 	light.RecordRSSI(statusUpdate.Result.Rssi)
 
 	col := cnf.Colors.GetByValue(color)
@@ -81,7 +86,7 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 
 // sendLightStatus publishes the current status of the light to the MQTT bus.
 func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
-	logger := common.Logger.GetLogger("light-status").WithField("device", light.Name())
+	logger := common.Logger.GetLogger("light-status").WithField("device", light.ID())
 	status := responses.BuildLightStatus(light)
 
 	encoded, err := json.Marshal(status)
@@ -91,7 +96,7 @@ func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
 	}
 
 	msg := bus.Message{
-		Topic:   "light/" + light.Name(),
+		Topic:   "light/" + light.MqqtID(),
 		Payload: encoded,
 	}
 

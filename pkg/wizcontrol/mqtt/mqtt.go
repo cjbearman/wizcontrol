@@ -11,6 +11,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
+	homeassistant "github.com/cjbearman/wizcontrol/pkg/wizcontrol/homeassistant"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
@@ -20,21 +21,22 @@ import (
 // these are all housed underneath the primary topic and thus are not considered
 // fully qualified names
 const (
-	topicLock        = "lock"
-	topicUnlock      = "unlock"
-	topicAddScene    = "addscene"
-	topicDelScene    = "delscene"
-	topicReset       = "reset"
-	topicPause       = "pause"
-	topicUnpause     = "unpause"
-	topicScenes      = "scenes"
-	topicColors      = "colors"
-	topicTargets     = "targets"
-	topicSceneGroups = "scenegroups"
-	topicLightGroups = "lightgroups"
-	topicCalendars   = "calendars"
-	topicHolidays    = "holidays"
-	topicRestart     = "restart"
+	topicLock          = "lock"
+	topicUnlock        = "unlock"
+	topicAddScene      = "addscene"
+	topicDelScene      = "delscene"
+	topicReset         = "reset"
+	topicPause         = "pause"
+	topicUnpause       = "unpause"
+	topicScenes        = "scenes"
+	topicColors        = "colors"
+	topicTargets       = "targets"
+	topicSceneGroups   = "scenegroups"
+	topicLightGroups   = "lightgroups"
+	topicCalendars     = "calendars"
+	topicHolidays      = "holidays"
+	topicRestart       = "restart"
+	topicHomeAssistant = "test"
 )
 
 // Instance holds the singleton instance of the MQTT integration
@@ -140,6 +142,14 @@ func (m *Mqtt) handleUnpauseRPC(client mqtt.Client, msg mqtt.Message) {
 	_ = rpc.HandleUnpauseRequest(m.cnf)
 }
 
+func (m *Mqtt) handleLightCommand(client mqtt.Client, msg mqtt.Message) {
+	logger := common.Logger.GetLogger("mqtt")
+	if msg.Retained() {
+		logger.Warnf("Skipping retained message on light command topic %q: %s", msg.Topic(), string(msg.Payload()))
+	}
+	homeassistant.HandleLightCommand(m.cnf, msg.Topic(), msg.Payload())
+}
+
 // connectHandler is called when the MQTT client successfully connects to the broker. It subscribes to control topics and publishes initial state.
 func (m *Mqtt) connectHandler(client mqtt.Client) {
 	logger := common.Logger.GetLogger("mqtt")
@@ -165,6 +175,17 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicCalendars), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleCalendarsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicHolidays), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHolidaysRequest(m.cnf)).Wait()
+
+	// If HA is enabled, publish discovery configuration
+	if m.cnf.HomeAssistant != nil {
+		client.Subscribe(fmt.Sprintf("%s/light/+/+", m.MqttTopic), 1, m.handleLightCommand)
+		for _, light := range m.cnf.Lights {
+			msg, to := homeassistant.DiscoveryPayload(m.cnf, light)
+			client.Publish(to, 1, m.cnf.MQTT.ShouldRetainMessages(), msg)
+		}
+
+		//client.Publish(fmt.Sprintf("%s/device/%s/wizcontrol/config", m.cnf.MQTT.HomeAssistantTopic(), m.cnf.MQTT.HomeAssistantNodeID()), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
+	}
 }
 
 // disconnectHandler is called when the MQTT client loses connection to the broker.

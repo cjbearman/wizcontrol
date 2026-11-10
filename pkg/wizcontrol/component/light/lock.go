@@ -110,3 +110,14 @@ func (l *LightLock) SetKicker(kicker func()) {
 	defer l.lock.Unlock()
 	l.kicker = kicker
 }
+
+func (l *LightLock) Kick() {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	if l.kicker != nil {
+		l.kicker()
+	} else {
+		logger := common.Logger.GetLogger("lightlock").WithField("name", l.lightName)
+		logger.Warnf("Kicker not set in light lock for %s", l.lightName)
+	}
+}

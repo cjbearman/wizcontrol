@@ -18,7 +18,7 @@ func HandleLightGroupsRequest(cnf *config.Config) []byte {
 	for name, lg := range cnf.LightGroups {
 
 		for _, light := range lg.Lights() {
-			resp.LightGroups[name] = append(resp.LightGroups[name], light.Name())
+			resp.LightGroups[name] = append(resp.LightGroups[name], light.ID())
 		}
 	}
 

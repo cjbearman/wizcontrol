@@ -20,19 +20,24 @@ system:
 # Include mqtt section if you want to utilize MQTT broker
 mqtt:
   # broker URL
-  url: "mqtt://192.168.10.189:1883"
+  url: "mqtt://10.0.0.4:11883"
   # broker username
-  username: "wizcontrol_mqtt"
+  # username: "wizcontrol_mqtt"
   # broker password
-  password: "asdkljiodsjf23489h!"
+  # password: "asdkljiodsjf23489h!"
   # base topic (defaults to wizcontrol)
   topic: "wizcontrol_dev"
   # For development only, set retain_messages to false to avoid persisting messages on the broker
-  retain_messages: false
+  retain_messages: true
   # Allow connection to TLS enabled brokers without TLS validation
   # insecure: false
   # Path to the server certificate for TLS validation, if using TLS with insecure: false (recommended)
   # server_certs: "server.crt"
+
+home_assistant:
+  home_assistant_topic: "homeassistant"
+  default_lock_for: day
+
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses
@@ -63,66 +68,86 @@ http:
 # Specify the lights and their IP addresses or MAC addresses
 # If using MAC addresses for any light, discovery will be used (which is not entirely reliable and introduce delays)
 lights:
-  - name: front_flood_ll
+  - id: front_flood_ll
+    name: Front Flood LL
     ip: 192.168.20.202
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_left" ]
-  - name: front_flood_lr
+  - id: front_flood_lr
+    name: Front Flood LR
     ip: 192.168.20.56
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
-  - name: front_flood_cl
+  - id: front_flood_cl
+    name: Front Flood CL
     ip: 192.168.20.12
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_center" ]
-  - name: front_flood_cr
+  - id: front_flood_cr
+    name: Front Flood CR
     ip: 192.168.20.2
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_center" ]
-  - name: front_flood_rl
+  - id: front_flood_rl
+    name: Front Flood RL
     ip: 192.168.20.64
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
-  - name: front_flood_rr
+  - id: front_flood_rr
+    name: Front Flood RR
     ip: 192.168.20.138
     groups: [ "outside_lights", "front_of_house", "front_flood", "flood_right" ]
-  - name: porch_l
+  - id: porch_l
+    name: Porch L
     ip: 192.168.20.196
     groups: [ "outside_lights", "front_of_house", "porch" , "porch_carriage_lights" ]
-  - name: porch_c
+  - id: porch_c
+    name: Porch C
     ip: 192.168.20.223
     groups: [ "outside_lights", "front_of_house", "porch" ]
-  - name: porch_r
+  - id: porch_r
+    name: Porch R
     ip: 192.168.20.195
     groups: [ "outside_lights", "front_of_house", "porch" , "porch_carriage_lights" ]
-  - name: patio_ceiling_1
+  - id: patio_ceiling_1
+    name: Patio Ceiling 1
     ip: 192.168.20.165
     groups: [ "outside_lights", "patio_lights" ]
-  - name: patio_ceiling_2
+  - id: patio_ceiling_2
+    name: Patio Ceiling 2
     ip: 192.168.20.111
     groups: [ "outside_lights", "patio_lights" ]
-  - name: patio_wall
+  - id: patio_wall
+    name: Patio Wall
     ip: 192.168.20.168
     groups: [ "outside_lights", "patio_lights" ]
-  - name: patio_string
+  - id: patio_string
+    name: Patio String
     ip: 192.168.20.239
     groups: [ "outside_lights", "patio_lights" ]
-  - name: office_stand_light_upper
+  - id: office_stand_light_upper
+    name: Office Stand Light Upper
     ip: 192.168.20.13
     #mac: cc:40:85:c5:a8:de
     groups: [ "indoor", "office_lights" , "office_lamps" ]
-  - name: office_stand_light_lower
+  - id: office_stand_light_lower
+    name: Office Stand Light Lower
     ip: 192.168.20.244
     #mac: 98:77:d5:30:8a:14
     groups: [ "indoor", "office_lights" , "office_lamps" ]
-  - name: office_minecraft_lamp
+  - id: office_minecraft_lamp
+    name: Office Minecraft Lamp
     ip: 192.168.20.163
     #mac: 98:77:d5:46:9b:d8
     groups: [ "indoor", "office_lights", "office_lamps" ]
-  - name: office_ceiling_1
+    mqtt_id: fred
+  - id: office_ceiling_1
+    name: Office Ceiling 1
     ip: 192.168.20.192
     #mac: 98:77:d5:46:6e:d4
     groups: [ "indoor", "office_lights" , "office_ceiling"]
-  - name: office_ceiling_2
+  - id: office_ceiling_2
+    name: Office Ceiling 2
     ip: 192.168.20.251
     #mac: 98:77:d5:a6:b7:3a
     groups: [ "indoor", "office_lights" , "office_ceiling"]
-  - name: office_ceiling_3
+  - id: office_ceiling_3
+    name: Office Ceiling 3
     ip: 192.168.20.84
     #mac: 98:77:d5:30:1a:fc
     groups: [ "indoor", "office_lights" , "office_ceiling"]
