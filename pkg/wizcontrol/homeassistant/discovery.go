@@ -42,6 +42,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "brightness_state_topic": #TOPIC#,
       "rgbww_state_topic": #TOPIC#,
       "color_temp_state_topic": #TOPIC#,
+	  "color_mode_state_topic": #TOPIC#,
 	  "availability_topic": #TOPIC#,
 	  "availability_template": "{{ value_json.available }}",
       "json_attributes_template": "{{ value_json.attributes | to_json }}",
@@ -90,10 +91,6 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), light.HAUID())
 
 	return []byte(payloadTemplate), discTopic
-}
-
-func snake(str string) string {
-	return strings.ReplaceAll(str, " ", "_")
 }
 
 func jsonEscapeStr(str string) string {

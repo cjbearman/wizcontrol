@@ -2,7 +2,6 @@ package light
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
@@ -86,8 +85,23 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			device:              d,
 			haLockFor:           l.HALockFor,
 			haUID:               l.HAUID,
-			mqttID:              makeMqttId(l.Name),
+			mqttID:              l.MQTTID,
 		}
+	}
+
+	// Make absolutely sure all lights have unique HA and MQQT IDs
+	haUIDs := make(map[string]string)
+	mqttIDs := make(map[string]string)
+	for name, l := range lights {
+		if _, found := haUIDs[l.haUID]; found {
+			return nil, nil, fmt.Errorf("light %q has the same HA UID as another light, use ha_uid to set a unique ID", name)
+		}
+		haUIDs[l.haUID] = name
+
+		if _, found := mqttIDs[l.mqttID]; found {
+			return nil, nil, fmt.Errorf("light %q has the same MQTT ID as another light, use mqtt_id to set a unique ID", name)
+		}
+		mqttIDs[l.mqttID] = name
 	}
 
 	// Build lightgroups
@@ -289,14 +303,4 @@ func (l *Light) HAUID() string {
 
 func (l *Light) HALockFor() string {
 	return l.haLockFor
-}
-
-func makeMqttId(name string) string {
-	name = strings.TrimSpace(name)
-	name = strings.ReplaceAll(name, " ", "_")
-	name = strings.ReplaceAll(name, "#", "_")
-	name = strings.ReplaceAll(name, "$", "_")
-	name = strings.ReplaceAll(name, "/", "_")
-	name = strings.ReplaceAll(name, "+", "_")
-	return name
 }

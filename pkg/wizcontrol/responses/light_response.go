@@ -17,12 +17,12 @@ type HAColor struct {
 }
 
 type HAEntity struct {
-	Brightness int     `json:"brightness,omitempty"`
-	Mode       string  `json:"color_mode,omitempty"`
-	Temp       int     `json:"color_temp,omitempty"`
-	Color      HAColor `json:"color,omitempty"`
-	RGBWW      string  `json:"rgbww,omitempty"`
-	Effect     string  `json:"effect,omitempty"` // TODO: Finish up the implementation of this
+	Brightness int     `json:"brightness"`
+	Mode       string  `json:"color_mode"`
+	Temp       int     `json:"color_temp"`
+	Color      HAColor `json:"color"`
+	RGBWW      string  `json:"rgbww"`
+	Effect     string  `json:"effect"` // TODO: Finish up the implementation of this
 	State      string  `json:"state"`
 }
 
@@ -94,6 +94,9 @@ func BuildLightStatus(light *light.Light) LightStatus {
 
 	raw := light.GetLastRawColor()
 	if raw != nil {
+		if raw.BR == 0 {
+			raw.BR = 100
+		}
 		ha.Mode = "rgbww"
 		ha.Color = HAColor{
 			R:  raw.R,
@@ -108,6 +111,10 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			ha.Temp = raw.Temp
 		} // ELSE TODO SCENE
 		ha.Brightness = raw.BR
+	}
+	if ha.Mode == "" {
+		ha.Mode = "color_temp" // Because why not, we need something, it's off so, whatevs
+		ha.Temp = 6000
 	}
 
 	return LightStatus{

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
@@ -20,6 +21,7 @@ type ConfigYAML struct {
 	Groups    []string `yaml:"groups"`
 	HALockFor string   `yaml:"ha_lock_for"`
 	HAUID     string   `yaml:"ha_uid"`
+	MQTTID    string   `yaml:"mqtt_id"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
@@ -78,5 +80,25 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	}
 	c.HALockFor = alias.HALockFor
 
+	if alias.MQTTID != "" {
+
+		if strings.ContainsAny(alias.MQTTID, "/#$+ ") {
+			return fmt.Errorf("light %q mqtt_id %q invalid, must not contain /#$+ or spaces", alias.Name, alias.MQTTID)
+		}
+		c.MQTTID = alias.MQTTID
+	} else {
+		c.MQTTID = makeMqttId(c.Name)
+	}
+
 	return nil
+}
+
+func makeMqttId(name string) string {
+	name = strings.TrimSpace(name)
+	name = strings.ReplaceAll(name, " ", "_")
+	name = strings.ReplaceAll(name, "#", "_")
+	name = strings.ReplaceAll(name, "$", "_")
+	name = strings.ReplaceAll(name, "/", "_")
+	name = strings.ReplaceAll(name, "+", "_")
+	return name
 }

@@ -119,6 +119,7 @@ lights:
     ip: 192.168.20.163
     #mac: 98:77:d5:46:9b:d8
     groups: [ "indoor", "office_lights", "office_lamps" ]
+    mqtt_id: fred
   - name: office_ceiling_1
     ip: 192.168.20.192
     #mac: 98:77:d5:46:6e:d4
