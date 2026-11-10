@@ -36,6 +36,7 @@ mqtt:
   enable_home_assistant: true
   home_assistant_topic: "homeassistant"
   home_assistant_node_id: "wzdefault"
+  default_lock_for: day
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses

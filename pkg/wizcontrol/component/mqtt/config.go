@@ -6,8 +6,11 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"gopkg.in/yaml.v3"
 )
+
+const DefaultLockTime = "day"
 
 // ConfigYAML represents the YAML configuration for the MQTT component.
 type ConfigYAML struct {
@@ -22,6 +25,7 @@ type ConfigYAML struct {
 	EnableHomeAssistant bool   `yaml:"enable_home_assistant"`
 	HomeAssistantTopic  string `yaml:"home_assistant_topic"`
 	HomeAssistantNodeID string `yaml:"home_assistant_node_id"`
+	DefaultLockFor      string `yaml:"default_lock_for"`
 }
 
 // UnmarshalYAML customizes the unmarshalling of the MQTT configuration from YAML. It validates the URL and sets default values for optional fields.
@@ -68,6 +72,13 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	}
 	c.Insecure = &inc
 	c.ServerCerts = alias.ServerCerts
+	c.DefaultLockFor = alias.DefaultLockFor
+	if c.DefaultLockFor == "" {
+		c.DefaultLockFor = DefaultLockTime
+	}
+	if _, err := common.ForParser(c.DefaultLockFor); err != nil {
+		return fmt.Errorf("invalid default_lock_time in MQTT configuration: %v", err)
+	}
 
 	return nil
 }

@@ -36,6 +36,7 @@ type Light struct {
 	device                  *wiz.Device
 	deviceLock              sync.Mutex
 	raw                     *RawColor
+	haLockFor               string
 }
 
 // Build constructs the Lights and LightGroups from the given configuration YAML
@@ -81,6 +82,7 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			available:           false,
 			on:                  false,
 			device:              d,
+			haLockFor:           l.HALockFor,
 		}
 	}
 
@@ -274,4 +276,8 @@ func (l *Light) LastRSSI() *int {
 
 func (l *Light) MqqtID() string {
 	return strings.TrimSpace(strings.ReplaceAll(l.Name(), " ", "_"))
+}
+
+func (l *Light) HALockFor() string {
+	return l.haLockFor
 }

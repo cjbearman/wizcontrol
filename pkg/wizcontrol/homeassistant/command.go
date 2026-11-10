@@ -52,23 +52,37 @@ func HandleLightCommand(cnf *config.Config, topic string, payload []byte) {
 
 	set := settingsFromRaw(light)
 
+	lockFor := cnf.MQTT.GetDefaultLockFor()
+
+	lightLockForOverride := light.HALockFor()
+	if lightLockForOverride != "" {
+		lockFor = lightLockForOverride
+	}
+
+	lockTime, err := common.ForParser(lockFor)
+	if err != nil {
+		// Should not happen as we have already validated the default lock time in the MQTT configuration
+		logger.Errorf("Invalid default lock time: %v", err)
+		return
+	}
+
 	switch parts[3] {
 	case "command":
-		HandleOnOffCommand(cnf, light, set, payload)
+		HandleOnOffCommand(cnf, light, set, payload, lockTime)
 	case "rgbww":
-		HandleRGBWWCommand(cnf, light, set, payload)
+		HandleRGBWWCommand(cnf, light, set, payload, lockTime)
 	case "temp":
-		HandleTempCommand(cnf, light, set, payload)
+		HandleTempCommand(cnf, light, set, payload, lockTime)
 	case "brightness":
-		HandleBrightnessCommand(cnf, light, set, payload)
+		HandleBrightnessCommand(cnf, light, set, payload, lockTime)
 	case "auto":
-		HandleAutomaticControlCommand(cnf, light, set, payload)
+		HandleAutomaticControlCommand(cnf, light, set, payload, lockTime)
 	default:
-		logger.Errorf("Unknown light command: %s", parts[4])
+		logger.Errorf("Unknown light command: %s", parts[3])
 	}
 }
 
-func HandleOnOffCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte) {
+func HandleOnOffCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 	switch strings.ToLower(string(payload)) {
 	case "on":
@@ -76,20 +90,20 @@ func HandleOnOffCommand(cnf *config.Config, light *light.Light, set *wiz.Setting
 			return
 		}
 
-		light.Locker().LockFor(10*time.Second, cnf.Colors.GetByValue("W6000"))
+		light.Locker().LockUntil(lockTime, cnf.Colors.GetByValue("W6000"))
 	case "off":
 		if !light.On() {
 			return
 		}
 
-		light.Locker().LockFor(10*time.Second, cnf.Colors.GetByValue("off"))
+		light.Locker().LockUntil(lockTime, cnf.Colors.GetByValue("off"))
 	default:
 		logger.Errorf("Unknown on/off command: %s", string(payload))
 	}
 	light.Locker().Kick()
 }
 
-func HandleRGBWWCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte) {
+func HandleRGBWWCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 	var r, g, b, ww, cw int
 	n, err := fmt.Sscanf(strings.ReplaceAll(string(payload), " ", ""), "%d,%d,%d,%d,%d", &r, &g, &b, &ww, &cw)
@@ -102,11 +116,11 @@ func HandleRGBWWCommand(cnf *config.Config, light *light.Light, set *wiz.Setting
 		bright = 100
 	}
 	col := cnf.Colors.GetByValue(fmt.Sprintf("#%02x%02x%02x%02x%02x/%d", r, g, b, ww, cw, bright))
-	light.Locker().LockFor(60*time.Second, col)
+	light.Locker().LockUntil(lockTime, col)
 	light.Locker().Kick()
 }
 
-func HandleTempCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte) {
+func HandleTempCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 
 	temp, err := strconv.Atoi(string(payload))
@@ -120,11 +134,11 @@ func HandleTempCommand(cnf *config.Config, light *light.Light, set *wiz.Settings
 	}
 
 	col := cnf.Colors.GetByValue(fmt.Sprintf("W%d", temp))
-	light.Locker().LockFor(60*time.Second, col)
+	light.Locker().LockUntil(lockTime, col)
 	light.Locker().Kick()
 }
 
-func HandleBrightnessCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte) {
+func HandleBrightnessCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
 	// And so a little bit tricky, because brightness is part of the color setting
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 	bright, err := strconv.Atoi(string(payload))
@@ -140,11 +154,11 @@ func HandleBrightnessCommand(cnf *config.Config, light *light.Light, set *wiz.Se
 	set.Brightness(bright)
 	newcol := set.ColorStr()
 	col := cnf.Colors.GetByValue(newcol)
-	light.Locker().LockFor(60*time.Second, col)
+	light.Locker().LockUntil(lockTime, col)
 	light.Locker().Kick()
 }
 
-func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte) {
+func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
 	// Implement the handling of lock command for the light
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 	switch strings.ToLower(string(payload)) {
@@ -156,7 +170,7 @@ func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *
 			logger.Errorf("No actual color available to lock")
 			return
 		}
-		light.Locker().LockFor(60*time.Second, ccol)
+		light.Locker().LockUntil(lockTime, ccol)
 		light.Locker().Kick()
 	case "on":
 		logger.Warn("AC ON, UNLOCKING LIGHT")

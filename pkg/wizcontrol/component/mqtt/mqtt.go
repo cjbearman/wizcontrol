@@ -16,6 +16,7 @@ type Mqtt struct {
 	enableHomeAssistant bool
 	homeAssistantTopic  string
 	homeAssistantNodeID string
+	defaultLockFor      string
 }
 
 // Build constructs an Mqtt instance from the provided ConfigYAML, applying default values where necessary.
@@ -49,6 +50,7 @@ func Build(config *ConfigYAML) *Mqtt {
 		enableHomeAssistant: config.EnableHomeAssistant,
 		homeAssistantTopic:  config.HomeAssistantTopic,
 		homeAssistantNodeID: config.HomeAssistantNodeID,
+		defaultLockFor:      config.DefaultLockFor,
 	}
 }
 
@@ -109,4 +111,8 @@ func (m *Mqtt) HomeAssistantTopic() string {
 
 func (m *Mqtt) HomeAssistantNodeID() string {
 	return m.homeAssistantNodeID
+}
+
+func (m *Mqtt) GetDefaultLockFor() string {
+	return m.defaultLockFor
 }

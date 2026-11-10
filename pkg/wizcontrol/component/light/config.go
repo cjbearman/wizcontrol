@@ -3,16 +3,18 @@ package light
 import (
 	"fmt"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
 
 // ConfigYAML is the YAML representation of a light configuration
 type ConfigYAML struct {
-	Name   string   `yaml:"name"`
-	IP     string   `yaml:"ip"`
-	MAC    string   `yaml:"mac"`
-	Groups []string `yaml:"groups"`
+	Name      string   `yaml:"name"`
+	IP        string   `yaml:"ip"`
+	MAC       string   `yaml:"mac"`
+	Groups    []string `yaml:"groups"`
+	HALockFor string   `yaml:"ha_lock_for"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
@@ -52,6 +54,13 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		}
 		c.Groups = append(c.Groups, group)
 	}
+
+	if alias.HALockFor != "" {
+		if _, err = common.ForParser(alias.HALockFor); err != nil {
+			return fmt.Errorf("light %q ha_lock_for %q invalid: %w", alias.Name, alias.HALockFor, err)
+		}
+	}
+	c.HALockFor = alias.HALockFor
 
 	return nil
 }
