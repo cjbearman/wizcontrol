@@ -51,7 +51,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 
 			for _, light := range targets.GetTargets() {
 				operationsToDo[light] = color
-				logger.WithField("device", light.Name()).Debugf("Targetted color asserted")
+				logger.WithField("device", light.ID()).Debugf("Targetted color asserted")
 				lightSceneSettings[light] = lightSettings{
 					scene: scene.Name(),
 					color: color,
@@ -71,7 +71,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 	for _, light := range cnf.Lights {
 		if locked, color, _ := light.Locker().IsLocked(); locked {
 			operationsToDo[light] = color
-			logger.Debugf("Locked light %q will be set to color %q", light.Name(), color.Value())
+			logger.Debugf("Locked light %q will be set to color %q", light.ID(), color.Value())
 			light.SetActiveScene("")
 		}
 	}
@@ -80,7 +80,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
 	for light, color := range operationsToDo {
-		logger := logger.WithField("device", light.Name())
+		logger := logger.WithField("device", light.ID())
 
 		// Lights must be available for us to work with them
 		if !light.Available() {
@@ -99,7 +99,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			logger.Debugf("Light has correct color of %q, skipping", color)
 			continue
 		} else {
-			logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.Name(), light.LastActualColor())
+			logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.ID(), light.LastActualColor())
 		}
 
 		// Generate the Wiz-specific settings for the intended color

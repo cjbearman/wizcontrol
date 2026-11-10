@@ -31,7 +31,7 @@ func (s *Server) statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, light := range s.cnf.Lights {
-		status.Lights[light.Name()] = responses.BuildLightStatus(light)
+		status.Lights[light.ID()] = responses.BuildLightStatus(light)
 	}
 
 	_ = json.NewEncoder(w).Encode(status)

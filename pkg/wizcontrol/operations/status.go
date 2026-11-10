@@ -86,7 +86,7 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 
 // sendLightStatus publishes the current status of the light to the MQTT bus.
 func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
-	logger := common.Logger.GetLogger("light-status").WithField("device", light.Name())
+	logger := common.Logger.GetLogger("light-status").WithField("device", light.ID())
 	status := responses.BuildLightStatus(light)
 
 	encoded, err := json.Marshal(status)

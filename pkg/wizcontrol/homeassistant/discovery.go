@@ -18,7 +18,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	}
 
 	IDS := jsonEscapeStr(light.HAUID())
-	name := jsonEscapeStr(light.Name())
+	name := jsonEscapeStr(light.ID())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 	switchUID := jsonEscapeStr(light.HAUID() + "_lock")
 	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))

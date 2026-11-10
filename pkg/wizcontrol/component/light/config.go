@@ -1,7 +1,6 @@
 package light
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"regexp"
 	"strings"
@@ -11,17 +10,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var UIDReg = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+var IDReg = regexp.MustCompile(`^[a-z0-9\-_]+$`)
 
 // ConfigYAML is the YAML representation of a light configuration
 type ConfigYAML struct {
 	Name      string   `yaml:"name"`
+	ID        string   `yaml:"id"`
 	IP        string   `yaml:"ip"`
 	MAC       string   `yaml:"mac"`
 	Groups    []string `yaml:"groups"`
 	HALockFor string   `yaml:"ha_lock_for"`
-	HAUID     string   `yaml:"ha_uid"`
-	MQTTID    string   `yaml:"mqtt_id"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML
@@ -35,20 +33,15 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	var err error
-	if c.Name, err = validator.RequiredComponentName(alias.Name); err != nil {
-		return fmt.Errorf("light %q, invalid name: %v", alias.Name, err)
-	}
+	c.Name = strings.TrimSpace(alias.Name)
 
-	if alias.HAUID != "" {
-		if !UIDReg.MatchString(alias.HAUID) {
-			return fmt.Errorf("light %q ha_uid %q invalid, must contains alphanumerics, _ and - only", alias.Name, alias.HAUID)
-		}
-		c.HAUID = alias.HAUID
-	} else {
-		// We don't have a user provided uid, so we'll use the light name and hash it to create a unique identifier
-		hash := sha256.Sum256([]byte(c.Name))
-		c.HAUID = fmt.Sprintf("%x", hash)
+	if alias.ID == "" {
+		return fmt.Errorf("light %q must have id set", alias.Name)
 	}
+	if !IDReg.MatchString(alias.ID) {
+		return fmt.Errorf("light %q id %q invalid, must contain only lowercase letters, numbers, - and _", alias.Name, alias.ID)
+	}
+	c.ID = alias.ID
 
 	if c.IP, err = validator.IP(alias.IP, false); err != nil {
 		return fmt.Errorf("light %q ip address %q invalid: %w", alias.Name, c.IP, err)
@@ -79,16 +72,6 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		}
 	}
 	c.HALockFor = alias.HALockFor
-
-	if alias.MQTTID != "" {
-
-		if strings.ContainsAny(alias.MQTTID, "/#$+ ") {
-			return fmt.Errorf("light %q mqtt_id %q invalid, must not contain /#$+ or spaces", alias.Name, alias.MQTTID)
-		}
-		c.MQTTID = alias.MQTTID
-	} else {
-		c.MQTTID = makeMqttId(c.Name)
-	}
 
 	return nil
 }
