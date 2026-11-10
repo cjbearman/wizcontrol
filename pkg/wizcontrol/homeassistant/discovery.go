@@ -63,10 +63,10 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	"lock": {
       "p": "switch",
       "unique_id": #SWITCH_UID#,
-      "command_topic": "#CMD_TOPIC#/lock",
+      "command_topic": "#CMD_TOPIC#/auto",
 	  "state_topic": #TOPIC#,
-	  "name": "Lock",
-      "value_template": "{{ value_json.attributes.locked }}",
+	  "name": "Automatic Control",
+      "value_template": "{{ not value_json.attributes.locked }}",
 	  "state_on": true,
 	  "state_off": false
     }

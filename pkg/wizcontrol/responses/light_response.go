@@ -47,7 +47,7 @@ type LightAttributes struct {
 type LightStatus struct {
 	Available  bool            `json:"available"`
 	Attributes LightAttributes `json:"attributes"`
-	HA         *HAEntity       `json:"ha"`
+	HA         HAEntity        `json:"ha"`
 }
 
 // BuildLightStatus constructs a LightStatus response from the given light's current state.
@@ -88,7 +88,7 @@ func BuildLightStatus(light *light.Light) LightStatus {
 	if light.On() {
 		state = "ON"
 	}
-	ha := &HAEntity{
+	ha := HAEntity{
 		State: state,
 	}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-	homeassistant "github.com/cjbearman/wizcontrol/pkg/wizcontrol/home_assistant"
+	homeassistant "github.com/cjbearman/wizcontrol/pkg/wizcontrol/homeassistant"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
@@ -144,8 +144,10 @@ func (m *Mqtt) handleUnpauseRPC(client mqtt.Client, msg mqtt.Message) {
 
 func (m *Mqtt) handleLightCommand(client mqtt.Client, msg mqtt.Message) {
 	logger := common.Logger.GetLogger("mqtt")
-	logger.Infof("Received light command on topic %q: %s", msg.Topic(), string(msg.Payload()))
-	// Handle the light command here
+	if msg.Retained() {
+		logger.Warnf("Skipping retained message on light command topic %q: %s", msg.Topic(), string(msg.Payload()))
+	}
+	homeassistant.HandleLightCommand(m.cnf, msg.Topic(), msg.Payload())
 }
 
 // connectHandler is called when the MQTT client successfully connects to the broker. It subscribes to control topics and publishes initial state.
