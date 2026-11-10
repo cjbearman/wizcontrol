@@ -178,7 +178,6 @@ func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *
 			logger.Errorf("No actual color available to lock")
 			return
 		}
-		logger.Infof("Locking light %s to color %s until %v", light.ID(), ccol.Value(), lockTime)
 		light.Locker().LockUntil(lockTime, ccol)
 		light.Locker().Kick()
 	case "on":

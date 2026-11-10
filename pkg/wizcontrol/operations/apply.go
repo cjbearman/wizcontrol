@@ -87,18 +87,21 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 		// Lights must be available for us to work with them
 		if !light.Available() {
 			logger.Debugf("Skipping unavailable light")
+			sendLightStatus(cnf.Bus, light)
 			continue
 		}
 
 		// Skip lights that are already off if the intended color is also off
 		if !light.On() && color.Value() == c.Off {
 			logger.Debugf("Light is off and intended color is off, skipping")
+			sendLightStatus(cnf.Bus, light)
 			continue
 		}
 
 		// Skip lights that already have the intended color
 		if color.SameColorAs(light.LastActualColor()) {
 			logger.Debugf("Light has correct color of %q, skipping", color)
+			sendLightStatus(cnf.Bus, light)
 			continue
 		} else {
 			logger.Infof("Will apply color %q to light %q since it's different from current color %q", color, light.ID(), light.LastActualColor())
