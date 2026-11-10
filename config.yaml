@@ -1,3 +1,6 @@
+# A development config with a few tweaks used during my development
+
+
 system:
   # IANA timezone in which the system will operation.
   # You may get away without setting this, depending on your locale, but best to set it correctly
@@ -12,7 +15,7 @@ system:
   # Specify a file for retained state, if you want active scenes and locked colors
   # to preserve state across restarts, specify a file path here
   # If using docker, make sure this is on a volume
-  state_file: "/config/state.json"
+  #state_file: "wizcontrol_state.json"
 
 # Include mqtt section if you want to utilize MQTT broker
 mqtt:
@@ -22,13 +25,18 @@ mqtt:
   username: "wizcontrol_mqtt"
   # broker password
   password: "asdkljiodsjf23489h!"
-  
-
   # base topic (defaults to wizcontrol)
-  # topic: "wizcontrol"
+  topic: "wizcontrol"
+  # For development only, set retain_messages to false to avoid persisting messages on the broker
+  retain_messages: true
+  # Allow connection to TLS enabled brokers without TLS validation
+  # insecure: false
+  # Path to the server certificate for TLS validation, if using TLS with insecure: false (recommended)
+  # server_certs: "server.crt"
 
-  # Enable or disable control of the lights via MQTT, default true, if false, the lights will not be controllable via MQTT
-  # control_enabled: true
+home_assistant:
+  home_assistant_topic: "homeassistant"
+  default_lock_for: day
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses
@@ -126,6 +134,7 @@ lights:
     ip: 192.168.20.163
     #mac: 98:77:d5:46:9b:d8
     groups: [ "indoor", "office_lights", "office_lamps" ]
+    mqtt_id: fred
   - id: office_ceiling_1
     name: Office Ceiling 1
     ip: 192.168.20.192
