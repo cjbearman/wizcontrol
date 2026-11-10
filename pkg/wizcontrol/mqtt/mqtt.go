@@ -11,6 +11,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/bus"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
+	homeassistant "github.com/cjbearman/wizcontrol/pkg/wizcontrol/home_assistant"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/rpc"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
@@ -169,7 +170,12 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 
 	// If HA is enabled, publish discovery configuration
 	if m.cnf.MQTT.EnableHomeAssistant() {
-		client.Publish(fmt.Sprintf("%s/device/%s/wizcontrol/config", m.cnf.MQTT.HomeAssistantTopic(), m.cnf.MQTT.HomeAssistantNodeID()), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
+		for _, light := range m.cnf.Lights {
+			msg, to := homeassistant.DiscoveryPayload(m.cnf, light)
+			client.Publish(to, 1, m.cnf.MQTT.ShouldRetainMessages(), msg)
+		}
+
+		//client.Publish(fmt.Sprintf("%s/device/%s/wizcontrol/config", m.cnf.MQTT.HomeAssistantTopic(), m.cnf.MQTT.HomeAssistantNodeID()), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
 	}
 }
 

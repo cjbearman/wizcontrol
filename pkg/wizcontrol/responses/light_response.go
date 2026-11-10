@@ -17,13 +17,13 @@ type HAColor struct {
 }
 
 type HAEntity struct {
-	Brightness *int     `json:"brightness,omitempty"`
-	Mode       *string  `json:"color_mode,omitempty"`
-	Temp       *int     `json:"color_temp,omitempty"`
-	Color      *HAColor `json:"color,omitempty"`
-	RGBWW      *string  `json:"rgbww,omitempty"`
-	Effect     *string  `json:"effect,omitempty"` // TODO: Finish up the implementation of this
-	State      string   `json:"state"`
+	Brightness int     `json:"brightness,omitempty"`
+	Mode       string  `json:"color_mode,omitempty"`
+	Temp       int     `json:"color_temp,omitempty"`
+	Color      HAColor `json:"color,omitempty"`
+	RGBWW      string  `json:"rgbww,omitempty"`
+	Effect     string  `json:"effect,omitempty"` // TODO: Finish up the implementation of this
+	State      string  `json:"state"`
 }
 
 // LightAttributes represents the attributes of a light, including its IP, MAC, color, scene, and lock status.
@@ -94,26 +94,20 @@ func BuildLightStatus(light *light.Light) LightStatus {
 
 	raw := light.GetLastRawColor()
 	if raw != nil {
-		if raw.R != 0 || raw.G != 0 || raw.B != 0 || raw.CW != 0 || raw.WW != 0 {
-			mode := "rgbww"
-			ha.Mode = &mode
-			ha.Color = &HAColor{
-				R:  raw.R,
-				G:  raw.G,
-				B:  raw.B,
-				CW: raw.CW,
-				WW: raw.WW,
-			}
-			rgbww := fmt.Sprintf("%d,%d,%d,%d,%d", raw.R, raw.G, raw.B, raw.CW, raw.WW)
-			ha.RGBWW = &rgbww
-		} else if raw.Temp != 0 {
-			mode := "color_temp"
-			temp := raw.Temp
-			ha.Mode = &mode
-			ha.Temp = &temp
+		ha.Mode = "rgbww"
+		ha.Color = HAColor{
+			R:  raw.R,
+			G:  raw.G,
+			B:  raw.B,
+			CW: raw.CW,
+			WW: raw.WW,
+		}
+		ha.RGBWW = fmt.Sprintf("%d,%d,%d,%d,%d", raw.R, raw.G, raw.B, raw.CW, raw.WW)
+		if raw.Temp != 0 {
+			ha.Mode = "color_temp"
+			ha.Temp = raw.Temp
 		} // ELSE TODO SCENE
-		br := raw.BR
-		ha.Brightness = &br
+		ha.Brightness = raw.BR
 	}
 
 	return LightStatus{

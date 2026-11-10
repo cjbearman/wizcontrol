@@ -2,6 +2,7 @@ package light
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
@@ -267,4 +268,8 @@ func (l *Light) LastRSSI() *int {
 	}
 	r := l.rssi
 	return &r
+}
+
+func (l *Light) MqqtID() string {
+	return strings.TrimSpace(strings.ReplaceAll(l.Name(), " ", "_"))
 }
