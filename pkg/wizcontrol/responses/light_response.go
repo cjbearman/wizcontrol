@@ -1,11 +1,30 @@
 package responses
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
+
+type HAColor struct {
+	R  int `json:"r"`
+	G  int `json:"g"`
+	B  int `json:"b"`
+	CW int `json:"c"`
+	WW int `json:"w"`
+}
+
+type HAEntity struct {
+	Brightness *int     `json:"brightness,omitempty"`
+	Mode       *string  `json:"color_mode,omitempty"`
+	Temp       *int     `json:"color_temp,omitempty"`
+	Color      *HAColor `json:"color,omitempty"`
+	RGBWW      *string  `json:"rgbww,omitempty"`
+	Effect     *string  `json:"effect,omitempty"` // TODO: Finish up the implementation of this
+	State      string   `json:"state"`
+}
 
 // LightAttributes represents the attributes of a light, including its IP, MAC, color, scene, and lock status.
 type LightAttributes struct {
@@ -28,6 +47,7 @@ type LightAttributes struct {
 type LightStatus struct {
 	Available  bool            `json:"available"`
 	Attributes LightAttributes `json:"attributes"`
+	HA         *HAEntity       `json:"ha"`
 }
 
 // BuildLightStatus constructs a LightStatus response from the given light's current state.
@@ -64,6 +84,38 @@ func BuildLightStatus(light *light.Light) LightStatus {
 		ip = light.Device().IP()
 	}
 
+	state := "OFF"
+	if light.On() && light.Available() {
+		state = "ON"
+	}
+	ha := &HAEntity{
+		State: state,
+	}
+
+	raw := light.GetLastRawColor()
+	if raw != nil {
+		if raw.R != 0 || raw.G != 0 || raw.B != 0 || raw.CW != 0 || raw.WW != 0 {
+			mode := "rgbww"
+			ha.Mode = &mode
+			ha.Color = &HAColor{
+				R:  raw.R,
+				G:  raw.G,
+				B:  raw.B,
+				CW: raw.CW,
+				WW: raw.WW,
+			}
+			rgbww := fmt.Sprintf("%d,%d,%d,%d,%d", raw.R, raw.G, raw.B, raw.CW, raw.WW)
+			ha.RGBWW = &rgbww
+		} else if raw.Temp != 0 {
+			mode := "color_temp"
+			temp := raw.Temp
+			ha.Mode = &mode
+			ha.Temp = &temp
+		} // ELSE TODO SCENE
+		br := raw.BR
+		ha.Brightness = &br
+	}
+
 	return LightStatus{
 		Available: light.Available(),
 		Attributes: LightAttributes{
@@ -81,5 +133,6 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			LastRSSI:            light.LastRSSI(),
 			AvgRSSI:             light.AverageRSSI(),
 		},
+		HA: ha,
 	}
 }

@@ -79,6 +79,8 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 	// We now prepare async set pilots for each light that needs to be updated
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
+	pending := make(map[*l.Light]*wiz.Settings)
+
 	for light, color := range operationsToDo {
 		logger := logger.WithField("device", light.Name())
 
@@ -108,6 +110,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
 			continue
 		}
+		pending[light] = settings
 		if color.Value() != c.Off {
 			settings.On()
 		}
@@ -123,6 +126,7 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 		// At this point, we have a valid discovered device for the light
 		// Start the set pilot operation and append it to our list of operations
 		asyncs = append(asyncs, dev.SetPilotAsync(settings))
+
 	}
 
 	// Wait for all operations to complete
@@ -146,6 +150,13 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 				continue
 			}
 
+			pending, found := pending[light]
+			if !found {
+				// Also should not happen if we correctly tracked pending settings
+				logger.Errorf("Pending settings for light not found")
+				continue
+			}
+
 			// Update the light's "on" state based on the intended color
 			light.SetOn(operationsToDo[light].Value() != c.Off)
 
@@ -159,6 +170,15 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 
 			// Update the light's last actual color based on the intended color
 			light.SetLastActualColor(color)
+
+			// Update raw light settings based on the pending settings
+			r, g, b := pending.GetRGB()
+			light.SetLastRawColor(int(r), int(g), int(b),
+				int(pending.GetCW()),
+				int(pending.GetWW()),
+				pending.GetBrightness(),
+				pending.GetTemperature(),
+				int(pending.GetScene()))
 
 			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())
 		}

@@ -69,6 +69,10 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		return
 	}
 
+	r, g, b, cw, ww := statusUpdate.Result.R, statusUpdate.Result.G, statusUpdate.Result.B, statusUpdate.Result.C, statusUpdate.Result.W
+	br, temp, scene := statusUpdate.Result.Dimming, statusUpdate.Result.Temp, statusUpdate.Result.SceneId
+	light.SetLastRawColor(r, g, b, cw, ww, br, temp, scene)
+
 	light.RecordRSSI(statusUpdate.Result.Rssi)
 
 	col := cnf.Colors.GetByValue(color)

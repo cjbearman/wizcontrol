@@ -33,6 +33,9 @@ mqtt:
   # insecure: false
   # Path to the server certificate for TLS validation, if using TLS with insecure: false (recommended)
   # server_certs: "server.crt"
+  enable_home_assistant: true
+  home_assistant_topic: "homeassistant"
+  home_assistant_node_id: "wzdefault"
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses

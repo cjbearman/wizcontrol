@@ -166,7 +166,11 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicTargets), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleTargetsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicCalendars), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleCalendarsRequest(m.cnf)).Wait()
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicHolidays), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHolidaysRequest(m.cnf)).Wait()
-	client.Publish(fmt.Sprintf("homeassistant/device/some_node_id/wizcontrol/config"), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
+
+	// If HA is enabled, publish discovery configuration
+	if m.cnf.MQTT.EnableHomeAssistant() {
+		client.Publish(fmt.Sprintf("%s/device/%s/wizcontrol/config", m.cnf.MQTT.HomeAssistantTopic(), m.cnf.MQTT.HomeAssistantNodeID()), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHomeAssistantConfiguration(m.cnf)).Wait()
+	}
 }
 
 // disconnectHandler is called when the MQTT client loses connection to the broker.

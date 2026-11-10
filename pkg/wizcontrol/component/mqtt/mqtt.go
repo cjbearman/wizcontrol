@@ -1,16 +1,21 @@
 package mqtt
 
 const DefaultMQTTTopic = "wizcontrol"
+const DefaultHATopic = "homeassistant"
+const DefaultHANodeID = "wzdefault"
 
 type Mqtt struct {
-	url            string
-	username       string
-	password       string
-	topic          string
-	controlEnabled bool
-	retainMessages bool
-	insecure       bool
-	serverCerts    string
+	url                 string
+	username            string
+	password            string
+	topic               string
+	controlEnabled      bool
+	retainMessages      bool
+	insecure            bool
+	serverCerts         string
+	enableHomeAssistant bool
+	homeAssistantTopic  string
+	homeAssistantNodeID string
 }
 
 // Build constructs an Mqtt instance from the provided ConfigYAML, applying default values where necessary.
@@ -20,20 +25,30 @@ func Build(config *ConfigYAML) *Mqtt {
 		return nil
 	}
 
+	if config.HomeAssistantNodeID == "" {
+		config.HomeAssistantNodeID = DefaultHANodeID
+	}
+
 	topic := config.Topic
 	if topic == "" {
 		topic = DefaultMQTTTopic
 	}
+	if config.HomeAssistantTopic == "" {
+		config.HomeAssistantTopic = DefaultHATopic
+	}
 
 	return &Mqtt{
-		url:            config.URL,
-		username:       config.Username,
-		password:       config.Password,
-		topic:          topic,
-		controlEnabled: *config.ControlEnabled,
-		retainMessages: *config.RetainMessages,
-		insecure:       *config.Insecure,
-		serverCerts:    config.ServerCerts,
+		url:                 config.URL,
+		username:            config.Username,
+		password:            config.Password,
+		topic:               topic,
+		controlEnabled:      *config.ControlEnabled,
+		retainMessages:      *config.RetainMessages,
+		insecure:            *config.Insecure,
+		serverCerts:         config.ServerCerts,
+		enableHomeAssistant: config.EnableHomeAssistant,
+		homeAssistantTopic:  config.HomeAssistantTopic,
+		homeAssistantNodeID: config.HomeAssistantNodeID,
 	}
 }
 
@@ -82,4 +97,16 @@ func (m *Mqtt) String() string {
 
 func (m *Mqtt) ServerCerts() string {
 	return m.serverCerts
+}
+
+func (m *Mqtt) EnableHomeAssistant() bool {
+	return m.enableHomeAssistant
+}
+
+func (m *Mqtt) HomeAssistantTopic() string {
+	return m.homeAssistantTopic
+}
+
+func (m *Mqtt) HomeAssistantNodeID() string {
+	return m.homeAssistantNodeID
 }

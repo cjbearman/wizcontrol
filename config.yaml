@@ -23,6 +23,7 @@ mqtt:
   # broker password
   password: "asdkljiodsjf23489h!"
   
+
   # base topic (defaults to wizcontrol)
   # topic: "wizcontrol"
 

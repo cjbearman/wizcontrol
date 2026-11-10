@@ -9,6 +9,10 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 )
 
+type RawColor struct {
+	R, G, B, CW, WW, BR, Temp, Scene int
+}
+
 // Light represents an individual wiz lightbulb
 type Light struct {
 	name, ip, discoveryMAC  string
@@ -29,6 +33,7 @@ type Light struct {
 	onLock                  sync.Mutex
 	device                  *wiz.Device
 	deviceLock              sync.Mutex
+	raw                     *RawColor
 }
 
 // Build constructs the Lights and LightGroups from the given configuration YAML
@@ -127,6 +132,28 @@ func (l *Light) SetLastActualColor(c *color.Color) {
 	l.lastActualColorLock.Lock()
 	defer l.lastActualColorLock.Unlock()
 	l.lastActualColor = c
+}
+
+func (l *Light) SetLastRawColor(r, g, b, cw, ww, br, temp, scene int) {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	l.raw = &RawColor{
+		R:     r,
+		G:     g,
+		B:     b,
+		CW:    cw,
+		WW:    ww,
+		BR:    br,
+		Temp:  temp,
+		Scene: scene,
+	}
+
+}
+
+func (l *Light) GetLastRawColor() *RawColor {
+	l.lastActualColorLock.Lock()
+	defer l.lastActualColorLock.Unlock()
+	return l.raw
 }
 
 func (l *Light) Locker() *LightLock {
