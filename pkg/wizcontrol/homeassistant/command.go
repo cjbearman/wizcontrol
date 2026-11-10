@@ -14,6 +14,12 @@ import (
 
 func HandleLightCommand(cnf *config.Config, topic string, payload []byte) {
 	logger := common.Logger.GetLogger("homeassistant-cmd")
+	if cnf.HomeAssistant == nil {
+		// Should not happen
+		logger.Errorf("Home Assistant configuration is not available")
+		return
+	}
+
 	logger.Infof("Received light command on topic %q: %s", topic, string(payload))
 
 	// Parse the topic to figure out what we need to do
@@ -52,7 +58,7 @@ func HandleLightCommand(cnf *config.Config, topic string, payload []byte) {
 
 	set := settingsFromRaw(light)
 
-	lockFor := cnf.MQTT.GetDefaultLockFor()
+	lockFor := cnf.HomeAssistant.DefaultLockFor()
 
 	lightLockForOverride := light.HALockFor()
 	if lightLockForOverride != "" {

@@ -12,6 +12,11 @@ import (
 
 func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 
+	if cnf.HomeAssistant == nil {
+		common.Logger.GetLogger("homeassistant-disc").Errorf("Home Assistant configuration is not available")
+		return nil, ""
+	}
+
 	IDS := jsonEscapeStr(snake(light.Name()))
 	name := jsonEscapeStr(light.Name())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
@@ -82,7 +87,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
 
-	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.MQTT.HomeAssistantTopic(), jsonEscapeStrNoQuotes(snake(light.Name())))
+	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), jsonEscapeStrNoQuotes(snake(light.Name())))
 
 	return []byte(payloadTemplate), discTopic
 }

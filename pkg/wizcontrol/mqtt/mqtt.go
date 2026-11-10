@@ -177,10 +177,8 @@ func (m *Mqtt) connectHandler(client mqtt.Client) {
 	client.Publish(fmt.Sprintf("%s/%s", m.MqttTopic, topicHolidays), 1, m.cnf.MQTT.ShouldRetainMessages(), rpc.HandleHolidaysRequest(m.cnf)).Wait()
 
 	// If HA is enabled, publish discovery configuration
-	if m.cnf.MQTT.EnableHomeAssistant() {
-
+	if m.cnf.HomeAssistant != nil {
 		client.Subscribe(fmt.Sprintf("%s/light/+/+", m.MqttTopic), 1, m.handleLightCommand)
-
 		for _, light := range m.cnf.Lights {
 			msg, to := homeassistant.DiscoveryPayload(m.cnf, light)
 			client.Publish(to, 1, m.cnf.MQTT.ShouldRetainMessages(), msg)

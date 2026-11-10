@@ -10,6 +10,7 @@ import (
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/calendar"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/discovery"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/homeassistant"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/http"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/mqtt"
@@ -20,14 +21,15 @@ import (
 
 // ConfigYAML represents the configuration as defined in the YAML file.
 type ConfigYAML struct {
-	Lights    []light.ConfigYAML    `yaml:"lights"`
-	Colors    []color.ConfigYAML    `yaml:"colors"`
-	Scenes    []scene.ConfigYAML    `yaml:"scenes"`
-	Calendars []calendar.ConfigYAML `yaml:"calendar"`
-	MQTT      *mqtt.ConfigYAML      `yaml:"mqtt"`
-	HTTP      *http.ConfigYAML      `yaml:"http"`
-	Discovery discovery.ConfigYAML  `yaml:"discovery"`
-	System    system.ConfigYAML     `yaml:"system"`
+	Lights        []light.ConfigYAML        `yaml:"lights"`
+	Colors        []color.ConfigYAML        `yaml:"colors"`
+	Scenes        []scene.ConfigYAML        `yaml:"scenes"`
+	Calendars     []calendar.ConfigYAML     `yaml:"calendar"`
+	MQTT          *mqtt.ConfigYAML          `yaml:"mqtt"`
+	HTTP          *http.ConfigYAML          `yaml:"http"`
+	Discovery     discovery.ConfigYAML      `yaml:"discovery"`
+	System        system.ConfigYAML         `yaml:"system"`
+	HomeAssistant *homeassistant.ConfigYAML `yaml:"home_assistant"`
 }
 
 // Config represents the fully built configuration of the wizcontrol application.
@@ -43,6 +45,7 @@ type Config struct {
 	HTTP             *http.Http
 	Discovery        discovery.Discovery
 	System           system.System
+	HomeAssistant    *homeassistant.HomeAssistant
 	AdditionalScenes scene.AdditionalScenes
 	Bus              *bus.Bus
 	RestartCh        chan struct{}
@@ -98,6 +101,7 @@ func Build(cfg *ConfigYAML) (*Config, error) {
 	}
 
 	conf.MQTT = mqtt.Build(cfg.MQTT)
+	conf.HomeAssistant = homeassistant.Build(cfg.HomeAssistant)
 	conf.HTTP = http.Build(cfg.HTTP)
 	conf.Discovery = discovery.Build(cfg.Discovery)
 

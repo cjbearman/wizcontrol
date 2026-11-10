@@ -6,26 +6,19 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"gopkg.in/yaml.v3"
 )
 
-const DefaultLockTime = "day"
-
 // ConfigYAML represents the YAML configuration for the MQTT component.
 type ConfigYAML struct {
-	URL                 string `yaml:"url"`
-	Username            string `yaml:"username"`
-	Password            string `yaml:"password"`
-	Topic               string `yaml:"topic"`
-	ControlEnabled      *bool  `yaml:"control_enabled"`
-	RetainMessages      *bool  `yaml:"retain_messages"`
-	Insecure            *bool  `yaml:"insecure"`
-	ServerCerts         string `yaml:"server_certs"`
-	EnableHomeAssistant bool   `yaml:"enable_home_assistant"`
-	HomeAssistantTopic  string `yaml:"home_assistant_topic"`
-	HomeAssistantNodeID string `yaml:"home_assistant_node_id"`
-	DefaultLockFor      string `yaml:"default_lock_for"`
+	URL            string `yaml:"url"`
+	Username       string `yaml:"username"`
+	Password       string `yaml:"password"`
+	Topic          string `yaml:"topic"`
+	ControlEnabled *bool  `yaml:"control_enabled"`
+	RetainMessages *bool  `yaml:"retain_messages"`
+	Insecure       *bool  `yaml:"insecure"`
+	ServerCerts    string `yaml:"server_certs"`
 }
 
 // UnmarshalYAML customizes the unmarshalling of the MQTT configuration from YAML. It validates the URL and sets default values for optional fields.
@@ -50,9 +43,6 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	c.Username = strings.TrimSpace(alias.Username)
 	c.Password = strings.TrimSpace(alias.Password)
 	c.Topic = strings.TrimSpace(alias.Topic)
-	c.EnableHomeAssistant = alias.EnableHomeAssistant
-	c.HomeAssistantTopic = strings.TrimSpace(alias.HomeAssistantTopic)
-	c.HomeAssistantNodeID = strings.TrimSpace(alias.HomeAssistantNodeID)
 
 	ce := true
 	if alias.ControlEnabled != nil {
@@ -72,13 +62,6 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	}
 	c.Insecure = &inc
 	c.ServerCerts = alias.ServerCerts
-	c.DefaultLockFor = alias.DefaultLockFor
-	if c.DefaultLockFor == "" {
-		c.DefaultLockFor = DefaultLockTime
-	}
-	if _, err := common.ForParser(c.DefaultLockFor); err != nil {
-		return fmt.Errorf("invalid default_lock_time in MQTT configuration: %v", err)
-	}
 
 	return nil
 }
