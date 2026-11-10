@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/cjbearman/logger v0.0.0-20261105180923-ca92117cd857
-	github.com/cjbearman/wiz v1.0.0
+	github.com/cjbearman/wiz v1.0.1
 	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/google/uuid v1.6.0
 	github.com/rickar/cal/v2 v2.1.32
@@ -22,5 +22,3 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
-
-replace github.com/cjbearman/wiz => ../wiz

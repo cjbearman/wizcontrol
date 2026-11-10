@@ -79,8 +79,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 	// We now prepare async set pilots for each light that needs to be updated
 	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
-	pending := make(map[*l.Light]*wiz.Settings)
-
 	for light, color := range operationsToDo {
 		logger := logger.WithField("device", light.Name())
 
@@ -110,7 +108,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			logger.Warnf("Failed to parse color settings from %q: %v", color, err)
 			continue
 		}
-		pending[light] = settings
 		if color.Value() != c.Off {
 			settings.On()
 		}
@@ -125,7 +122,9 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 
 		// At this point, we have a valid discovered device for the light
 		// Start the set pilot operation and append it to our list of operations
-		asyncs = append(asyncs, dev.SetPilotAsync(settings))
+		// The wiz settings we are applying are attached to the async as correlation data so that
+		// we can recover them when the async finishes
+		asyncs = append(asyncs, dev.SetPilotAsync(settings).SetData(settings))
 
 	}
 
@@ -150,12 +149,8 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 				continue
 			}
 
-			pending, found := pending[light]
-			if !found {
-				// Also should not happen if we correctly tracked pending settings
-				logger.Errorf("Pending settings for light not found")
-				continue
-			}
+			// Record the wiz settings data from the operation correlation data
+			pending := result.Data.(*wiz.Settings)
 
 			// Update the light's "on" state based on the intended color
 			light.SetOn(operationsToDo[light].Value() != c.Off)
