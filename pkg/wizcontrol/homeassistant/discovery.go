@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
@@ -18,10 +19,17 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	}
 
 	IDS := jsonEscapeStr(light.HAUID())
-	name := jsonEscapeStr(light.ID())
+	name := jsonEscapeStr(light.Name())
 	topic := jsonEscapeStr(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 	switchUID := jsonEscapeStr(light.HAUID() + "_lock")
 	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
+
+	wizScenesArray := append([]string{"None"}, wiz.AllSceneNames()...)
+	wizScenesArrayEncoded, err := json.Marshal(wizScenesArray)
+	if err != nil {
+		// Can't imagine this could ever happen, but for sureity
+		panic("Failed to encode scenes array")
+	}
 
 	payloadTemplate := `{
   "dev": {
@@ -43,6 +51,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "rgbww_state_topic": #TOPIC#,
       "color_temp_state_topic": #TOPIC#,
 	  "color_mode_state_topic": #TOPIC#,
+	  "effect_state_topic": #TOPIC#,
 	  "availability_topic": #TOPIC#,
 	  "availability_template": "{{ value_json.available }}",
       "json_attributes_template": "{{ value_json.attributes | to_json }}",
@@ -51,6 +60,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "brightness_value_template": "{{ value_json.ha.brightness }}",
       "color_temp_value_template": "{{ value_json.ha.color_temp }}",
       "rgbww_value_template": "{{ value_json.ha.rgbww }}",
+	  "effect_value_template": "{{ value_json.ha.effect }}",
       "brightness_scale": 100,
 	  "payload_available": true,
 	  "payload_not_available": false,
@@ -64,7 +74,11 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
       "command_topic": "#CMD_TOPIC#/command",
       "color_temp_command_topic": "#CMD_TOPIC#/temp",
       "rgbww_command_topic": "#CMD_TOPIC#/rgbww",
-      "brightness_command_topic": "#CMD_TOPIC#/brightness"
+      "brightness_command_topic": "#CMD_TOPIC#/brightness",
+	  "effect_command_topic": "#CMD_TOPIC#/effect",
+	  "effect_list": #EFFECTS#,
+	  "effect": true
+
     },
 	"lock": {
       "p": "switch",
@@ -87,8 +101,17 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#TOPIC#", topic)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#EFFECTS#", string(wizScenesArrayEncoded))
 
 	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), light.HAUID())
+
+	// Uncomment this for validation parsing during dev
+	// junk := make(map[string]interface{})
+	// err = json.Unmarshal([]byte(payloadTemplate), &junk)
+	// if err != nil {
+	// 	common.Logger.GetLogger("homeassistant-disc").Errorf("Failed to parse discovery payload: %v", err)
+	// 	panic("shit went south")
+	// }
 
 	return []byte(payloadTemplate), discTopic
 }

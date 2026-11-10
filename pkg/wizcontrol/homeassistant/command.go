@@ -2,6 +2,7 @@ package homeassistant
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -83,6 +84,8 @@ func HandleLightCommand(cnf *config.Config, topic string, payload []byte) {
 		HandleBrightnessCommand(cnf, light, set, payload, lockTime)
 	case "auto":
 		HandleAutomaticControlCommand(cnf, light, set, payload, lockTime)
+	case "effect":
+		HandleEffectCommand(cnf, light, set, payload, lockTime)
 	default:
 		logger.Errorf("Unknown light command: %s", parts[3])
 	}
@@ -169,7 +172,6 @@ func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *
 	logger := common.Logger.GetLogger("homeassistant-cmd")
 	switch strings.ToLower(string(payload)) {
 	case "off":
-		logger.Warn("AC OFF, LOCKING LIGHT")
 		// Lock up whatever the current color is
 		ccol := light.LastActualColor()
 		if ccol == nil {
@@ -179,11 +181,35 @@ func HandleAutomaticControlCommand(cnf *config.Config, light *light.Light, set *
 		light.Locker().LockUntil(lockTime, ccol)
 		light.Locker().Kick()
 	case "on":
-		logger.Warn("AC ON, UNLOCKING LIGHT")
 		light.Locker().UnlockNow(false)
 	default:
 		logger.Errorf("Invalid automatic control command, expected 'ON' or 'OFF' but got: %s", string(payload))
 	}
+}
+
+func HandleEffectCommand(cnf *config.Config, light *light.Light, set *wiz.Settings, payload []byte, lockTime time.Time) {
+	logger := common.Logger.GetLogger("homeassistant-cmd")
+	effect := string(payload)
+
+	if effect == "None" {
+		// Okey dokey then, but we don't remember what color was previously
+		// Set it to white
+		col := cnf.Colors.GetByValue("W6000")
+		light.Locker().LockUntil(lockTime, col)
+		light.Locker().Kick()
+		return
+	}
+
+	// Effect must exist in wiz
+	if !slices.Contains(wiz.AllSceneNames(), effect) {
+		logger.Errorf("Invalid effect command, effect not found: %s", effect)
+		return
+	}
+
+	// Lock the light with the effect as the color
+	col := cnf.Colors.GetByValue(effect)
+	light.Locker().LockUntil(lockTime, col)
+	light.Locker().Kick()
 }
 
 func settingsFromRaw(light *light.Light) *wiz.Settings {

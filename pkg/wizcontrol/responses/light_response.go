@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 )
@@ -111,7 +112,21 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			ha.Temp = raw.Temp
 		} // ELSE TODO SCENE
 		ha.Brightness = raw.BR
+
+		if raw.Scene != 0 {
+			sc, found := wiz.GetSceneByID(wiz.Scene(raw.Scene))
+			if found {
+				ha.Effect = sc.String()
+				ha.Mode = "color_temp"
+				ha.Temp = 6000
+			}
+		}
 	}
+
+	if ha.Effect == "" {
+		ha.Effect = "None"
+	}
+
 	if ha.Mode == "" {
 		ha.Mode = "color_temp" // Because why not, we need something, it's off so, whatevs
 		ha.Temp = 6000

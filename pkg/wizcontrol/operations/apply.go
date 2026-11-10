@@ -1,13 +1,13 @@
 package operations
 
 import (
+	log "github.com/cjbearman/logger"
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	l "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/scene"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
-
-	c "github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 )
 
 // lightSettings holds the scene and color information for a light.
@@ -65,6 +65,11 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 	for light, settings := range lightSceneSettings {
 		light.SetActiveScene(settings.scene)
 		light.SetLastProgrammedColor(settings.color)
+		if settings.scene == "" {
+			// Light is not part of a scene, so we can go ahead and dispatch a status update for it now
+			logger.Debugf("light not in scene, we can update it's status prematurely: %s", light.ID())
+			sendLightStatus(cnf.Bus, light)
+		}
 	}
 
 	// Lights that are locked get added / overriden here
@@ -75,9 +80,6 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 			light.SetActiveScene("")
 		}
 	}
-
-	// We now prepare async set pilots for each light that needs to be updated
-	var asyncs wiz.AsyncOperations[*wiz.SetPilotResult]
 
 	for light, color := range operationsToDo {
 		logger := logger.WithField("device", light.ID())
@@ -124,64 +126,49 @@ func ApplyScenes(cnf *config.Config, scenes []*scene.Scene) {
 		// Start the set pilot operation and append it to our list of operations
 		// The wiz settings we are applying are attached to the async as correlation data so that
 		// we can recover them when the async finishes
-		asyncs = append(asyncs, dev.SetPilotAsync(settings).SetData(settings))
 
-	}
+		go func(dev *wiz.Device, settings *wiz.Settings, logger log.Logger, light *l.Light) {
+			logger.Warnf("DOING SET PILOT ON light %q", light.ID())
+			_, err := dev.SetPilot(settings)
+			if err != nil {
+				logger.Warnf("Set pilot failed: %v", err)
+				return
+			} else {
+				logger.Debugf("Set pilot succeeded")
 
-	// Wait for all operations to complete
-	results := asyncs.AwaitAll()
-
-	// And go through the results
-	for _, result := range results {
-
-		logger := logger.WithField("device", result.Device.Name())
-		if result.Err != nil {
-			logger.Warnf("Set pilot failed")
-		} else {
-			logger.Debugf("Set pilot succeeded")
-
-			// The result doesn't have our light in it, but it has the device, which has the same name as our light
-			// as a back-reference. Use that to find the light instance.
-			light, found := cnf.Lights[result.Device.Name()]
-			if !found {
-				// Should not happen
-				logger.Errorf("Light not found")
-				continue
 			}
 
-			// Record the wiz settings data from the operation correlation data
-			pending := result.Data.(*wiz.Settings)
-
-			// Update the light's "on" state based on the intended color
-			light.SetOn(operationsToDo[light].Value() != c.Off)
-
-			// Retrieve the intended color for this light from the operationsToDo map since we now
-			// know we succesfully set the light to that color
-			color, found := operationsToDo[light]
-			if !found {
-				logger.Errorf("Color for light not found")
-				continue
+			// Okay so our set pilot succeeded, we need to do a get pilot here
+			// for total accuracy in setting things downstream
+			logger.Warnf("DOING GET PILOT ON light %q", light.ID())
+			res, err := dev.GetPilot()
+			if err != nil {
+				logger.Warnf("Get pilot failed, light is likely out of sync: %v", err)
+				return
+			} else {
+				logger.Debugf("Get pilot succeeded: %v", res)
 			}
 
-			// Update the light's last actual color based on the intended color
-			light.SetLastActualColor(color)
+			light.SetOn(res.State)
+			if !res.State {
+				light.SetLastActualColor(cnf.Colors.GetByValue(c.Off))
+				return
+			}
 
-			// Update raw light settings based on the pending settings
-			r, g, b := pending.GetRGB()
-			light.SetLastRawColor(int(r), int(g), int(b),
-				int(pending.GetCW()),
-				int(pending.GetWW()),
-				pending.GetBrightness(),
-				pending.GetTemperature(),
-				int(pending.GetScene()),
-				pending.GetState())
+			wizcol, err := wiz.ColorStringFromPilot(res)
+			if err != nil {
+				logger.Warnf("Failed to parse color from pilot: %v", err)
+				return
+			}
 
-			logger.Debugf("Successful application of color %q (%q)", color.Name(), color.Value())
-		}
-	}
+			light.SetLastActualColor(cnf.Colors.GetByValue(wizcol))
+			light.SetLastRawColor(res.R, res.G, res.B, res.C, res.W, res.Dimming, res.Temp, res.SceneId, res.State)
+			logger.Debugf("successfully updated light state from pilot")
 
-	// Dispatch MQTT status for all lights
-	for _, light := range cnf.Lights {
-		sendLightStatus(cnf.Bus, light)
+			// We can go ahead and send the light status
+			logger.Warnf("Updating light status for light %q", light.ID())
+			sendLightStatus(cnf.Bus, light)
+		}(dev, settings, logger, light)
+
 	}
 }
