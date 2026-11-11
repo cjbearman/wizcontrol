@@ -30,28 +30,34 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	var err error
-	if c.Name, err = validator.RequiredComponentName(alias.Name); err != nil {
-		return fmt.Errorf("scene %q, invalid name: %v", alias.Name, err)
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ID, true); err != nil {
+		return fmt.Errorf("invalid scene name: %v", err)
 	}
 
-	if c.Group, err = validator.ComponentName(alias.Group); err != nil {
-		return fmt.Errorf("scene %q, invalid group: %v", alias.Name, err)
+	if err := validator.ValidateStr(alias.Group, &c.Group, validator.ID, false); err != nil {
+		return fmt.Errorf("invalid scene group: %v", err)
 	}
 
 	for _, element := range alias.Elements {
-		color, err := validator.RequiredComponentName(element.Color)
-		if err != nil {
-			return fmt.Errorf("Scene %q, invalid element color: %q: %v", c.Name, element.Color, err)
+
+		var validatedColorName string
+		if err := validator.ValidateStr(element.Color, &validatedColorName, validator.ID, true); err != nil {
+			return fmt.Errorf("Scene %q, invalid element color: %q: %v", alias.Name, element.Color, err)
 		}
+
+		var validatedTargets []string
 		for _, target := range element.Targets {
-			if _, err := validator.RequiredComponentName(target); err != nil {
-				return fmt.Errorf("Scene %q, invalid element target: %q: %v", c.Name, target, err)
+
+			var validatedTarget string
+			if err := validator.ValidateStr(target, &validatedTarget, validator.ID, true); err != nil {
+				return fmt.Errorf("Scene %q, invalid element target: %q: %v", alias.Name, target, err)
 			}
+			validatedTargets = append(validatedTargets, validatedTarget)
+
 		}
 		c.Elements = append(c.Elements, ElementYAML{
-			Targets: element.Targets,
-			Color:   color,
+			Targets: validatedTargets,
+			Color:   validatedColorName,
 		})
 	}
 

@@ -30,32 +30,32 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ValidateAnyString, true); err != nil {
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.Any, true); err != nil {
 		return fmt.Errorf("light %q, field name: %w", alias.Name, err)
 	}
 
-	if err := validator.ValidateStr(alias.ID, &c.ID, validator.ValidateID, true); err != nil {
+	if err := validator.ValidateStr(alias.ID, &c.ID, validator.ID, true); err != nil {
 		return fmt.Errorf("light %q, field id: %w", alias.Name, err)
 	}
 
-	if err := validator.ValidateStr(alias.IP, &c.IP, validator.ValidateIP, false); err != nil {
+	if err := validator.ValidateStr(alias.IP, &c.IP, validator.IP, false); err != nil {
 		return fmt.Errorf("light %q, field ip: %w", alias.Name, err)
 	}
 
-	if err := validator.ValidateStr(alias.MAC, &c.MAC, validator.ValidateMAC, false); err != nil {
+	if err := validator.ValidateStr(alias.MAC, &c.MAC, validator.MAC, false); err != nil {
 		return fmt.Errorf("light %q, field mac: %w", alias.Name, err)
 	}
 
 	c.Groups = []string{}
 	for _, group := range alias.Groups {
 		var validatedGroup string
-		if err := validator.ValidateStr(group, &validatedGroup, validator.ValidateID, true); err != nil {
+		if err := validator.ValidateStr(group, &validatedGroup, validator.ID, true); err != nil {
 			return fmt.Errorf("light %q group %q: %w", c.Name, group, err)
 		}
 		c.Groups = append(c.Groups, validatedGroup)
 	}
 
-	if err := validator.ValidateStr(alias.HALockFor, &c.HALockFor, validator.ValidateFor, false); err != nil {
+	if err := validator.ValidateStr(alias.HALockFor, &c.HALockFor, validator.For, false); err != nil {
 		return fmt.Errorf("light %q, field ha_lock_for: %w", alias.Name, err)
 	}
 

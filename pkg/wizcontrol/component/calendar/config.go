@@ -30,7 +30,7 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ValidateID, true); err != nil {
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ID, true); err != nil {
 		return fmt.Errorf("calendar %q, invalid name: %v", alias.Name, err)
 	}
 
@@ -57,7 +57,7 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 
 	for _, scene := range alias.Scenes {
 		var validatedScene string
-		if err := validator.ValidateStr(scene, &validatedScene, validator.ValidateID, true); err != nil {
+		if err := validator.ValidateStr(scene, &validatedScene, validator.ID, true); err != nil {
 			return fmt.Errorf("calendar %q, invalid scene: %v", alias.Name, err)
 		}
 		c.Scenes = append(c.Scenes, validatedScene)
@@ -71,7 +71,7 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 			return fmt.Errorf("calendar %q, mode all must not have a frequency specified", alias.Name)
 		}
 	case SceneModeRandom, SceneModeRotate:
-		if err := validator.ValidateStr(alias.Frequency, &c.Frequency, validator.ValidateDuration, true); err != nil {
+		if err := validator.ValidateStr(alias.Frequency, &c.Frequency, validator.Duration, true); err != nil {
 			return fmt.Errorf("calendar %q, frequency: %v", alias.Name, err)
 		}
 	default:

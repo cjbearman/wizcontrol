@@ -1,8 +1,6 @@
 package mqtt
 
 const DefaultMQTTTopic = "wizcontrol"
-const DefaultHATopic = "homeassistant"
-const DefaultHANodeID = "wzdefault"
 
 type Mqtt struct {
 	url            string

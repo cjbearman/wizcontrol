@@ -25,17 +25,17 @@ func Build(cfg ConfigYAML) Discovery {
 	return Discovery{
 		broadcastAddress: cfg.BroadcastAddress,
 		interval: func() time.Duration {
-			d, _ := time.ParseDuration(cfg.Interval)
-			if d == 0 {
+			if cfg.Interval == "" {
 				return DefaultInterval
 			}
+			d, _ := time.ParseDuration(cfg.Interval) // N.B. already validated when set
 			return d
 		}(),
 		period: func() time.Duration {
-			d, _ := time.ParseDuration(cfg.Period)
-			if d == 0 {
+			if cfg.Period == "" {
 				return DefaultPeriod
 			}
+			d, _ := time.ParseDuration(cfg.Period) // N.B. already validated when set
 			return d
 		}(),
 	}

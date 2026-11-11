@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
@@ -25,22 +24,17 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	var err error
-	if c.BroadcastAddress, err = validator.IP(alias.BroadcastAddress, false); err != nil {
+	if err := validator.ValidateStr(alias.BroadcastAddress, &c.BroadcastAddress, validator.IP, false); err != nil {
 		return fmt.Errorf("discovery: invalid broadcast address: %v", err)
 	}
 
-	_, err = time.ParseDuration(alias.Interval)
-	if err != nil {
+	if err := validator.ValidateStr(alias.Interval, &c.Interval, validator.Duration, false); err != nil {
 		return fmt.Errorf("discovery: invalid interval: %v", err)
 	}
-	c.Interval = alias.Interval
 
-	_, err = time.ParseDuration(alias.Period)
-	if err != nil {
+	if err := validator.ValidateStr(alias.Period, &c.Period, validator.Duration, false); err != nil {
 		return fmt.Errorf("discovery: invalid period: %v", err)
 	}
-	c.Period = alias.Period
 
 	return nil
 }

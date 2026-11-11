@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
 
@@ -36,21 +37,22 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		}
 	}
 
-	c.EvaluationPeriod = strings.TrimSpace(alias.EvaluationPeriod)
-	if _, err := time.ParseDuration(c.EvaluationPeriod); err != nil {
-		return fmt.Errorf("system: invalid evaluation period %q", c.EvaluationPeriod)
+	if err := validator.ValidateStr(alias.EvaluationPeriod, &c.EvaluationPeriod, validator.Duration, false); err != nil {
+		return fmt.Errorf("system: invalid evaluation period %q: %v", alias.EvaluationPeriod, err)
 	}
-	c.RecheckPeriod = strings.TrimSpace(alias.RecheckPeriod)
-	if _, err := time.ParseDuration(c.RecheckPeriod); err != nil {
-		return fmt.Errorf("system: invalid recheck period %q", c.RecheckPeriod)
+	if err := validator.ValidateStr(alias.RecheckPeriod, &c.RecheckPeriod, validator.Duration, false); err != nil {
+		return fmt.Errorf("system: invalid recheck period %q: %v", alias.RecheckPeriod, err)
 	}
 
-	c.WizColorPrefix = strings.TrimSpace(strings.ToLower(alias.WizColorPrefix))
+	if err := validator.ValidateStr(alias.WizColorPrefix, &c.WizColorPrefix, validator.ID, false); err != nil {
+		return fmt.Errorf("system: invalid wiz color prefix %q: %v", alias.WizColorPrefix, err)
+	}
+
 	if c.WizColorPrefix == "" {
 		c.WizColorPrefix = color.DefaultWizColorPrefix
 	}
 
-	c.StateFile = strings.TrimSpace(alias.StateFile)
+	_ = validator.ValidateStr(alias.StateFile, &c.StateFile, validator.Any, false)
 
 	return nil
 }

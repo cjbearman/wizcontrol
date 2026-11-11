@@ -52,8 +52,8 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 		return
 	}
 
-	macNormalized, err := validator.MAC(statusUpdate.Result.Mac, true)
-	if err != nil {
+	var macNormalized string
+	if err := validator.ValidateStr(statusUpdate.Result.Mac, &macNormalized, validator.MAC, true); err != nil {
 		logger.Warnf("Error normalizing MAC address: %v", err)
 		return
 	}

@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
 
@@ -38,8 +39,13 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		c.Port = DefaultHTTPPort
 	}
 
-	c.CertChain = alias.CertChain
-	c.Key = alias.Key
+	if err := validator.ValidateStr(alias.CertChain, &c.CertChain, validator.Any, false); err != nil {
+		return fmt.Errorf("invalid http cert_chain: %v", err)
+	}
+	if err := validator.ValidateStr(alias.Key, &c.Key, validator.Any, false); err != nil {
+		return fmt.Errorf("invalid http key: %v", err)
+	}
+
 	if c.CertChain != "" && c.Key == "" {
 		return fmt.Errorf("http key must be provided if cert_chain is specified")
 	}
@@ -47,13 +53,14 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return fmt.Errorf("http cert_chain must be provided if key is specified")
 	}
 
-	c.Auth = alias.Auth
-	if c.Auth != nil {
-		if c.Auth.Username == "" {
-			return fmt.Errorf("http auth username must be provided if auth is specified")
+	if alias.Auth != nil {
+		c.Auth = alias.Auth
+
+		if err := validator.ValidateStr(alias.Auth.Username, &c.Auth.Username, validator.Any, true); err != nil {
+			return fmt.Errorf("invalid http auth username: %v", err)
 		}
-		if c.Auth.Password == "" {
-			return fmt.Errorf("http auth password must be provided if auth is specified")
+		if err := validator.ValidateStr(alias.Auth.Password, &c.Auth.Password, validator.Any, true); err != nil {
+			return fmt.Errorf("invalid http auth password: %v", err)
 		}
 	}
 

@@ -2,13 +2,13 @@ package homeassistant
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
 
 const DefaultLockTime = "day"
+const DefaultHomeAssistantTopicBase = "homeassistant"
 
 // ConfigYAML represents the YAML configuration for the MQTT component.
 type ConfigYAML struct {
@@ -26,16 +26,18 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	// TODO: More validation for Home Assistant fields
+	if err := validator.ValidateStr(alias.HomeAssistantTopic, &c.HomeAssistantTopic, validator.BaseTopic, false); err != nil {
+		return fmt.Errorf("invalid home_assistant_topic: %v", err)
+	}
+	if c.HomeAssistantTopic == "" {
+		c.HomeAssistantTopic = DefaultHomeAssistantTopicBase
+	}
 
-	c.HomeAssistantTopic = strings.TrimSpace(alias.HomeAssistantTopic)
-
-	c.DefaultLockFor = alias.DefaultLockFor
+	if err := validator.ValidateStr(alias.DefaultLockFor, &c.DefaultLockFor, validator.For, false); err != nil {
+		return fmt.Errorf("invalid default_lock_for: %v", err)
+	}
 	if c.DefaultLockFor == "" {
 		c.DefaultLockFor = DefaultLockTime
-	}
-	if _, err := common.ForParser(c.DefaultLockFor); err != nil {
-		return fmt.Errorf("invalid default_lock_time in MQTT configuration: %v", err)
 	}
 
 	return nil

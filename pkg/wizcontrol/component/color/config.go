@@ -23,13 +23,16 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	var err error
-	if c.Name, err = validator.RequiredComponentName(alias.Name); err != nil {
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ID, true); err != nil {
 		return fmt.Errorf("color %q, invalid name: %v", alias.Name, err)
 	}
 
-	if c.Color, err = validator.RequiredColorString(alias.Color); err != nil {
-		return fmt.Errorf("color %q: %v", alias.Name, err)
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ID, true); err != nil {
+		return fmt.Errorf("color %q, invalid name: %v", alias.Name, err)
+	}
+
+	if err := validator.ValidateStr(alias.Color, &c.Color, validator.ColorValue, true); err != nil {
+		return fmt.Errorf("color %q, invalid color: %v", alias.Name, err)
 	}
 
 	return nil

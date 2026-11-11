@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,9 +41,12 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return fmt.Errorf("invalid MQTT URL: %v", err)
 	}
 
-	c.Username = strings.TrimSpace(alias.Username)
-	c.Password = strings.TrimSpace(alias.Password)
-	c.Topic = strings.TrimSpace(alias.Topic)
+	_ = validator.ValidateStr(alias.Username, &c.Username, validator.Any, false)
+	_ = validator.ValidateStr(alias.Password, &c.Password, validator.Any, false)
+
+	if err := validator.ValidateStr(alias.Topic, &c.Topic, validator.BaseTopic, false); err != nil {
+		return fmt.Errorf("invalid MQTT topic: %v", err)
+	}
 
 	ce := true
 	if alias.ControlEnabled != nil {
@@ -61,7 +65,8 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		inc = *alias.Insecure
 	}
 	c.Insecure = &inc
-	c.ServerCerts = alias.ServerCerts
+
+	_ = validator.ValidateStr(alias.ServerCerts, &c.ServerCerts, validator.Any, false)
 
 	return nil
 }
