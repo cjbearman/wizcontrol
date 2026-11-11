@@ -150,6 +150,26 @@ lights:
     ip: 192.168.20.84
     #mac: 98:77:d5:30:1a:fc
     groups: [ "indoor", "office_lights" , "office_ceiling"]
+  - id: bedroom_ceiling_1
+    name: Bedroom Ceiling 1
+    ip: 192.168.20.233
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_ceiling_2
+    name: Bedroom Ceiling 2
+    ip: 192.168.20.3
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_ceiling_3
+    name: Bedroom Ceiling 3
+    ip: 192.168.20.162
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_lamp_chris
+    name: Bedroom Lamp Chris
+    ip: 192.168.20.215
+    groups: [ "bedroom_lights", "bedroom_lamps" ]
+  - id: bedroom_lamp_karen
+    name: Bedroom Lamp Karen
+    ip: 192.168.20.197
+    groups: [ "bedroom_lights", "bedroom_lamps" ]
 
 # Specify desired colors here. Each color should have a unique name
 # and a valid color code.
@@ -174,6 +194,10 @@ colors:
     color: W2700/30
   - name: warmish_white
     color: W3300
+  - name: warmish_white_50
+    color: W3300/50
+  - name: warmish_white_30
+    color: W3300/30
   - name: daylight
     color: W5800
   - name: daylight40
@@ -252,20 +276,27 @@ scenes:
       # Each element targets one or more lights or light groups and specifies a target color for those targets
       - targets:
         - outside_lights
-        color: warm_white
+        color: warmish_white
       - targets: [ porch_carriage_lights ]
-        color: warm_white_50
+        color: warmish_white_50
       - targets: [ office_lights ]
+        color: daylight
+      - targets: [ bedroom_lights ]
         color: daylight
   - name: overnight
     elements:
       - targets:
         - porch_c
-        color: warm_white_50
+        color: warmish_white_50
       - targets:
         - porch_carriage_lights
-        color: warm_white_30
+        color: warmish_white_30
     group: outside_lights
+  - name: bedroom_evening
+    elements:
+      - targets:
+        - bedroom_lights
+        color: warm_white
   - name: halloween
     elements:
       - targets: [ outside_lights ]
@@ -527,3 +558,7 @@ calendar:
     to: dec 31
     scenes: [ office_warm ]
     after: 8:30 pm
+  - name: bedroom_warm
+    from: jan 1
+    to: dec 31
+    after: 8:00 pm
