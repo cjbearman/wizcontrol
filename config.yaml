@@ -561,5 +561,5 @@ calendar:
   - name: bedroom_warm
     from: jan 1
     to: dec 31
-    after: 8:00 pm
-    scenes: [ bedroom_warm ]
+    after: 8:30 pm
+    scenes: [ bedroom_evening ]
