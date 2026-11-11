@@ -562,3 +562,4 @@ calendar:
     from: jan 1
     to: dec 31
     after: 8:00 pm
+    scenes: [ bedroom_warm ]
