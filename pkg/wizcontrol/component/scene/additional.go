@@ -119,3 +119,15 @@ func (a *AdditionalScenes) ClearAdditionalScenes() {
 	defer a.lock.Unlock()
 	a.additional = []SceneUntil{}
 }
+
+func (a *AdditionalScenes) ClearAdditionalSceneGroup(group string) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	revised := []SceneUntil{}
+	for _, existing := range a.additional {
+		if existing.Scene.GetGroup() != group {
+			revised = append(revised, existing)
+		}
+	}
+	a.additional = revised
+}

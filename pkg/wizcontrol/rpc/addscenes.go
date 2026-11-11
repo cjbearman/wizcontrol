@@ -17,6 +17,7 @@ type AddScenesRequest struct {
 	ClearExisting bool     `json:"clear_existing"`
 	For           string   `json:"for"`
 	Until         string   `json:"until"`
+	ResetGroup    string   `json:"reset_group"`
 }
 
 // HandleAddScenesRequest processes an AddScenesRequest, updating the configuration with the specified scenes and groups.
@@ -38,6 +39,10 @@ func HandleAddScenesRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) 
 	if request.ClearExisting {
 		logger.Infof("Clearing all additional scenes")
 		cnf.AdditionalScenes.ClearAdditionalScenes()
+	}
+	if request.ResetGroup != "" {
+		logger.Infof("Resetting additional scene group %q", request.ResetGroup)
+		cnf.AdditionalScenes.ClearAdditionalSceneGroup(request.ResetGroup)
 	}
 
 	scenesToAdd := []*scene.Scene{}
