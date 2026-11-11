@@ -3,7 +3,6 @@ package calendar
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
@@ -31,8 +30,7 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	var err error
-	if c.Name, err = validator.RequiredComponentName(alias.Name); err != nil {
+	if err := validator.ValidateStr(alias.Name, &c.Name, validator.ValidateID, true); err != nil {
 		return fmt.Errorf("calendar %q, invalid name: %v", alias.Name, err)
 	}
 
@@ -58,37 +56,27 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	for _, scene := range alias.Scenes {
-		if _, err := validator.RequiredComponentName(scene); err != nil {
+		var validatedScene string
+		if err := validator.ValidateStr(scene, &validatedScene, validator.ValidateID, true); err != nil {
 			return fmt.Errorf("calendar %q, invalid scene: %v", alias.Name, err)
 		}
-		c.Scenes = append(c.Scenes, scene)
+		c.Scenes = append(c.Scenes, validatedScene)
 	}
 
 	c.SceneMode = strings.TrimSpace(alias.SceneMode)
 	switch c.SceneMode {
-	case SceneModeAll, SceneModeRandom, SceneModeRotate:
-		// valid mode
-	case "":
-		// default to "all" if not specified
+	case "", SceneModeAll:
 		c.SceneMode = SceneModeAll
+		if strings.TrimSpace(alias.Frequency) != "" {
+			return fmt.Errorf("calendar %q, mode all must not have a frequency specified", alias.Name)
+		}
+	case SceneModeRandom, SceneModeRotate:
+		if err := validator.ValidateStr(alias.Frequency, &c.Frequency, validator.ValidateDuration, true); err != nil {
+			return fmt.Errorf("calendar %q, frequency: %v", alias.Name, err)
+		}
 	default:
 		return fmt.Errorf("calendar %q, invalid scene mode: %v", alias.Name, c.SceneMode)
 	}
-
-	c.Frequency = strings.TrimSpace(alias.Frequency)
-	if c.SceneMode == "all" && c.Frequency != "" {
-		return fmt.Errorf("Scene %q is set to mode all and must not have a frequency specified", alias.Name)
-	}
-	if c.SceneMode == SceneModeRandom || c.SceneMode == SceneModeRotate {
-		freq, err := time.ParseDuration(alias.Frequency)
-		if err != nil {
-			return fmt.Errorf("calendar %q, invalid frequency: %v", alias.Name, err)
-		}
-		if freq <= 0 {
-			return fmt.Errorf("calendar %q, frequency invalid: %s", alias.Name, alias.Frequency)
-		}
-	}
-	alias.Frequency = c.Frequency
 
 	return nil
 }

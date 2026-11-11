@@ -50,6 +50,14 @@ func Build(cfg *[]ConfigYAML) (Lights, LightGroups, error) {
 			return nil, nil, fmt.Errorf("light %q is defined more than once", l.Name)
 		}
 
+		// Light must have exactly one of IP or MAC
+		if l.IP == "" && l.MAC == "" {
+			return nil, nil, fmt.Errorf("light %q requires ip or mac", l.Name)
+		}
+		if l.IP != "" && l.MAC != "" {
+			return nil, nil, fmt.Errorf("light %q cannot have both ip and mac", l.Name)
+		}
+
 		// A light must not have the same IP as another light
 		if other := lights.getLightByIP(l.IP); other != nil {
 			return nil, nil, fmt.Errorf("light %q has same IP as light %q", l.Name, other.name)

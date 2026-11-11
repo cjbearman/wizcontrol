@@ -6,8 +6,10 @@ import (
 	"net"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 )
 
 var componentNameRegexp = regexp.MustCompile(`^[a-z0-9_\-]+$`)
@@ -88,4 +90,79 @@ func MAC(mac string, required bool) (string, error) {
 	}
 
 	return "", errors.New("XX:XX:XX:XX:XX:XX or XXXX.XXXX.XXXX or XXXXXXXXXXXX")
+}
+
+type StringValidator func(string) (string, error)
+
+func ValidateAnyString(s string) (string, error) {
+	return s, nil
+}
+
+func ValidateIP(ip string) (string, error) {
+	if net.ParseIP(ip) == nil {
+		return "", errors.New("invalid IP address")
+	}
+	return ip, nil
+}
+
+func ValidateMAC(mac string) (string, error) {
+	if macReg1.MatchString(mac) {
+		return mac, nil
+	}
+	if macReg2.MatchString(mac) {
+		return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
+			mac[0:2], mac[2:4], mac[4:6], mac[6:8], mac[8:10], mac[10:12]), nil
+	}
+	if macReg3.MatchString(mac) {
+		return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
+			mac[0:2], mac[2:4], mac[5:7], mac[7:9], mac[10:12], mac[12:14]), nil
+	}
+
+	return "", errors.New("XX:XX:XX:XX:XX:XX or XXXX.XXXX.XXXX or XXXXXXXXXXXX")
+}
+
+var IDReg = regexp.MustCompile(`^[a-z0-9\-_]+$`)
+
+func ValidateID(id string) (string, error) {
+	if !IDReg.MatchString(id) {
+		return "", errors.New("must contain only lowercase letters, numbers, - and _")
+	}
+	return id, nil
+}
+
+func ValidateFor(forStr string) (string, error) {
+	_, err := common.ForParser(forStr)
+	if err != nil {
+		return "", err
+	}
+	return forStr, nil
+}
+
+func ValidateDuration(durationStr string) (string, error) {
+	parsed, err := time.ParseDuration(durationStr)
+	if err != nil {
+		return "", errors.New("invalid duration")
+	}
+	if parsed <= 0 {
+		return "", errors.New("duration must be positive")
+	}
+	return durationStr, nil
+}
+
+func ValidateStr(inbound string, outbound *string, validator StringValidator, required bool) error {
+	inbound = strings.TrimSpace(inbound)
+	if inbound == "" {
+		if required {
+			return errors.New("required field missing")
+		}
+		*outbound = ""
+		return nil
+	}
+
+	validated, err := validator(inbound)
+	if err != nil {
+		return err
+	}
+	*outbound = validated
+	return nil
 }
