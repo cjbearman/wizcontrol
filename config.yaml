@@ -15,7 +15,7 @@ system:
   # Specify a file for retained state, if you want active scenes and locked colors
   # to preserve state across restarts, specify a file path here
   # If using docker, make sure this is on a volume
-  #state_file: "wizcontrol_state.json"
+  state_file: /config/state.json
 
 # Include mqtt section if you want to utilize MQTT broker
 mqtt:
@@ -164,11 +164,11 @@ lights:
     groups: [ "bedroom_lights", "bedroom_ceiling" ]
   - id: bedroom_lamp_chris
     name: Bedroom Lamp Chris
-    ip: 192.168.20.215
+    ip: 192.168.20.151
     groups: [ "bedroom_lights", "bedroom_lamps" ]
   - id: bedroom_lamp_karen
     name: Bedroom Lamp Karen
-    ip: 192.168.20.197
+    ip: 192.168.20.132
     groups: [ "bedroom_lights", "bedroom_lamps" ]
 
 # Specify desired colors here. Each color should have a unique name
@@ -403,6 +403,10 @@ scenes:
     elements:
       - targets: [ office_lights ]
         color: greenish
+  - name: office_party
+    elements:
+      - targets: [ office_lights ]
+        color: wiz_party
     group: office
   - name: go_democrats
     elements:
