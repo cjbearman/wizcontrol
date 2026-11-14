@@ -7,8 +7,8 @@ RUN go build -o cmd/wizfind/wizfind ./cmd/wizfind/wizfind.go
 
 FROM ubuntu:latest
 RUN apt-get update && \
-	apt-get upgrade && \
-	apt-get install tzdata && \
+	apt-get -y upgrade && \
+	apt-get -y install tzdata && \
 	mkdir -p /app /config
 
 VOLUME /config
