@@ -40,5 +40,11 @@ func ForParser(forSpec string) (time.Time, error) {
 		return endOfMonth, nil
 	}
 
+	if forSpec == "indefinite" || forSpec == "indef" {
+		// 100 years should do
+		now := time.Now().In(Location)
+		return time.Date(now.Year()+100, now.Month(), now.Day(), 23, 59, 25, 0, Location), nil
+	}
+
 	return time.Time{}, fmt.Errorf("invalid 'for' duration: %v", err)
 }
