@@ -37,6 +37,7 @@ mqtt:
 home_assistant:
   home_assistant_topic: "homeassistant"
   default_lock_for: day
+  always_available: true
 
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
@@ -151,6 +152,26 @@ lights:
     ip: 192.168.20.84
     #mac: 98:77:d5:30:1a:fc
     groups: [ "indoor", "office_lights" , "office_ceiling"]
+  - id: bedroom_ceiling_1
+    name: Bedroom Ceiling 1
+    ip: 192.168.20.233
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_ceiling_2
+    name: Bedroom Ceiling 2
+    ip: 192.168.20.3
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_ceiling_3
+    name: Bedroom Ceiling 3
+    ip: 192.168.20.162
+    groups: [ "bedroom_lights", "bedroom_ceiling" ]
+  - id: bedroom_lamp_chris
+    name: Bedroom Lamp Chris
+    ip: 192.168.20.151
+    groups: [ "bedroom_lights", "bedroom_lamps" ]
+  - id: bedroom_lamp_karen
+    name: Bedroom Lamp Karen
+    ip: 192.168.20.132
+    groups: [ "bedroom_lights", "bedroom_lamps" ]
 
 # Specify desired colors here. Each color should have a unique name
 # and a valid color code.

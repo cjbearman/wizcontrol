@@ -42,6 +42,7 @@ type LightAttributes struct {
 	LockedUntil         *time.Time `json:"locked_until,omitempty"`
 	LastRSSI            *int       `json:"rssi,omitempty"`
 	AvgRSSI             *int       `json:"avg_rssi,omitempty"`
+	Online              bool       `json:"online"`
 }
 
 // LightStatus represents the current status of a light, including its availability and attributes.
@@ -148,6 +149,7 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			LockedUntil:         lockedUntil,
 			LastRSSI:            light.LastRSSI(),
 			AvgRSSI:             light.AverageRSSI(),
+			Online:              light.Available(),
 		},
 		HA: ha,
 	}

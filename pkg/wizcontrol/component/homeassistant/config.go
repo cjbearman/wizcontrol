@@ -14,6 +14,7 @@ const DefaultHomeAssistantTopicBase = "homeassistant"
 type ConfigYAML struct {
 	HomeAssistantTopic string `yaml:"home_assistant_topic"`
 	DefaultLockFor     string `yaml:"default_lock_for"`
+	AlwaysAvailable    bool   `yaml:"always_available"`
 }
 
 // UnmarshalYAML customizes the unmarshalling of the MQTT configuration from YAML. It validates the URL and sets default values for optional fields.
@@ -39,6 +40,8 @@ func (c *ConfigYAML) UnmarshalYAML(value *yaml.Node) error {
 	if c.DefaultLockFor == "" {
 		c.DefaultLockFor = DefaultLockTime
 	}
+
+	c.AlwaysAvailable = alias.AlwaysAvailable
 
 	return nil
 }

@@ -3,6 +3,7 @@ package homeassistant
 type HomeAssistant struct {
 	homeAssistantTopic string
 	defaultLockFor     string
+	alwaysAvailable    bool
 }
 
 // Build constructs a HomeAssistant instance from the provided ConfigYAML, applying default values where necessary.
@@ -15,6 +16,7 @@ func Build(config *ConfigYAML) *HomeAssistant {
 	return &HomeAssistant{
 		homeAssistantTopic: config.HomeAssistantTopic,
 		defaultLockFor:     config.DefaultLockFor,
+		alwaysAvailable:    config.AlwaysAvailable,
 	}
 }
 
@@ -24,4 +26,8 @@ func (h *HomeAssistant) HomeAssistantTopic() string {
 
 func (h *HomeAssistant) DefaultLockFor() string {
 	return h.defaultLockFor
+}
+
+func (h *HomeAssistant) AlwaysAvailable() bool {
+	return h.alwaysAvailable
 }

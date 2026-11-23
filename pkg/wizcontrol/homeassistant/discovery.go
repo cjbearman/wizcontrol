@@ -24,6 +24,11 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	switchUID := jsonEscapeStr(light.HAUID() + "_lock")
 	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 
+	availabilityTemplate := "value_json.available"
+	if cnf.HomeAssistant.AlwaysAvailable() {
+		availabilityTemplate = "true"
+	}
+
 	wizScenesArray := append([]string{"None"}, wiz.AllSceneNames()...)
 	wizScenesArrayEncoded, err := json.Marshal(wizScenesArray)
 	if err != nil {
@@ -53,7 +58,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	  "color_mode_state_topic": #TOPIC#,
 	  "effect_state_topic": #TOPIC#,
 	  "availability_topic": #TOPIC#,
-	  "availability_template": "{{ value_json.available }}",
+	  "availability_template": "{{ #AVAILABILITY_TEMPLATE# }}",
       "json_attributes_template": "{{ value_json.attributes | to_json }}",
       "state_value_template": "{{ value_json.ha.state }}",
       "color_mode_value_template": "{{ value_json.ha.color_mode }}",
@@ -102,6 +107,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#SWITCH_UID#", switchUID)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#CMD_TOPIC#", cmdBaseTopic)
 	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#EFFECTS#", string(wizScenesArrayEncoded))
+	payloadTemplate = strings.ReplaceAll(payloadTemplate, "#AVAILABILITY_TEMPLATE#", availabilityTemplate)
 
 	discTopic := fmt.Sprintf("%s/device/%s/config", cnf.HomeAssistant.HomeAssistantTopic(), light.HAUID())
 
