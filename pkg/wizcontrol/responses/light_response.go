@@ -99,9 +99,9 @@ func BuildLightStatus(cnf *config.Config, l *light.Light) LightStatus {
 	if cnf.HomeAssistant != nil && cnf.HomeAssistant.AlwaysAvailable() && !l.Available() {
 		// Configured in home assistant mode with always available, but the light is currently unavailable
 		// as such, we override it's color as off
-		raw = &light.RawColor{}
+		raw = nil
 	}
-	
+
 	if raw != nil {
 		if raw.BR == 0 {
 			raw.BR = 100
