@@ -81,13 +81,13 @@ func handleStatusUpdate(cnf *config.Config, statusUpdate wiz.DeviceResultAndErro
 	logger.Debugf("State: color=%s, on=%v", color, on)
 
 	// MQTT update
-	sendLightStatus(cnf.Bus, light)
+	sendLightStatus(cnf, cnf.Bus, light)
 }
 
 // sendLightStatus publishes the current status of the light to the MQTT bus.
-func sendLightStatus(msgBus *bus.Bus, light *l.Light) {
+func sendLightStatus(cnf *config.Config, msgBus *bus.Bus, light *l.Light) {
 	logger := common.Logger.GetLogger("light-status").WithField("device", light.ID())
-	status := responses.BuildLightStatus(light)
+	status := responses.BuildLightStatus(cnf, light)
 
 	encoded, err := json.Marshal(status)
 	if err != nil {

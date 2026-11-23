@@ -25,7 +25,7 @@ func DiscoveryPayload(cnf *config.Config, light *light.Light) ([]byte, string) {
 	cmdBaseTopic := jsonEscapeStrNoQuotes(fmt.Sprintf("%s/light/%s", cnf.MQTT.GetTopic(), light.MqqtID()))
 
 	availabilityTemplate := "value_json.available"
-	if cnf.HomeAssistant.AlwaysAvailable() {
+	if cnf.HomeAssistant != nil && cnf.HomeAssistant.AlwaysAvailable() {
 		availabilityTemplate = "true"
 	}
 

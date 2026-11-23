@@ -7,6 +7,7 @@ import (
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/color"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/component/light"
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/config"
 )
 
 type HAColor struct {
@@ -54,8 +55,8 @@ type LightStatus struct {
 
 // BuildLightStatus constructs a LightStatus response from the given light's current state.
 // 'light' is the light whose status is being represented.
-func BuildLightStatus(light *light.Light) LightStatus {
-	lpc := light.LastProgrammedColor()
+func BuildLightStatus(cnf *config.Config, l *light.Light) LightStatus {
+	lpc := l.LastProgrammedColor()
 	var programmedColorName, programmedColor string
 	if lpc != nil {
 		programmedColorName, programmedColor = lpc.Name(), lpc.Value()
@@ -64,16 +65,16 @@ func BuildLightStatus(light *light.Light) LightStatus {
 	}
 
 	var actualColor, actualColorName string
-	lac := light.LastActualColor()
+	lac := l.LastActualColor()
 	if lac != nil {
 		actualColorName, actualColor = lac.Name(), lac.Value()
 	} else {
 		actualColorName, actualColor = color.UnknownColor, color.UnknownColor
 	}
 
-	activeScene := light.ActiveScene()
+	activeScene := l.ActiveScene()
 	var lockedUntil *time.Time
-	locked, _, until := light.Locker().IsLocked()
+	locked, _, until := l.Locker().IsLocked()
 	if locked {
 		// Kind of a special case, light is locked to an explicit color
 		// so although it has a programmed color, it's not *really* being driven by a scene
@@ -82,19 +83,25 @@ func BuildLightStatus(light *light.Light) LightStatus {
 	}
 
 	var ip string
-	if light.Device() != nil {
-		ip = light.Device().IP()
+	if l.Device() != nil {
+		ip = l.Device().IP()
 	}
 
 	state := "OFF"
-	if light.On() {
+	if l.On() {
 		state = "ON"
 	}
 	ha := HAEntity{
 		State: state,
 	}
 
-	raw := light.GetLastRawColor()
+	raw := l.GetLastRawColor()
+	if cnf.HomeAssistant != nil && cnf.HomeAssistant.AlwaysAvailable() && !l.Available() {
+		// Configured in home assistant mode with always available, but the light is currently unavailable
+		// as such, we override it's color as off
+		raw = &light.RawColor{}
+	}
+	
 	if raw != nil {
 		if raw.BR == 0 {
 			raw.BR = 100
@@ -134,11 +141,11 @@ func BuildLightStatus(light *light.Light) LightStatus {
 	}
 
 	return LightStatus{
-		Available: light.Available(),
+		Available: l.Available(),
 		Attributes: LightAttributes{
 			IP:                  ip,
-			MAC:                 light.MAC(),
-			On:                  light.On() && light.Available(),
+			MAC:                 l.MAC(),
+			On:                  l.On() && l.Available(),
 			ProgrammedColorName: programmedColorName,
 			ProgrammedColor:     programmedColor,
 			ActualColorName:     actualColorName,
@@ -147,9 +154,9 @@ func BuildLightStatus(light *light.Light) LightStatus {
 			ActiveScene:         activeScene,
 			Locked:              locked,
 			LockedUntil:         lockedUntil,
-			LastRSSI:            light.LastRSSI(),
-			AvgRSSI:             light.AverageRSSI(),
-			Online:              light.Available(),
+			LastRSSI:            l.LastRSSI(),
+			AvgRSSI:             l.AverageRSSI(),
+			Online:              l.Available(),
 		},
 		HA: ha,
 	}

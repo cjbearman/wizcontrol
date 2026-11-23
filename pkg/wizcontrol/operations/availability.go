@@ -39,7 +39,7 @@ func UpdateAvailability(cnf *config.Config) {
 				light.SetAvailable(false)
 
 				// Light not available, so update MQTT status since we won't be updating it's status
-				sendLightStatus(cnf.Bus, light)
+				sendLightStatus(cnf, cnf.Bus, light)
 
 			} else {
 				if lastState {
