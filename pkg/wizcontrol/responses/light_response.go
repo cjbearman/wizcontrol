@@ -91,6 +91,7 @@ func BuildLightStatus(cnf *config.Config, l *light.Light) LightStatus {
 	if l.On() {
 		state = "ON"
 	}
+
 	ha := HAEntity{
 		State: state,
 	}
@@ -100,6 +101,7 @@ func BuildLightStatus(cnf *config.Config, l *light.Light) LightStatus {
 		// Configured in home assistant mode with always available, but the light is currently unavailable
 		// as such, we override it's color as off
 		raw = nil
+		ha.State = "OFF"
 	}
 
 	if raw != nil {
