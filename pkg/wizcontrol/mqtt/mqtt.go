@@ -23,8 +23,8 @@ import (
 const (
 	topicLock          = "lock"
 	topicUnlock        = "unlock"
-	topicAddScene      = "addscene"
-	topicDelScene      = "delscene"
+	topicAddScene      = "addscenes"
+	topicDelScene      = "delscenes"
 	topicReset         = "reset"
 	topicPause         = "pause"
 	topicUnpause       = "unpause"
