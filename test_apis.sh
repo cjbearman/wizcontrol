@@ -15,6 +15,13 @@ if [ "$1" == "lock_office_green" ]; then
 	exit 1
 fi
 
+if [ "$1" == "lock_office_multi" ]; then
+	curl -v ${ENDPOINT}/lock -H "${CT}" -H "${AC}" \
+	-d '{"targets":["office_lights"],"for":"5s","color":["#00ff00", "#ff0000", "#0000ff"]}'
+	exit 1
+fi
+	
+
 if [ "$1" == "office_blue" ]; then
 
 	curl -v ${ENDPOINT}/addscenes -H "${CT}" -H "${AC}" \

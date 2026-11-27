@@ -3,6 +3,7 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/cjbearman/wiz/pkg/wiz"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
@@ -16,7 +17,7 @@ type LockRequest struct {
 	Targets common.StringSlice `json:"targets"`
 	For     string             `json:"for"`
 	Until   string             `json:"until"`
-	Color   string             `json:"color"`
+	Color   common.StringSlice `json:"color"`
 }
 
 // HandleLockRequest processes a lock request, validating the input and locking the specified targets.
@@ -30,20 +31,23 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 	}
 
 	// Validate color
-	if request.Color == "" {
+	if len(request.Color) == 0 {
 		return NewGeneralResponse(false, "color is required"), NewRpcError(400, "color is required")
 	}
 
-	var color string
-	col := cnf.Colors[request.Color]
-	if col != nil {
-		color = col.Value()
-	} else {
-		// So it wasn't a named color, check if it's a raw color spec
-		if _, err := wiz.SettingsFromString(request.Color); err == nil {
-			color = request.Color
+	var colors []string
+
+	for _, color := range request.Color {
+		col := cnf.Colors[color]
+		if col != nil {
+			colors = append(colors, col.Value())
 		} else {
-			return NewGeneralResponse(false, fmt.Sprintf("invalid color %q, must be named color or raw color specification", request.Color)), NewRpcError(400, "invalid color: %s", request.Color)
+			// So it wasn't a named color, check if it's a raw color spec
+			if _, err := wiz.SettingsFromString(color); err == nil {
+				colors = append(colors, color)
+			} else {
+				return NewGeneralResponse(false, fmt.Sprintf("invalid color %q, must be named color or raw color specification", color)), NewRpcError(400, "invalid color: %s", color)
+			}
 		}
 	}
 
@@ -72,10 +76,25 @@ func HandleLockRequest(cnf *config.Config, req []byte) ([]byte, *RpcError) {
 		} else {
 			targetLights = append(targetLights, lightsInTarget...)
 		}
-
 	}
-	// Lock the targets
-	for _, target := range targetLights {
+
+	// If we have more than one target, we'll shuffle the array of targets
+	if len(targetLights) > 1 {
+		rand.Shuffle(len(targetLights), func(i, j int) {
+			targetLights[i], targetLights[j] = targetLights[j], targetLights[i]
+		})
+	}
+
+	// If we have more than one color, we'll shuffle the array of colors
+	if len(colors) > 1 {
+		rand.Shuffle(len(colors), func(i, j int) {
+			colors[i], colors[j] = colors[j], colors[i]
+		})
+	}
+
+	// Lock the targets, assigning a color to each based on its index in the shuffled array of targets
+	for idx, target := range targetLights {
+		color := colors[idx%len(colors)]
 		colorObj := cnf.Colors.GetByValue(color)
 
 		target.Locker().LockUntil(lockedUntil, colorObj)
