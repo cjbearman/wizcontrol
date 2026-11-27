@@ -35,8 +35,16 @@ mqtt:
   # server_certs: "server.crt"
 
 home_assistant:
+  # Set the topic used by homeassistant, defaults to "homeassistant" as one would expect
   home_assistant_topic: "homeassistant"
+
+  # Lights changed through MQTT operations will lock out from scene control for the
+  # specified period, unless otherwise stated in the light setting itself
   default_lock_for: day
+
+  # Set always_available true (default false) if you want the light to show up as available
+  # in HA, even when not pingable. By default, the light will go unavailable when non-pingable.
+  always_available: true
 
 # If any of your lights have MAC addresses configured instead of IPs, they will need discovery
 # These parameters control the discovery process for lights with MAC addresses
@@ -230,6 +238,10 @@ colors:
     color: "#30FF00"
   - name: democratic_blue
     color: "#0000FF0005"
+  - name: packers_gold
+    color: "#FFDD00"
+  - name: packers_green
+    color: "#1AFF00"
   - name: xmas_dynamic
     color: christmas/100/75
   - name: diwali_dynamic
@@ -296,7 +308,8 @@ scenes:
     elements:
       - targets:
         - bedroom_lights
-        color: warm_white
+        color: warmish_white
+    group: bedroom
   - name: halloween
     elements:
       - targets: [ outside_lights ]
@@ -320,8 +333,6 @@ scenes:
     group: outside_lights
   - name: patriotic
     elements:
-      - targets: [ outside_lights ]
-        color: warm_white
       - targets: [ front_flood_ll, front_flood_cl, front_flood_rl, porch_l ]
         color: blue
       - targets: [ front_flood_lr, front_flood_cr, front_flood_rr, porch_r ]
@@ -331,7 +342,7 @@ scenes:
     group: outside_lights
   - name: thanksgiving
     elements:
-      - targets: [ outside_lights ]
+      - targets: [ front_of_house ]
         color: orange
     group: outside_lights
   - name: pastel
@@ -403,6 +414,7 @@ scenes:
     elements:
       - targets: [ office_lights ]
         color: greenish
+    group: office
   - name: office_party
     elements:
       - targets: [ office_lights ]
@@ -475,6 +487,14 @@ scenes:
     elements:
       - targets: [ patio_lights ]
         color: sunset_dynamic
+  - name: cheese_it
+    elements:
+      - targets: [ bedroom_lights ]
+        color: packers_green
+      - targets: [ bedroom_ceiling_1, bedroom_ceiling_3 ]
+        color: packers_gold
+    group: bedroom
+      
 
 # Calendars activate scenes at specific times
 # Each calendar must have a name and a from and to date for which it will be considered
@@ -523,7 +543,7 @@ calendar:
     to: st_patricks_day
     scenes: [ paddy ]
   - name: thanksgiving
-    from: thanksgiving_day - 3
+    from: thanksgiving_day - 6
     to: thanksgiving_day + 1
     scenes: [ thanksgiving ]  
   # An example scene that randomizes scenes every 30 minutes (every day of the year in this case)
@@ -546,7 +566,7 @@ calendar:
       - patio_summer_dynamic
       - patio_sunset_dynamic
     mode: random
-    frequency: 30m
+    frequency: 24h
   - name: go_democrats
     from: nov 3
     to: nov 5
@@ -565,5 +585,5 @@ calendar:
   - name: bedroom_warm
     from: jan 1
     to: dec 31
-    after: 8:30 pm
+    after: 7:30 pm
     scenes: [ bedroom_evening ]
