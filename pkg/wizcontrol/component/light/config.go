@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/common"
 	"github.com/cjbearman/wizcontrol/pkg/wizcontrol/validator"
 	"gopkg.in/yaml.v3"
 )
@@ -12,12 +13,12 @@ var IDReg = regexp.MustCompile(`^[a-z0-9\-_]+$`)
 
 // ConfigYAML is the YAML representation of a light configuration
 type ConfigYAML struct {
-	Name      string   `yaml:"name"`
-	ID        string   `yaml:"id"`
-	IP        string   `yaml:"ip"`
-	MAC       string   `yaml:"mac"`
-	Groups    []string `yaml:"groups"`
-	HALockFor string   `yaml:"ha_lock_for"`
+	Name      string             `yaml:"name"`
+	ID        string             `yaml:"id"`
+	IP        string             `yaml:"ip"`
+	MAC       string             `yaml:"mac"`
+	Groups    common.StringSlice `yaml:"groups"`
+	HALockFor string             `yaml:"ha_lock_for"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for ConfigYAML

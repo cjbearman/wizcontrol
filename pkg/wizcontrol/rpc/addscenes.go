@@ -12,12 +12,12 @@ import (
 
 // AddScenesRequest represents the request payload for adding scenes, including the scenes, groups, and scheduling information.
 type AddScenesRequest struct {
-	Scenes        []string `json:"scenes"`
-	Groups        []string `json:"groups"`
-	ClearExisting bool     `json:"clear_existing"`
-	For           string   `json:"for"`
-	Until         string   `json:"until"`
-	ResetGroup    string   `json:"reset_group"`
+	Scenes        common.StringSlice `json:"scenes"`
+	Groups        common.StringSlice `json:"groups"`
+	ClearExisting bool               `json:"clear_existing"`
+	For           string             `json:"for"`
+	Until         string             `json:"until"`
+	ResetGroup    string             `json:"reset_group"`
 }
 
 // HandleAddScenesRequest processes an AddScenesRequest, updating the configuration with the specified scenes and groups.

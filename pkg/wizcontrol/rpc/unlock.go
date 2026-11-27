@@ -11,7 +11,7 @@ import (
 
 // UnlockRequest represents the request structure for the unlock request.
 type UnlockRequest struct {
-	Targets []string `json:"targets"`
+	Targets common.StringSlice `json:"targets"`
 }
 
 // HandleUnlockRequest handles the unlock request and returns the JSON-encoded response along with any RPC error.

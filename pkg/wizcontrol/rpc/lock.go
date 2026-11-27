@@ -13,10 +13,10 @@ import (
 
 // LockRequest represents the request payload for a lock operation.
 type LockRequest struct {
-	Targets []string `json:"targets"`
-	For     string   `json:"for"`
-	Until   string   `json:"until"`
-	Color   string   `json:"color"`
+	Targets common.StringSlice `json:"targets"`
+	For     string             `json:"for"`
+	Until   string             `json:"until"`
+	Color   string             `json:"color"`
 }
 
 // HandleLockRequest processes a lock request, validating the input and locking the specified targets.
